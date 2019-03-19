@@ -15,8 +15,6 @@ import (
   "io/ioutil"
   "os"
   "time"
-
-  "github.com/urfave/cli"
 )
 
 func init() {

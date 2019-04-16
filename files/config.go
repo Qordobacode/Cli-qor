@@ -57,6 +57,7 @@ func IsConfigFileCorrect(config *models.QordobaConfig) bool {
 	return isConfigCorrect
 }
 
+// IsFilePresent validates path
 func IsFilePresent(path string) bool {
 	if _, err := os.Stat(path); err == nil {
 		return true

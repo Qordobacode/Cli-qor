@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/files"
-	"github.com/qordobacode/cli-v2/log"
 	"github.com/qordobacode/cli-v2/models"
 	"github.com/spf13/cobra"
 )
@@ -32,7 +31,6 @@ func RunInit(fileName string) error {
 	if fileName != "" {
 		config, err = files.ReadConfigInPath(fileName)
 		if err != nil {
-			log.Infof("config file is not valid")
 			return err
 		}
 	}

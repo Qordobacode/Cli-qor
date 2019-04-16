@@ -27,15 +27,21 @@ var cfgFile string
 
 var Verbose bool
 var Help bool
+var Version bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "test",
-	Short: "Quordoba CLI",
-	Long:  `This CLI is used for simplified access to Quordoba API`,
+	Use:     "qor",
+	Short:   "Quordoba CLI",
+	Long:    `This CLI is used for simplified access to Quordoba API`,
+	Version: ApiVersion,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		if Version {
+			printVersion()
+		}
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -54,8 +60,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
-	//rootCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", false, "verbose output")
-	//rootCmd.PersistentFlags().BoolVarP(&Verbose, "help", "h", false, "print help")
+	rootCmd.PersistentFlags().BoolVarP(&Verbose, "version", "v", false, "version")
 }
 
 // initConfig reads in config file and ENV variables if set.

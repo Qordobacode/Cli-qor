@@ -1,4 +1,4 @@
-package cli
+package service
 
 import "unicode"
 

@@ -1,0 +1,19 @@
+# Log files
+*.log
+*.out
+fmt
+
+# Env files
+.env
+
+# JetBrains tools' data
+.idea
+
+# Vendored packages
+vendor/
+
+config.yml
+
+# Binaries
+env.sh
+*.exe

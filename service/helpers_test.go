@@ -1,5 +1,5 @@
 // the main test
-package cli
+package service
 
 import (
 	"os"

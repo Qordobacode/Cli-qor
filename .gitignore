@@ -17,3 +17,4 @@ config.yml
 # Binaries
 env.sh
 *.exe
+*-test.yaml

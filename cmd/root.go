@@ -16,16 +16,16 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/qordobacode/cli-v2/log"
 	"os"
 
-	homedir "github.com/mitchellh/go-homedir"
+	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
 var cfgFile string
 
-var Verbose bool
 var Help bool
 var Version bool
 
@@ -60,7 +60,8 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
-	rootCmd.PersistentFlags().BoolVarP(&Verbose, "version", "v", false, "version")
+	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "--version")
+	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "--verbose")
 }
 
 // initConfig reads in config file and ENV variables if set.

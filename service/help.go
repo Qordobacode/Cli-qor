@@ -261,39 +261,6 @@ func checkHelp(c *Context) bool {
 	return found
 }
 
-func checkCommandHelp(c *Context, name string) bool {
-	if c.Bool("h") || c.Bool("help") {
-		ShowCommandHelp(c, name)
-		return true
-	}
-
-	return false
-}
-
-func checkSubcommandHelp(c *Context) bool {
-	if c.Bool("h") || c.Bool("help") {
-		ShowSubcommandHelp(c)
-		return true
-	}
-
-	return false
-}
-
-func checkShellCompleteFlag(a *App, arguments []string) (bool, []string) {
-	if !a.EnableBashCompletion {
-		return false, arguments
-	}
-
-	pos := len(arguments) - 1
-	lastArg := arguments[pos]
-
-	if lastArg != "--"+BashCompletionFlag.GetName() {
-		return false, arguments
-	}
-
-	return true, arguments[:pos]
-}
-
 func checkCompletions(c *Context) bool {
 	if !c.shellComplete {
 		return false

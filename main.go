@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/qordobacode/test/cmd"
+	"github.com/qordobacode/cli-v2/cmd"
 	"log"
 )
 

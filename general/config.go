@@ -1,10 +1,9 @@
-package files
+package general
 
 import (
 	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
-	"github.com/qordobacode/cli-v2/models"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
@@ -13,11 +12,12 @@ import (
 const (
 	qordobaHomeTemplate = "%s/.qordoba"
 	configPathTemplate  = "%s/.qordoba/config.yaml"
+	prodAPIEndpoint     = "https://app.qordoba.com/"
 )
 
 // ReadConfigInPath load config in some folder -> this might be source config OR local config for import
-func ReadConfigInPath(path string) (*models.QordobaConfig, error) {
-	var config models.QordobaConfig
+func ReadConfigInPath(path string) (*QordobaConfig, error) {
+	var config QordobaConfig
 	if path == "" {
 		log.Infof("Path for config shouldn't be empty\n")
 		return nil, errors.New("config path can't be empty")
@@ -41,7 +41,7 @@ func ReadConfigInPath(path string) (*models.QordobaConfig, error) {
 }
 
 // LoadConfig function loads content of main quordoba configuration
-func LoadConfig() (*models.QordobaConfig, error) {
+func LoadConfig() (*QordobaConfig, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Debugf("error occurred on home dir retrieval: %v\n", err)
@@ -56,7 +56,7 @@ func LoadConfig() (*models.QordobaConfig, error) {
 }
 
 // IsConfigFileCorrect validates config file is correct
-func IsConfigFileCorrect(config *models.QordobaConfig) bool {
+func IsConfigFileCorrect(config *QordobaConfig) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
 		log.Infof("access token is not set\n")
@@ -74,7 +74,7 @@ func IsConfigFileCorrect(config *models.QordobaConfig) bool {
 }
 
 // SaveMainConfig function update content of application's config
-func SaveMainConfig(config *models.QordobaConfig) {
+func SaveMainConfig(config *QordobaConfig) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Debugf("error occurred on home dir retrieval: %v\n", err)
@@ -104,4 +104,13 @@ func SaveMainConfig(config *models.QordobaConfig) {
 func GetConfigPath(home string) (string, error) {
 	configPath := fmt.Sprintf(configPathTemplate, home)
 	return configPath, nil
+}
+
+// GetAPIBase get value of API endpoint from config OR prod as a default
+func (config *QordobaConfig) GetAPIBase() string {
+	base := prodAPIEndpoint
+	if config.BaseURL != "" {
+		base = config.BaseURL
+	}
+	return base
 }

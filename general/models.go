@@ -1,4 +1,4 @@
-package models
+package general
 
 // QordobaConfig structs holds workspace's specific information
 type QordobaConfig struct {

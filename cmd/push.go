@@ -2,9 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/qordobacode/cli-v2/files"
+	"github.com/qordobacode/cli-v2/general"
 	"github.com/qordobacode/cli-v2/log"
-	"github.com/qordobacode/cli-v2/models"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
@@ -27,20 +26,24 @@ var (
 var pushCmd = &cobra.Command{
 	Use:   "push",
 	Short: "Push files or folders",
-	Run: func(cmd *cobra.Command, args []string) {
-		log.Debugf("push was called\n")
-		log.Debugf("version = %v\n", fileVersion)
-		log.Debugf("args: %v\n", args)
-		qordobaConfig, err := files.LoadConfig()
-		if err != nil {
-			return
-		}
-		fileList := args
-		if len(args) == 0 {
-			fileList = getFolderFileNames()
-		}
-		pushFiles(qordobaConfig, fileList)
-	},
+	Run:   pushCommand,
+}
+
+func pushCommand(cmd *cobra.Command, args []string) {
+	log.Debugf("push was called\n")
+	log.Debugf("version = %v\n", fileVersion)
+	log.Debugf("args: %v\n", args)
+	qordobaConfig, err := general.LoadConfig()
+	if err != nil {
+		return
+	}
+	fileList := args
+	if len(args) == 0 {
+		fileList = getFolderFileNames()
+	}
+	for _, file := range fileList {
+		pushFile(qordobaConfig, file)
+	}
 }
 
 func init() {
@@ -66,11 +69,12 @@ func getFolderFileNames() []string {
 	return result
 }
 
-func pushFiles(qordoba *models.QordobaConfig, files []string) {
-
-}
-
-func pushFile(filePath string) {
-	bytes, err := ioutil.ReadFile(filePath)
-
+func pushFile(qordoba *general.QordobaConfig, filePath string) {
+	//bytes, err := ioutil.ReadFile(filePath)
+	//if err != nil {
+	//	log.Infof("can't handle file %s: %v\n", filePath, err)
+	//	return
+	//}
+	//
+	//http.NewRequest("POST", )
 }

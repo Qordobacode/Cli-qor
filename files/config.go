@@ -15,6 +15,7 @@ const (
 	configPathTemplate  = "%s/.qordoba/config.yaml"
 )
 
+// ReadConfigInPath load config in some folder -> this might be source config OR local config for import
 func ReadConfigInPath(path string) (*models.QordobaConfig, error) {
 	var config models.QordobaConfig
 	if path == "" {
@@ -39,6 +40,21 @@ func ReadConfigInPath(path string) (*models.QordobaConfig, error) {
 	return &config, nil
 }
 
+// LoadConfig function loads content of main quordoba configuration
+func LoadConfig() (*models.QordobaConfig, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Debugf("error occurred on home dir retrieval: %v\n", err)
+		return nil, err
+	}
+	path, err := GetConfigPath(home)
+	if err != nil {
+		log.Debugf("error occurred on building path to config: %v\n", err)
+		return nil, err
+	}
+	return ReadConfigInPath(path)
+}
+
 // IsConfigFileCorrect validates config file is correct
 func IsConfigFileCorrect(config *models.QordobaConfig) bool {
 	isConfigCorrect := true
@@ -57,22 +73,11 @@ func IsConfigFileCorrect(config *models.QordobaConfig) bool {
 	return isConfigCorrect
 }
 
-// IsFilePresent validates path
-func IsFilePresent(path string) bool {
-	if _, err := os.Stat(path); err == nil {
-		return true
-	} else if os.IsNotExist(err) {
-		return false
-	} else {
-		// may or may NOT exist. Return false
-		return false
-	}
-}
-
-func PersistAppConfig(config *models.QordobaConfig) {
+// SaveMainConfig function update content of application's config
+func SaveMainConfig(config *models.QordobaConfig) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Debugf("error occurred on home dir validation: %v\n", err)
+		log.Debugf("error occurred on home dir retrieval: %v\n", err)
 		return
 	}
 	path, e := GetConfigPath(home)
@@ -95,20 +100,8 @@ func PersistAppConfig(config *models.QordobaConfig) {
 	}
 }
 
+// GetConfigPath builds path to config according with template
 func GetConfigPath(home string) (string, error) {
 	configPath := fmt.Sprintf(configPathTemplate, home)
 	return configPath, nil
-}
-
-func IsConfigPresent() bool {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Debugf("error occurred on home dir validation: %v\n", err)
-		return false
-	}
-	configPath, err := GetConfigPath(home)
-	if err != nil {
-		return false
-	}
-	return IsFilePresent(configPath)
 }

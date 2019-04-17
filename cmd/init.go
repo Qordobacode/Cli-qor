@@ -54,7 +54,7 @@ func RunInit(fileName string) error {
 		}
 	}
 
-	files.PersistAppConfig(config)
+	files.SaveMainConfig(config)
 	return nil
 }
 

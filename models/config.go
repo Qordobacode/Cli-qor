@@ -3,6 +3,7 @@ package models
 // QordobaConfig structs holds workspace's specific information
 type QordobaConfig struct {
 	Qordoba Qordoba `yaml:"qordoba"`
+	BaseURL string  `yaml:"base_url,omitempty"`
 }
 
 type Qordoba struct {

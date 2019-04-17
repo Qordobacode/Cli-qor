@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	pushFileTemplate    = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
+	pushFileTemplate = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
+	// ApplicationJsonType used in Http header 'Content-Type'
 	ApplicationJsonType = "application/json"
 )
 

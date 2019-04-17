@@ -11,22 +11,24 @@ import (
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Init configuration for Qordoba CLI from STDIN",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Println("init called")
-		fileName := ""
-		if len(args) > 0 {
-			fileName = args[0]
-		}
-		return RunInit(fileName)
-	},
+	Use:         "init",
+	Short:       "Init configuration for Qordoba CLI from STDIN",
+	RunE:        RunInitRoot,
 	Example:     "qor init",
 	Annotations: map[string]string{"version": ApiVersion},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+}
+
+func RunInitRoot(cmd *cobra.Command, args []string) error {
+	fmt.Println("init called")
+	fileName := ""
+	if len(args) > 0 {
+		fileName = args[0]
+	}
+	return RunInit(fileName)
 }
 
 // RunConfigCreate creates a config with the given options.

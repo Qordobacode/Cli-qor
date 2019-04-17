@@ -47,7 +47,7 @@ func RunInit(fileName string) error {
 		config = &general.QordobaConfig{
 			Qordoba: general.Qordoba{
 				AccessToken:    accessToken,
-				ProductID:      projectID,
+				ProjectID:      projectID,
 				OrganizationID: organizationID,
 			},
 		}

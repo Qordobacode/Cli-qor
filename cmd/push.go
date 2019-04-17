@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/qordobacode/cli-v2/log"
@@ -9,6 +10,11 @@ import (
 	"net/http"
 	"regexp"
 	"time"
+)
+
+const (
+	pushFileTemplate    = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
+	ApplicationJsonType = "application/json"
 )
 
 var (
@@ -20,14 +26,13 @@ var (
 	HTTPClient = http.Client{
 		Timeout: time.Minute * 10,
 	}
+	// pushCmd represents the push command
+	pushCmd = &cobra.Command{
+		Use:   "push",
+		Short: "Push files or folders",
+		Run:   pushCommand,
+	}
 )
-
-// pushCmd represents the push command
-var pushCmd = &cobra.Command{
-	Use:   "push",
-	Short: "Push files or folders",
-	Run:   pushCommand,
-}
 
 func pushCommand(cmd *cobra.Command, args []string) {
 	log.Debugf("push was called\n")
@@ -70,11 +75,23 @@ func getFolderFileNames() []string {
 }
 
 func pushFile(qordoba *general.QordobaConfig, filePath string) {
-	//bytes, err := ioutil.ReadFile(filePath)
-	//if err != nil {
-	//	log.Infof("can't handle file %s: %v\n", filePath, err)
-	//	return
-	//}
-	//
-	//http.NewRequest("POST", )
+	pathContent, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		log.Infof("can't handle file %s: %v\n", filePath, err)
+		return
+	}
+	base := qordoba.GetAPIBase()
+	pushFileURL := fmt.Sprintf(pushFileTemplate, base, qordoba.Qordoba.OrganizationID, qordoba.Qordoba.ProjectID)
+	reader := bytes.NewReader(pathContent)
+	request, err := http.NewRequest("POST", pushFileURL, reader)
+	if err != nil {
+		log.Infof("error occurred on building file post request: %v\n", err)
+		return
+	}
+	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
+	request.Header.Add("Content-Type", ApplicationJsonType)
+	_, err = HTTPClient.Do(request)
+	if err != nil {
+		log.Infof("error occurred on sending POST request to server")
+	}
 }

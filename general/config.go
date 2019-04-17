@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
 const (
@@ -59,15 +60,15 @@ func LoadConfig() (*QordobaConfig, error) {
 func IsConfigFileCorrect(config *QordobaConfig) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
-		log.Infof("access token is not set\n")
+		log.Infof("access_token is not set\n")
 		isConfigCorrect = false
 	}
 	if config.Qordoba.OrganizationID == 0 {
-		log.Infof("organization id is not set\n")
+		log.Infof("organization_id is not set\n")
 		isConfigCorrect = false
 	}
-	if config.Qordoba.ProductID == 0 {
-		log.Infof("product id is not set\n")
+	if config.Qordoba.ProjectID == 0 {
+		log.Infof("product_id is not set\n")
 		isConfigCorrect = false
 	}
 	return isConfigCorrect
@@ -112,5 +113,6 @@ func (config *QordobaConfig) GetAPIBase() string {
 	if config.BaseURL != "" {
 		base = config.BaseURL
 	}
+	base = strings.TrimSuffix(base, "/")
 	return base
 }

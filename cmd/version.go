@@ -8,7 +8,7 @@ import (
 
 const (
 	ApplicationName = "Qordoba CLI"
-	ApiVersion      = "v1"
+	ApiVersion      = "v4"
 )
 
 // versionCmd represents the version command

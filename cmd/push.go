@@ -9,17 +9,13 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
-	"time"
 )
 
 const (
 	pushFileTemplate = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
-	// ApplicationJsonType used in Http header 'Content-Type'
-	ApplicationJsonType = "application/json"
 )
 
 var (
@@ -27,10 +23,6 @@ var (
 	isUpdate            bool
 	allowedMimeTypes, _ = regexp.Compile("\\.(csv|xml|json|txt|yaml|yml)$")
 
-	// HTTPClient - custom one with a delay set
-	HTTPClient = http.Client{
-		Timeout: time.Minute * 1,
-	}
 	// pushCmd represents the push command
 	pushCmd = &cobra.Command{
 		Use:   "push",
@@ -38,6 +30,12 @@ var (
 		Run:   pushCommand,
 	}
 )
+
+func init() {
+	pushCmd.Flags().StringVarP(&fileVersion, "version", "v", "", "--version")
+	pushCmd.Flags().BoolVarP(&isUpdate, "update", "u", false, "--update")
+	rootCmd.AddCommand(pushCmd)
+}
 
 func pushCommand(cmd *cobra.Command, args []string) {
 	log.Debugf("push was called\n")
@@ -54,12 +52,6 @@ func pushCommand(cmd *cobra.Command, args []string) {
 	for _, file := range fileList {
 		pushFile(qordobaConfig, file)
 	}
-}
-
-func init() {
-	pushCmd.Flags().StringVarP(&fileVersion, "version", "v", "", "--version")
-	pushCmd.Flags().BoolVarP(&isUpdate, "update", "u", false, "--update")
-	rootCmd.AddCommand(pushCmd)
 }
 
 func getFolderFileNames() []string {
@@ -113,29 +105,7 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.QordobaConfig, file
 	if err != nil {
 		return
 	}
-	sendRequestToServer(qordoba, filePath, pushFileURL, reader)
-}
-
-func sendRequestToServer(qordoba *general.QordobaConfig, filePath, pushFileURL string, reader io.Reader) {
-	request, err := http.NewRequest("POST", pushFileURL, reader)
-
-	if err != nil {
-		log.Errorf("error occurred on building file post request: %v\n", err)
-		return
-	}
-	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
-	request.Header.Add("Content-Type", ApplicationJsonType)
-	resp, err := HTTPClient.Do(request)
-	if err != nil {
-		log.Errorf("error occurred on sending POST request to server\n")
-		return
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode/100 != 2 {
-		log.Errorf("File %s push status: %v\nresponse : %v", filePath, resp.Status, string(body))
-	} else {
-		log.Infof("File %s was succesfully pushed to server", filePath)
-	}
+	general.PostToServer(qordoba, filePath, pushFileURL, reader)
 }
 
 func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, error) {

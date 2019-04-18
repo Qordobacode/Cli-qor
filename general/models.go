@@ -11,3 +11,9 @@ type Qordoba struct {
 	OrganizationID int64  `yaml:"organization_id"`
 	ProjectID      int64  `yaml:"project_id"`
 }
+
+type PushRequest struct {
+	FileName string `json:"filename"`
+	Version  string `json:"version"`
+	Content  string `json:"content"`
+}

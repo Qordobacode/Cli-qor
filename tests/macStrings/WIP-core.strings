@@ -1,0 +1,16 @@
+//a bit about a fox
+"key-1" = "The [[quick]] brown fox jumped over the lazy dog.";
+
+"key-2" = "You don't look a gift horse \n In the mouth"; //it's a nice horse
+
+/* Comment on It's ducks all the way down. */
+"key-3" = "It's ducks all the way down.";
+
+"key-0" = "";
+
+"plural-key##{zero}" = "zero";
+"plural-key##{one}" = "one";
+"plural-key##{two}" = "two";
+"plural-key##{few}" = "few";
+"plural-key##{some}" = "many";
+"plural-key##{other}" = "other";

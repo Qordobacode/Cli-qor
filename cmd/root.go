@@ -70,6 +70,7 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
+
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {

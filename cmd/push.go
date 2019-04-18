@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 )
@@ -65,13 +66,13 @@ func getFolderFileNames() []string {
 	result := make([]string, 0, 0)
 	curFolderFiles, err := ioutil.ReadDir("./")
 	if err != nil {
-		fmt.Printf("error occurred on retrieving list of all files in current folder: %v\n", err)
+		log.Errorf("error occurred on retrieving list of all files in current folder: %v\n", err)
 		return result
 	}
 	for _, f := range curFolderFiles {
 		file := f.Name()
 		if allowedMimeTypes.FindString(file) != "" {
-			fmt.Printf("push file: %v\n", file)
+			//fmt.Printf("push file: %v\n", file)
 		}
 		result = append(result, file)
 	}
@@ -79,56 +80,81 @@ func getFolderFileNames() []string {
 }
 
 func pushFile(qordoba *general.QordobaConfig, filePath string) {
-	reader, err := buildPushRequestBody(filePath)
-	if err != nil {
+	fileInfo, e := os.Stat(filePath)
+	if e != nil {
+		log.Errorf("error occurred in file read: %v\n", e)
 		return
 	}
 	base := qordoba.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, qordoba.Qordoba.OrganizationID, qordoba.Qordoba.ProjectID)
-	request, err := http.NewRequest("POST", pushFileURL, reader)
+	if fileInfo.IsDir() {
+		err := filepath.Walk(filePath, func(path string, childFileInfo os.FileInfo, err error) error {
+			if childFileInfo.IsDir() {
+				return nil
+			}
+			sendFileToServer(childFileInfo, qordoba, path, pushFileURL)
+			return nil
+		})
+		if err != nil {
+			log.Errorf("error occurred: %v", err)
+		}
+	} else {
+		sendFileToServer(fileInfo, qordoba, filePath, pushFileURL)
+	}
+
+}
+
+func sendFileToServer(fileInfo os.FileInfo, qordoba *general.QordobaConfig, filePath, pushFileURL string) {
+	if fileInfo.IsDir() {
+		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
+		return
+	}
+	reader, err := buildPushRequestBody(fileInfo, filePath)
 	if err != nil {
-		log.Infof("error occurred on building file post request: %v\n", err)
+		return
+	}
+	sendRequestToServer(qordoba, filePath, pushFileURL, reader)
+}
+
+func sendRequestToServer(qordoba *general.QordobaConfig, filePath, pushFileURL string, reader io.Reader) {
+	request, err := http.NewRequest("POST", pushFileURL, reader)
+
+	if err != nil {
+		log.Errorf("error occurred on building file post request: %v\n", err)
 		return
 	}
 	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
 	request.Header.Add("Content-Type", ApplicationJsonType)
 	resp, err := HTTPClient.Do(request)
 	if err != nil {
-		log.Infof("error occurred on sending POST request to server\n")
+		log.Errorf("error occurred on sending POST request to server\n")
 		return
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode/100 != 2 {
-		log.Infof("Error while pushing file to server\n")
-		log.Infof("File %s push status: %v\nresponse : %v", filePath, resp.Status, string(body))
+		log.Errorf("File %s push status: %v\nresponse : %v", filePath, resp.Status, string(body))
 	} else {
 		log.Infof("File %s was succesfully pushed to server", filePath)
 	}
 }
 
-func buildPushRequestBody(filePath string) (io.Reader, error) {
-	info, e := os.Stat(filePath)
-	if e != nil {
-		log.Infof("error occurred in file read: %v\n", e)
-		return nil, e
-	}
+func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Infof("can't handle file %s: %v\n", filePath, err)
+		log.Errorf("can't handle file %s: %v\n", filePath, err)
 		return nil, err
 	}
 	requestBody := general.PushRequest{
-		FileName: info.Name(),
+		FileName: fileInfo.Name(),
 		Version:  fileVersion,
 		Content:  string(fileContent),
 	}
 
 	marshaledBody, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Infof("error occurred on marshalling object: %v\n", err)
+		log.Errorf("error occurred on marshalling object: %v\n", err)
 		return nil, err
 	}
-	fmt.Printf("body = %v", string(marshaledBody))
 	reader := bytes.NewReader(marshaledBody)
 	return reader, nil
 }

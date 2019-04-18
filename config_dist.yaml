@@ -1,0 +1,5 @@
+qordoba:
+  access_token: some_token
+  organization_id: 3001
+  project_id: 2879
+base_url:  this_field_is_optional_prod_used_if_not_specified

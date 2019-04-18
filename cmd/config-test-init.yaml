@@ -1,5 +1,0 @@
-qordoba:
-  access_token: some-vale
-  organization_id: 100
-  project_id: 300
-base_url:  "https://app.qordobatest.com/"

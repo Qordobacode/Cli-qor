@@ -2,4 +2,15 @@ qordoba:
   access_token: some_token
   organization_id: 3001
   project_id: 2879
-base_url:  this_field_is_optional_prod_used_if_not_specified
+  audiences_map: {}
+push:
+  sources:
+    files:
+      - C:\data\golang-example\qordoba-example-formats\pot2\core.qordoba-pot2
+      - C:\data\golang-example\qordoba-example-formats\resx\exaple.resx
+    folders:
+download:
+  targets: []
+blacklist:
+  sources: []
+base_url: https://app.qordobatest.com/

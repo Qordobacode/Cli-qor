@@ -18,7 +18,7 @@ const (
 
 // ReadConfigInPath load config in some folder -> this might be source config OR local config for import
 func ReadConfigInPath(path string) (*Config, error) {
-	log.Debugf("used config in directory %v", path)
+	log.Infof("used config in directory %v", path)
 	var config Config
 	if path == "" {
 		log.Infof("Path for config shouldn't be empty")
@@ -32,7 +32,7 @@ func ReadConfigInPath(path string) (*Config, error) {
 	}
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		log.Infof("error occurred on config file unmarshaling")
+		log.Infof("error occurred on config file unmarshaling: %v", err)
 		return nil, err
 	}
 	if !IsConfigFileCorrect(&config) {

@@ -17,7 +17,12 @@ type QordobaConfig struct {
 }
 
 type PushConfig struct {
-	Sources []string `yaml:"sources"`
+	Sources SourceConfig `yaml:"sources"`
+}
+
+type SourceConfig struct {
+	Files   []string `yaml:"files"`
+	Folders []string `yaml:"folders"`
 }
 
 type DownloadConfig struct {

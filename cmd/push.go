@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -42,24 +43,32 @@ func init() {
 func pushCommand(cmd *cobra.Command, args []string) {
 	log.Debugf("push was called")
 	log.Debugf("version = %v", fileVersion)
-	log.Debugf("args: %v", args)
 	qordobaConfig, err := general.LoadConfig()
 	if err != nil {
 		return
 	}
 	if folderPath == "" && files == "" {
 		pushSources := qordobaConfig.Push.Sources
-		pushFiles(pushSources, qordobaConfig)
+		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  Files: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
+		pushFiles(pushSources.Files, qordobaConfig)
+		for _, folder := range pushSources.Folders {
+			pushFolder(folder, qordobaConfig)
+		}
 	} else {
 		if files != "" {
 			fileList := filepath.SplitList(files)
+			log.Infof("Files were found in command. Separator for files is '%v'. Result list of files is: %v", os.PathListSeparator, fileList)
 			pushFiles(fileList, qordobaConfig)
 		}
 		if folderPath != "" {
-			fileList := getFilesInFolder(folderPath)
-			pushFiles(fileList, qordobaConfig)
+			pushFolder(folderPath, qordobaConfig)
 		}
 	}
+}
+
+func pushFolder(folder string, qordobaConfig *general.Config) {
+	fileList := getFilesInFolder(folder)
+	pushFiles(fileList, qordobaConfig)
 }
 
 func pushFiles(fileList []string, qordobaConfig *general.Config) {
@@ -119,7 +128,21 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 	if err != nil {
 		return
 	}
-	general.PostToServer(qordoba, filePath, pushFileURL, reader)
+	resp, err := general.PostToServer(qordoba, pushFileURL, reader)
+	if err != nil {
+		log.Errorf("error occurred on building file post request: %v", err)
+		return
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode/100 != 2 {
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+		} else {
+			log.Errorf("File %s push status: %v. Response : %v", filePath, resp.Status, string(body))
+		}
+	} else {
+		log.Infof("File %s was succesfully pushed to server", filePath)
+	}
 }
 
 func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, error) {

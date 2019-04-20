@@ -20,7 +20,8 @@ const (
 
 var (
 	fileVersion         string
-	isUpdate            bool
+	files               string
+	folderPath          string
 	allowedMimeTypes, _ = regexp.Compile("\\.(csv|xml|json|txt|yaml|yml)$")
 
 	// pushCmd represents the push command
@@ -33,7 +34,8 @@ var (
 
 func init() {
 	pushCmd.Flags().StringVarP(&fileVersion, "version", "v", "", "--version")
-	pushCmd.Flags().BoolVarP(&isUpdate, "update", "u", false, "--update")
+	pushCmd.Flags().StringVarP(&files, "files", "f", "", "--update")
+	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "--update")
 	rootCmd.AddCommand(pushCmd)
 }
 
@@ -45,18 +47,30 @@ func pushCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	fileList := args
-	if len(args) == 0 {
-		fileList = getFolderFileNames()
+	if folderPath == "" && files == "" {
+		pushSources := qordobaConfig.Push.Sources
+		pushFiles(pushSources, qordobaConfig)
+	} else {
+		if files != "" {
+			fileList := filepath.SplitList(files)
+			pushFiles(fileList, qordobaConfig)
+		}
+		if folderPath != "" {
+			fileList := getFilesInFolder(folderPath)
+			pushFiles(fileList, qordobaConfig)
+		}
 	}
+}
+
+func pushFiles(fileList []string, qordobaConfig *general.Config) {
 	for _, file := range fileList {
 		pushFile(qordobaConfig, file)
 	}
 }
 
-func getFolderFileNames() []string {
+func getFilesInFolder(folderPath string) []string {
 	result := make([]string, 0, 0)
-	curFolderFiles, err := ioutil.ReadDir("./")
+	curFolderFiles, err := ioutil.ReadDir(folderPath)
 	if err != nil {
 		log.Errorf("error occurred on retrieving list of all files in current folder: %v", err)
 		return result

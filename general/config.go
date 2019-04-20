@@ -12,7 +12,7 @@ import (
 
 const (
 	qordobaHomeTemplate = "%s/.qordoba"
-	configPathTemplate  = "%s/.qordoba/config.yaml"
+	configPathTemplate  = "%s/.qordoba/config-v4.yaml"
 	prodAPIEndpoint     = "https://app.qordoba.com/"
 )
 

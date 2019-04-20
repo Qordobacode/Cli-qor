@@ -57,7 +57,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 	} else {
 		if files != "" {
 			fileList := filepath.SplitList(files)
-			log.Infof("Files were found in command. Separator for files is '%v'. Result list of files is: %v", os.PathListSeparator, fileList)
+			log.Infof("Files were found in command. Separator for files is '%s'. Result list of files is: %v", string(os.PathListSeparator), fileList)
 			pushFiles(fileList, qordobaConfig)
 		}
 		if folderPath != "" {
@@ -85,7 +85,7 @@ func getFilesInFolder(folderPath string) []string {
 		return result
 	}
 	for _, f := range curFolderFiles {
-		file := f.Name()
+		file := folderPath + string(os.PathSeparator) + f.Name()
 		if allowedMimeTypes.FindString(file) != "" {
 			//fmt.Printf("push file: %v", file)
 		}

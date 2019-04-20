@@ -20,7 +20,7 @@ var (
 	}
 )
 
-func PostToServer(qordoba *QordobaConfig, filePath, pushFileURL string, reader io.Reader) {
+func PostToServer(qordoba *Config, filePath, pushFileURL string, reader io.Reader) {
 	request, err := http.NewRequest("POST", pushFileURL, reader)
 
 	if err != nil {

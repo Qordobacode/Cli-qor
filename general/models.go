@@ -1,15 +1,31 @@
 package general
 
-// QordobaConfig structs holds workspace's specific information
-type QordobaConfig struct {
-	Qordoba Qordoba `yaml:"qordoba"`
-	BaseURL string  `yaml:"base_url,omitempty"`
+// Config structs holds workspace's specific information
+type Config struct {
+	Qordoba   QordobaConfig   `yaml:"qordoba"`
+	Push      PushConfig      `yaml:"push"`
+	Download  DownloadConfig  `yaml:"download"`
+	Blacklist BlacklistConfig `yaml:"blacklist"`
+	BaseURL   string          `yaml:"base_url,omitempty"`
 }
 
-type Qordoba struct {
-	AccessToken    string `yaml:"access_token"`
-	OrganizationID int64  `yaml:"organization_id"`
-	ProjectID      int64  `yaml:"project_id"`
+type QordobaConfig struct {
+	AccessToken    string            `yaml:"access_token"`
+	OrganizationID int64             `yaml:"organization_id"`
+	ProjectID      int64             `yaml:"project_id"`
+	AudienceMap    map[string]string `yaml:"audiences_map"`
+}
+
+type PushConfig struct {
+	Sources []string `yaml:"sources"`
+}
+
+type DownloadConfig struct {
+	Targets []string `yaml:"targets"`
+}
+
+type BlacklistConfig struct {
+	Sources []string `yaml:"sources"`
 }
 
 type PushRequest struct {

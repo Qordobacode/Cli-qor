@@ -12,7 +12,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:         "init",
-	Short:       "Init configuration for Qordoba CLI from STDIN",
+	Short:       "Init configuration for QordobaConfig CLI from STDIN",
 	RunE:        RunInitRoot,
 	Example:     "qor init",
 	Annotations: map[string]string{"version": ApiVersion},
@@ -33,7 +33,7 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 
 // RunConfigCreate creates a config with the given options.
 func RunInit(fileName string) error {
-	var config *general.QordobaConfig
+	var config *general.Config
 	var err error
 	if fileName != "" {
 		config, err = general.ReadConfigInPath(fileName)
@@ -46,8 +46,8 @@ func RunInit(fileName string) error {
 		accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty\n", scanner)
 		organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty\n", scanner)
 		projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty\n", scanner)
-		config = &general.QordobaConfig{
-			Qordoba: general.Qordoba{
+		config = &general.Config{
+			Qordoba: general.QordobaConfig{
 				AccessToken:    accessToken,
 				ProjectID:      projectID,
 				OrganizationID: organizationID,

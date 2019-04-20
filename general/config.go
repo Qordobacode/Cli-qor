@@ -2,23 +2,23 @@ package general
 
 import (
 	"errors"
-	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 const (
-	qordobaHomeTemplate = "%s/.qordoba"
-	configPathTemplate  = "%s/.qordoba/config-v4.yaml"
-	prodAPIEndpoint     = "https://app.qordoba.com/"
+	prodAPIEndpoint = "https://app.qordoba.com/"
+	configName      = ".qordoba.yaml"
+	homeConfigName  = "config-v4.yaml"
 )
 
 // ReadConfigInPath load config in some folder -> this might be source config OR local config for import
-func ReadConfigInPath(path string) (*QordobaConfig, error) {
-	var config QordobaConfig
+func ReadConfigInPath(path string) (*Config, error) {
+	var config Config
 	if path == "" {
 		log.Infof("Path for config shouldn't be empty\n")
 		return nil, errors.New("config path can't be empty")
@@ -42,22 +42,68 @@ func ReadConfigInPath(path string) (*QordobaConfig, error) {
 }
 
 // LoadConfig function loads content of main quordoba configuration
-func LoadConfig() (*QordobaConfig, error) {
+// Read configuration from ~/.qordoba/config-v4.yaml
+// Check if current folder contains ./.qordoba.yaml if not search a parent directories for one.
+// If you find  set directory with this file as a root to the plugin operations. .qordoba.yaml
+// Read content of the  overrides whatever is in  .qordoba.yaml ~/.qordoba/config-v4.yaml
+func LoadConfig() (*Config, error) {
+	parentConfig := findConfigHierarchically()
+	if parentConfig != "" {
+		configPath := getConfigPath(parentConfig)
+		config, e := ReadConfigInPath(configPath)
+		if e == nil {
+			return config, nil
+		}
+	}
+	return readHomeDirectoryConfig()
+}
+
+func readHomeDirectoryConfig() (*Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Debugf("error occurred on home dir retrieval: %v\n", err)
 		return nil, err
 	}
-	path, err := GetConfigPath(home)
-	if err != nil {
-		log.Debugf("error occurred on building path to config: %v\n", err)
-		return nil, err
-	}
+	path := GetConfigPath(home)
 	return ReadConfigInPath(path)
 }
 
+func findConfigHierarchically() string {
+	path, _ := os.Getwd()
+	prevPath := path
+	for {
+		if isConfigDir(path) {
+			return path
+		}
+		path = filepath.Clean(path)
+		dir, _ := filepath.Split(path)
+		if isConfigDir(dir) {
+			return dir
+		} else if prevPath == dir {
+			return ""
+		} else {
+			prevPath = path
+			path = dir
+		}
+	}
+}
+
+func getConfigPath(path string) string {
+	return filepath.Join(path, configName)
+}
+
+func isConfigDir(path string) bool {
+	return FileExists(getConfigPath(path))
+}
+
+// FileExists checks for file existence
+func FileExists(path string) bool {
+	stat, err := os.Stat(path)
+	return err == nil && !stat.IsDir()
+}
+
 // IsConfigFileCorrect validates config file is correct
-func IsConfigFileCorrect(config *QordobaConfig) bool {
+func IsConfigFileCorrect(config *Config) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
 		log.Infof("access_token is not set\n")
@@ -75,22 +121,19 @@ func IsConfigFileCorrect(config *QordobaConfig) bool {
 }
 
 // SaveMainConfig function update content of application's config
-func SaveMainConfig(config *QordobaConfig) {
+func SaveMainConfig(config *Config) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Debugf("error occurred on home dir retrieval: %v\n", err)
 		return
 	}
-	path, e := GetConfigPath(home)
-	if e != nil {
-		return
-	}
+	path := GetConfigPath(home)
 	marshaledConfig, err := yaml.Marshal(config)
 	if err != nil {
 		log.Infof("error occurred on marshalling config file: %v\n", err)
 		return
 	}
-	qordobaHome := fmt.Sprintf(qordobaHomeTemplate, home)
+	qordobaHome := getQordobaHomeDir(home)
 	err = os.MkdirAll(qordobaHome, os.ModePerm)
 	if err != nil {
 		log.Infof("error occurred on creating qordoba's folder: %v\n", err)
@@ -102,13 +145,16 @@ func SaveMainConfig(config *QordobaConfig) {
 }
 
 // GetConfigPath builds path to config according with template
-func GetConfigPath(home string) (string, error) {
-	configPath := fmt.Sprintf(configPathTemplate, home)
-	return configPath, nil
+func GetConfigPath(home string) string {
+	return getQordobaHomeDir(home) + string(os.PathSeparator) + homeConfigName
+}
+
+func getQordobaHomeDir(home string) string {
+	return home + string(os.PathSeparator) + ".qordoba"
 }
 
 // GetAPIBase get value of API endpoint from config OR prod as a default
-func (config *QordobaConfig) GetAPIBase() string {
+func (config *Config) GetAPIBase() string {
 	base := prodAPIEndpoint
 	if config.BaseURL != "" {
 		base = config.BaseURL

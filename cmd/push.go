@@ -71,7 +71,7 @@ func getFolderFileNames() []string {
 	return result
 }
 
-func pushFile(qordoba *general.QordobaConfig, filePath string) {
+func pushFile(qordoba *general.Config, filePath string) {
 	fileInfo, e := os.Stat(filePath)
 	if e != nil {
 		log.Errorf("error occurred in file read: %v\n", e)
@@ -96,7 +96,7 @@ func pushFile(qordoba *general.QordobaConfig, filePath string) {
 
 }
 
-func sendFileToServer(fileInfo os.FileInfo, qordoba *general.QordobaConfig, filePath, pushFileURL string) {
+func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, pushFileURL string) {
 	if fileInfo.IsDir() {
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return

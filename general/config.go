@@ -18,20 +18,21 @@ const (
 
 // ReadConfigInPath load config in some folder -> this might be source config OR local config for import
 func ReadConfigInPath(path string) (*Config, error) {
+	log.Debugf("used config in directory %v", path)
 	var config Config
 	if path == "" {
-		log.Infof("Path for config shouldn't be empty\n")
+		log.Infof("Path for config shouldn't be empty")
 		return nil, errors.New("config path can't be empty")
 	}
 	// read config from file
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Infof("file not found: %v\n", err)
+		log.Infof("file not found: %v", err)
 		return nil, err
 	}
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		log.Infof("error occurred on config file unmarshaling\n")
+		log.Infof("error occurred on config file unmarshaling")
 		return nil, err
 	}
 	if !IsConfigFileCorrect(&config) {
@@ -61,7 +62,7 @@ func LoadConfig() (*Config, error) {
 func readHomeDirectoryConfig() (*Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Debugf("error occurred on home dir retrieval: %v\n", err)
+		log.Debugf("error occurred on home dir retrieval: %v", err)
 		return nil, err
 	}
 	path := GetConfigPath(home)
@@ -106,15 +107,15 @@ func FileExists(path string) bool {
 func IsConfigFileCorrect(config *Config) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
-		log.Infof("access_token is not set\n")
+		log.Infof("access_token is not set")
 		isConfigCorrect = false
 	}
 	if config.Qordoba.OrganizationID == 0 {
-		log.Infof("organization_id is not set\n")
+		log.Infof("organization_id is not set")
 		isConfigCorrect = false
 	}
 	if config.Qordoba.ProjectID == 0 {
-		log.Infof("product_id is not set\n")
+		log.Infof("product_id is not set")
 		isConfigCorrect = false
 	}
 	return isConfigCorrect
@@ -124,23 +125,23 @@ func IsConfigFileCorrect(config *Config) bool {
 func SaveMainConfig(config *Config) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Debugf("error occurred on home dir retrieval: %v\n", err)
+		log.Debugf("error occurred on home dir retrieval: %v", err)
 		return
 	}
 	path := GetConfigPath(home)
 	marshaledConfig, err := yaml.Marshal(config)
 	if err != nil {
-		log.Infof("error occurred on marshalling config file: %v\n", err)
+		log.Infof("error occurred on marshalling config file: %v", err)
 		return
 	}
 	qordobaHome := getQordobaHomeDir(home)
 	err = os.MkdirAll(qordobaHome, os.ModePerm)
 	if err != nil {
-		log.Infof("error occurred on creating qordoba's folder: %v\n", err)
+		log.Infof("error occurred on creating qordoba's folder: %v", err)
 	}
 	err = ioutil.WriteFile(path, marshaledConfig, 0644)
 	if err != nil {
-		log.Infof("error occurred on writing config: %v\n", err)
+		log.Infof("error occurred on writing config: %v", err)
 	}
 }
 

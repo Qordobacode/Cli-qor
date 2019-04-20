@@ -38,9 +38,9 @@ func init() {
 }
 
 func pushCommand(cmd *cobra.Command, args []string) {
-	log.Debugf("push was called\n")
-	log.Debugf("version = %v\n", fileVersion)
-	log.Debugf("args: %v\n", args)
+	log.Debugf("push was called")
+	log.Debugf("version = %v", fileVersion)
+	log.Debugf("args: %v", args)
 	qordobaConfig, err := general.LoadConfig()
 	if err != nil {
 		return
@@ -58,13 +58,13 @@ func getFolderFileNames() []string {
 	result := make([]string, 0, 0)
 	curFolderFiles, err := ioutil.ReadDir("./")
 	if err != nil {
-		log.Errorf("error occurred on retrieving list of all files in current folder: %v\n", err)
+		log.Errorf("error occurred on retrieving list of all files in current folder: %v", err)
 		return result
 	}
 	for _, f := range curFolderFiles {
 		file := f.Name()
 		if allowedMimeTypes.FindString(file) != "" {
-			//fmt.Printf("push file: %v\n", file)
+			//fmt.Printf("push file: %v", file)
 		}
 		result = append(result, file)
 	}
@@ -74,7 +74,7 @@ func getFolderFileNames() []string {
 func pushFile(qordoba *general.Config, filePath string) {
 	fileInfo, e := os.Stat(filePath)
 	if e != nil {
-		log.Errorf("error occurred in file read: %v\n", e)
+		log.Errorf("error occurred in file read: %v", e)
 		return
 	}
 	base := qordoba.GetAPIBase()
@@ -111,7 +111,7 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		log.Errorf("can't handle file %s: %v\n", filePath, err)
+		log.Errorf("can't handle file %s: %v", filePath, err)
 		return nil, err
 	}
 	requestBody := general.PushRequest{
@@ -122,7 +122,7 @@ func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, err
 
 	marshaledBody, err := json.Marshal(requestBody)
 	if err != nil {
-		log.Errorf("error occurred on marshalling object: %v\n", err)
+		log.Errorf("error occurred on marshalling object: %v", err)
 		return nil, err
 	}
 	reader := bytes.NewReader(marshaledBody)

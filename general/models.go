@@ -38,3 +38,46 @@ type PushRequest struct {
 	Version  string `json:"version"`
 	Content  string `json:"content"`
 }
+
+type WorkspaceResponse struct {
+	Meta struct {
+		Paging struct {
+			TotalResults int `json:"totalResults"`
+		} `json:"paging"`
+	} `json:"meta"`
+	Workspaces []WorkspaceData `json:"workspaces"`
+}
+
+type WorkspaceData struct {
+	Workflow []struct {
+		ID    int    `json:"id"`
+		Name  string `json:"name"`
+		Order int    `json:"order"`
+	} `json:"workflow"`
+	Workspace Workspace `json:"workspace"`
+}
+
+type Workspace struct {
+	ContentTypeCodes []interface{} `json:"contentTypeCodes"`
+	CreatedBy        struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+		Role string `json:"role"`
+	} `json:"createdBy"`
+	CreatedOn      int      `json:"createdOn"`
+	ID             int      `json:"id"`
+	Name           string   `json:"name"`
+	OrganizationID int      `json:"organizationId"`
+	Segmentation   string   `json:"segmentation"`
+	SourcePersona  Person   `json:"sourcePersona"`
+	TargetPersonas []Person `json:"targetPersonas"`
+	Timezone       string   `json:"timezone"`
+	TmMatchMode    string   `json:"tmMatchMode"`
+}
+
+type Person struct {
+	Code      string `json:"code"`
+	Direction string `json:"direction"`
+	ID        int    `json:"id"`
+	Name      string `json:"name"`
+}

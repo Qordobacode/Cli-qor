@@ -15,8 +15,7 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/qordobacode/cli-v2/general"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +24,7 @@ var (
 	downloadCmd = &cobra.Command{
 		Use:   "pull",
 		Short: "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("download called")
-		},
+		Run:   pullCommand,
 	}
 	isDownloadCurrent  = false
 	downloadAudience   = ""
@@ -44,4 +41,18 @@ func init() {
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
 	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, " option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
+}
+
+func pullCommand(cmd *cobra.Command, args []string) {
+	qordobaConfig, err := general.LoadConfig()
+	if err != nil {
+		return
+	}
+	workspace, err := general.GetWorkspace(qordobaConfig)
+	if err != nil {
+		return
+	}
+	for _, persona := range workspace.TargetPersonas {
+		general.GetFilesInWorkspace(qordobaConfig, persona.ID)
+	}
 }

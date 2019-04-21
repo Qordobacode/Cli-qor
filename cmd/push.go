@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	fileVersion         string
+	tag                 string
 	files               string
 	folderPath          string
 	allowedMimeTypes, _ = regexp.Compile("\\.(csv|xml|json|txt|yaml|yml)$")
@@ -34,15 +34,13 @@ var (
 )
 
 func init() {
-	pushCmd.Flags().StringVarP(&fileVersion, "version", "v", "", "--version")
+	pushCmd.Flags().StringVarP(&tag, "version", "v", "", "--version")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "--update")
 	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "--update")
 	rootCmd.AddCommand(pushCmd)
 }
 
 func pushCommand(cmd *cobra.Command, args []string) {
-	log.Debugf("push was called")
-	log.Debugf("version = %v", fileVersion)
 	qordobaConfig, err := general.LoadConfig()
 	if err != nil {
 		return
@@ -133,15 +131,15 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 		log.Errorf("error occurred on building file post request: %v", err)
 		return
 	}
-	body, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
+			body, _ := ioutil.ReadAll(resp.Body)
 			log.Errorf("File %s push status: %v. Response : %v", filePath, resp.Status, string(body))
 		}
 	} else {
-		log.Infof("File %s was succesfully pushed to server", filePath)
+		log.Infof("File %s was succesfully pushed to server with version: %v", filePath, tag)
 	}
 }
 
@@ -153,7 +151,7 @@ func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, err
 	}
 	requestBody := general.PushRequest{
 		FileName: fileInfo.Name(),
-		Version:  fileVersion,
+		Version:  tag,
 		Content:  string(fileContent),
 	}
 

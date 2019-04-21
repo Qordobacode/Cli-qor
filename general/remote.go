@@ -18,13 +18,23 @@ var (
 	}
 )
 
-func PostToServer(qordoba *Config, pushFileURL string, reader io.Reader) (*http.Response, error) {
-	request, err := http.NewRequest("POST", pushFileURL, reader)
+// PostToServer send POST request to server with specified body
+func PostToServer(qordoba *Config, postURL string, reader io.Reader) (*http.Response, error) {
+	request, err := http.NewRequest("POST", postURL, reader)
 
 	if err != nil {
 		return nil, err
 	}
 	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
 	request.Header.Add("Content-Type", ApplicationJsonType)
+	return HTTPClient.Do(request)
+}
+
+func GetFromServer(qordoba *Config, pushFileURL string) (*http.Response, error) {
+	request, err := http.NewRequest("GET", pushFileURL, nil)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
 	return HTTPClient.Do(request)
 }

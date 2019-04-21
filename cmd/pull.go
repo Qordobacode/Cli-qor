@@ -61,7 +61,10 @@ func pullCommand(cmd *cobra.Command, args []string) {
 		}
 		wg.Add(len(files))
 		for i := range files {
-			go general.DownloadFile(qordobaConfig, persona.ID, &files[i], &wg)
+			fileName := general.BuildFileName(&files[i])
+			if !isPullSkip || !general.FileExists(fileName) {
+				go general.DownloadFile(qordobaConfig, persona.ID, fileName, &files[i], &wg)
+			}
 		}
 	}
 	wg.Wait()

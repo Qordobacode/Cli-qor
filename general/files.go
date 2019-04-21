@@ -34,7 +34,7 @@ func GetFilesInWorkspace(config *Config, personaID int) ([]File, error) {
 }
 
 // DownloadFile function retrieves all files in workspace
-func DownloadFile(config *Config, personaID int, file *File, wg *sync.WaitGroup) {
+func DownloadFile(config *Config, personaID int, fileName string, file *File, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
 	}()
@@ -44,10 +44,10 @@ func DownloadFile(config *Config, personaID int, file *File, wg *sync.WaitGroup)
 	if err != nil {
 		return
 	}
-	fileName := BuildFileName(file)
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
 }
 
+// BuildFileName according to stored file name and version
 func BuildFileName(file *File) string {
 	if file.Filename == "" {
 		return file.Version

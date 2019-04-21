@@ -94,7 +94,7 @@ type FileSearchResponse struct {
 
 type File struct {
 	Completed    bool   `json:"completed"`
-	CreatedAt    string `json:"createdAt"`
+	CreatedAt    int64  `json:"createdAt"`
 	Deleted      bool   `json:"deleted"`
 	Enabled      bool   `json:"enabled"`
 	ErrorID      int    `json:"errorId"`
@@ -103,7 +103,7 @@ type File struct {
 	Filename     string `json:"filename"`
 	Filepath     string `json:"filepath"`
 	Preparing    bool   `json:"preparing"`
-	Update       string `json:"update"`
+	Update       int64  `json:"update"`
 	URL          string `json:"url"`
 	Version      string `json:"version"`
 }

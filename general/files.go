@@ -42,7 +42,6 @@ func DownloadFile(config *Config, personaID int, file *File, wg *sync.WaitGroup)
 	getFileContent := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
 	fileBytesResponse, err := GetFromServer(config, getFileContent)
 	if err != nil {
-		log.Errorf("error occurred on file download: %v", err)
 		return
 	}
 	fileName := BuildFileName(file)

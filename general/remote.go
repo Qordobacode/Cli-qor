@@ -37,6 +37,7 @@ func PostToServer(qordoba *Config, postURL string, reader io.Reader) (*http.Resp
 func GetFromServer(qordoba *Config, getURL string) ([]byte, error) {
 	request, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
+		log.Errorf("error occurred on request build: %v", err)
 		return nil, err
 	}
 	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)

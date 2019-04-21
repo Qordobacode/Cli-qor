@@ -60,8 +60,8 @@ func pullCommand(cmd *cobra.Command, args []string) {
 			continue
 		}
 		wg.Add(len(files))
-		for _, file := range files {
-			go general.DownloadFile(qordobaConfig, persona.ID, &file, &wg)
+		for i := range files {
+			go general.DownloadFile(qordobaConfig, persona.ID, &files[i], &wg)
 		}
 	}
 	wg.Wait()

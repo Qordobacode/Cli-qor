@@ -17,6 +17,7 @@ package cmd
 import (
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/spf13/cobra"
+	"sync"
 )
 
 // downloadCmd represents the download command
@@ -52,7 +53,16 @@ func pullCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
+	var wg sync.WaitGroup
 	for _, persona := range workspace.TargetPersonas {
-		general.GetFilesInWorkspace(qordobaConfig, persona.ID)
+		files, err := general.GetFilesInWorkspace(qordobaConfig, persona.ID)
+		if err != nil {
+			continue
+		}
+		wg.Add(len(files))
+		for _, file := range files {
+			go general.DownloadFile(qordobaConfig, persona.ID, &file, &wg)
+		}
 	}
+	wg.Wait()
 }

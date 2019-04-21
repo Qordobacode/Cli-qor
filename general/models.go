@@ -81,3 +81,29 @@ type Person struct {
 	ID        int    `json:"id"`
 	Name      string `json:"name"`
 }
+
+type FileSearchResponse struct {
+	Files []File `json:"files"`
+	Meta  struct {
+		Paging struct {
+			TotalEnabled int `json:"totalEnabled"`
+			TotalResults int `json:"totalResults"`
+		} `json:"paging"`
+	} `json:"meta"`
+}
+
+type File struct {
+	Completed    bool   `json:"completed"`
+	CreatedAt    string `json:"createdAt"`
+	Deleted      bool   `json:"deleted"`
+	Enabled      bool   `json:"enabled"`
+	ErrorID      int    `json:"errorId"`
+	ErrorMessage string `json:"errorMessage"`
+	FileID       int    `json:"fileId"`
+	Filename     string `json:"filename"`
+	Filepath     string `json:"filepath"`
+	Preparing    bool   `json:"preparing"`
+	Update       string `json:"update"`
+	URL          string `json:"url"`
+	Version      string `json:"version"`
+}

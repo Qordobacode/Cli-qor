@@ -139,7 +139,11 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 			log.Errorf("File %s push status: %v. Response : %v", filePath, resp.Status, string(body))
 		}
 	} else {
-		log.Infof("File %s(%v) was pushed to server.", filePath, tag)
+		if tag == "" {
+			log.Infof("File %s was pushed to server.", filePath)
+		} else {
+			log.Infof("File %s (version '%v') was pushed to server.", filePath, tag)
+		}
 	}
 }
 

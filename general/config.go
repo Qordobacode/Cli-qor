@@ -163,3 +163,12 @@ func (config *Config) GetAPIBase() string {
 	base = strings.TrimSuffix(base, "/")
 	return base
 }
+
+// GetAudiences function retrieves all languages from audience map
+func (config *Config) GetAudiences() map[string]bool {
+	results := make(map[string]bool)
+	for _, lang := range config.Qordoba.AudienceMap {
+		results[lang] = true
+	}
+	return results
+}

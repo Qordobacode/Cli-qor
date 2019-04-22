@@ -17,14 +17,20 @@ package cmd
 import (
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/spf13/cobra"
+	"strings"
 	"sync"
+)
+
+const (
+	original = "original"
 )
 
 // downloadCmd represents the download command
 var (
 	downloadCmd = &cobra.Command{
-		Use:   "pull",
-		Short: "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
+		Use:   "download",
+		Short: "Downloads selected files",
+		Long:  "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
 		Run:   pullCommand,
 	}
 	isDownloadCurrent  = false
@@ -45,27 +51,65 @@ func init() {
 }
 
 func pullCommand(cmd *cobra.Command, args []string) {
-	qordobaConfig, err := general.LoadConfig()
+	config, err := general.LoadConfig()
 	if err != nil {
 		return
 	}
-	workspace, err := general.GetWorkspace(qordobaConfig)
+	workspace, err := general.GetWorkspace(config)
 	if err != nil {
 		return
 	}
 	var wg sync.WaitGroup
+	audiences := config.GetAudiences()
+	if downloadAudience != "" {
+		audienceList := strings.Split(downloadAudience, ",")
+		audiences = make(map[string]bool)
+		for _, lang := range audienceList {
+			audiences[lang] = true
+		}
+	}
 	for _, persona := range workspace.TargetPersonas {
-		files, err := general.GetFilesInWorkspace(qordobaConfig, persona.ID)
+		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
+			continue
+		}
+		files, err := general.GetFilesInWorkspace(config, persona.ID)
 		if err != nil {
 			continue
 		}
 		wg.Add(len(files))
 		for i := range files {
-			fileName := general.BuildFileName(&files[i])
-			if !isPullSkip || !general.FileExists(fileName) {
-				go general.DownloadFile(qordobaConfig, persona.ID, fileName, &files[i], &wg)
-			}
+			go handleFunc(config, persona.ID, &files[i], &wg)
 		}
 	}
 	wg.Wait()
+}
+
+func handleFunc(config *general.Config, personaID int, file *general.File, wg *sync.WaitGroup) {
+	defer func() {
+		wg.Done()
+	}()
+	if !file.Completed && !isDownloadCurrent {
+		// isDownloadCurrent - skip files with version
+		return
+	}
+	if isDownloadSource || isDownloadOriginal {
+		if isDownloadSource {
+			fileName := general.BuildFileName(file, "")
+			general.DownloadSourceFile(config, fileName, file, true)
+		}
+		if isDownloadOriginal {
+			suffix := ""
+			if isDownloadSource {
+				// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
+				suffix = original
+			}
+			fileName := general.BuildFileName(file, suffix)
+			general.DownloadSourceFile(config, fileName, file, false)
+		}
+	} else {
+		fileName := general.BuildFileName(file, "")
+		if !isPullSkip || !general.FileExists(fileName) {
+			general.DownloadFile(config, personaID, fileName, file)
+		}
+	}
 }

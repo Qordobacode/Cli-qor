@@ -7,14 +7,14 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
-	"sync"
 )
 
 const (
-	fileListURLTemplate              = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files"
-	fileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
-	fileDeleteTemplate               = "%s/v3/organizations/%d/workspaces/%d/files/%d"
-	defaultFilePerm      os.FileMode = 0666
+	fileListURLTemplate                    = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files"
+	fileDownloadTemplate                   = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
+	sourceFileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
+	fileDeleteTemplate                     = "%s/v3/organizations/%d/workspaces/%d/files/%d"
+	defaultFilePerm            os.FileMode = 0666
 )
 
 // DownloadFile function retrieves all files in workspace
@@ -35,10 +35,7 @@ func GetFilesInWorkspace(config *Config, personaID int) ([]File, error) {
 }
 
 // DownloadFile function retrieves all files in workspace
-func DownloadFile(config *Config, personaID int, fileName string, file *File, wg *sync.WaitGroup) {
-	defer func() {
-		wg.Done()
-	}()
+func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	base := config.GetAPIBase()
 	getFileContent := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
 	fileBytesResponse, err := GetFromServer(config, getFileContent)
@@ -48,17 +45,32 @@ func DownloadFile(config *Config, personaID int, fileName string, file *File, wg
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
 }
 
-// BuildFileName according to stored file name and version
-func BuildFileName(file *File) string {
-	if file.Filename == "" {
-		return file.Version
+// DownloadFile function retrieves all files in workspace
+func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates bool) {
+	base := config.GetAPIBase()
+	getFileContent := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
+	fileBytesResponse, err := GetFromServer(config, getFileContent)
+	if err != nil {
+		return
 	}
+	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
+}
+
+// BuildFileName according to stored file name and version
+func BuildFileName(file *File, suffix string) string {
 	fileNames := strings.SplitN(file.Filename, ".", 2)
 	if file.Version != "" {
-		if len(fileNames) > 1 {
-			return fileNames[0] + "_" + file.Version + "." + fileNames[1]
+		if suffix != "" {
+			suffix = suffix + "_" + file.Version
+		} else {
+			suffix = file.Version
 		}
-		return file.Filename + "_" + file.Version
+	}
+	if suffix != "" {
+		if len(fileNames) > 1 {
+			return fileNames[0] + "_" + suffix + "." + fileNames[1]
+		}
+		return file.Filename + "_" + suffix
 	}
 	return file.Filename
 }

@@ -55,7 +55,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 	} else {
 		if files != "" {
 			fileList := filepath.SplitList(files)
-			log.Infof("Files were found in command. Separator for files is '%s'. Result list of files is: %v", string(os.PathListSeparator), fileList)
+			log.Debugf("Result list of files from line is: %v", string(os.PathListSeparator), fileList)
 			pushFiles(fileList, qordobaConfig)
 		}
 		if folderPath != "" {
@@ -131,15 +131,15 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 		log.Errorf("error occurred on building file post request: %v", err)
 		return
 	}
+	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			body, _ := ioutil.ReadAll(resp.Body)
 			log.Errorf("File %s push status: %v. Response : %v", filePath, resp.Status, string(body))
 		}
 	} else {
-		log.Infof("File %s was succesfully pushed to server with version: %v", filePath, tag)
+		log.Infof("File %s(%v) was pushed to server.", filePath, tag)
 	}
 }
 

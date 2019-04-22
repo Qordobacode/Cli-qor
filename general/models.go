@@ -107,3 +107,7 @@ type File struct {
 	URL          string `json:"url"`
 	Version      string `json:"version"`
 }
+
+type FileDeleteResponse struct {
+	Success bool `json:"success"`
+}

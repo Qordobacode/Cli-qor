@@ -13,6 +13,7 @@ import (
 const (
 	fileListURLTemplate              = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files"
 	fileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
+	fileDeleteTemplate               = "%s/v3/organizations/%d/workspaces/%d/files/%d"
 	defaultFilePerm      os.FileMode = 0666
 )
 
@@ -53,8 +54,54 @@ func BuildFileName(file *File) string {
 		return file.Version
 	}
 	fileNames := strings.SplitN(file.Filename, ".", 2)
-	if len(fileNames) > 1 {
-		return fileNames[0] + "-" + file.Version + "." + fileNames[1]
+	if file.Version != "" {
+		if len(fileNames) > 1 {
+			return fileNames[0] + "_" + file.Version + "." + fileNames[1]
+		}
+		return file.Filename + "_" + file.Version
 	}
-	return file.Filename + file.Version
+	return file.Filename
+}
+
+func FindFileAndDelete(config *Config, fileName, version string) {
+	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
+	workspace, err := GetWorkspace(config)
+	if err != nil {
+		return
+	}
+	for _, persona := range workspace.TargetPersonas {
+		files, err := GetFilesInWorkspace(config, persona.ID)
+		if err != nil {
+			continue
+		}
+		for _, file := range files {
+			if file.Filename == fileName {
+				if file.Version == version {
+					DeleteFile(config, &file)
+					return
+				}
+			}
+		}
+		log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
+	}
+}
+
+func DeleteFile(config *Config, file *File) {
+	base := config.GetAPIBase()
+	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
+	bytes, err := DeleteFromServer(config, deleteFileURL)
+	if err != nil {
+		return
+	}
+	var deleteResponse FileDeleteResponse
+	err = json.Unmarshal(bytes, &deleteResponse)
+	if err != nil {
+		log.Errorf("error occurred on delete response unmarshalling: %v", err)
+		return
+	}
+	if deleteResponse.Success {
+		log.Infof("File '%s' with version '%s' was removed", file.Filename, file.Version)
+	} else {
+		log.Errorf("File '%s' with version '%s' WAS NOT REMOVED", file.Filename, file.Version)
+	}
 }

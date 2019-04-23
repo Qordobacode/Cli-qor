@@ -78,13 +78,13 @@ func pullCommand(cmd *cobra.Command, args []string) {
 		}
 		wg.Add(len(files))
 		for i := range files {
-			go handleFunc(config, persona.ID, &files[i], &wg)
+			go handleFile(config, persona.ID, &files[i], &wg)
 		}
 	}
 	wg.Wait()
 }
 
-func handleFunc(config *general.Config, personaID int, file *general.File, wg *sync.WaitGroup) {
+func handleFile(config *general.Config, personaID int, file *general.File, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
 	}()

@@ -53,6 +53,7 @@ func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates
 	if err != nil {
 		return
 	}
+	log.Infof("source file %v was downloaded", fileName)
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
 }
 

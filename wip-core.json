@@ -3,10 +3,10 @@
   "key-2" : "You don't look a gift horse \n In the mouth",
   "key-3" : "It's ducks all the way down!",
   "day_of_week_array" : [ {
-      "Monday" : "Monday is the first day",
-      "todo" : "the rest"
-  }  ],
+    "Monday" : "Monday is the first day",
+    "todo" : "the rest"
+  } ],
   "key-0" : "",
-  "key-00" : null,
-  "key-1-number" : 10
+  "key-1-number" : 10,
+  "key-00" : null
 }

@@ -18,7 +18,7 @@ const (
 )
 
 // DownloadFile function retrieves all files in workspace
-func GetFilesInWorkspace(config *Config, personaID int) ([]File, error) {
+func GetFilesForTargetPerson(config *Config, personaID int) ([]File, error) {
 	base := config.GetAPIBase()
 	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID)
 	fileBytesResponse, err := GetFromServer(config, getUserFiles)
@@ -83,7 +83,7 @@ func FindFileAndDelete(config *Config, fileName, version string) {
 		return
 	}
 	for _, persona := range workspace.TargetPersonas {
-		files, err := GetFilesInWorkspace(config, persona.ID)
+		files, err := GetFilesForTargetPerson(config, persona.ID)
 		if err != nil {
 			continue
 		}

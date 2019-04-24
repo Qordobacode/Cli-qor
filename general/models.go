@@ -93,19 +93,20 @@ type FileSearchResponse struct {
 }
 
 type File struct {
-	Completed    bool   `json:"completed"`
-	CreatedAt    int64  `json:"createdAt"`
-	Deleted      bool   `json:"deleted"`
-	Enabled      bool   `json:"enabled"`
-	ErrorID      int    `json:"errorId"`
-	ErrorMessage string `json:"errorMessage"`
-	FileID       int    `json:"fileId"`
-	Filename     string `json:"filename"`
-	Filepath     string `json:"filepath"`
-	Preparing    bool   `json:"preparing"`
-	Update       int64  `json:"update"`
-	URL          string `json:"url"`
-	Version      string `json:"version"`
+	Completed    bool     `json:"completed"`
+	CreatedAt    int64    `json:"createdAt"`
+	Deleted      bool     `json:"deleted"`
+	Enabled      bool     `json:"enabled"`
+	ErrorID      int      `json:"errorId"`
+	ErrorMessage string   `json:"errorMessage"`
+	FileID       int      `json:"fileId"`
+	Filename     string   `json:"filename"`
+	Filepath     string   `json:"filepath"`
+	Preparing    bool     `json:"preparing"`
+	Tags         []string `json:"tags"`
+	Update       int64    `json:"update"`
+	URL          string   `json:"url"`
+	Version      string   `json:"version"`
 }
 
 type FileDeleteResponse struct {

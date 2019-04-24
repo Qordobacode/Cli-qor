@@ -22,7 +22,6 @@ func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 			return &workspaceData.Workspace, nil
 		}
 	}
-
 	return nil, errors.New("workspace with id=" + string(qordobaConfig.Qordoba.ProjectID) + " was not found")
 }
 

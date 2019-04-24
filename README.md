@@ -1,5 +1,5 @@
 # Cli-v2
-Cli v2 (using Go)
+Cli v4 (using Go)
 
 ### Test environment
 url - https://app.qordobatest.com
@@ -7,6 +7,10 @@ url - https://app.qordobatest.com
 
 ### List of supported commands:
 - version
+- init
+    Init configuration
+    - from stdin
+    - from file. If in command line there will be file -> it will be used as an source, that will be parsed and used internally
 - push
 Push all local  files to the Qordoba project.  source
 Supported flags:

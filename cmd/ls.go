@@ -63,8 +63,9 @@ func printFile2Stdin(data []*ResponseRow) {
 		render2Stdin(data)
 	} else {
 		bytes, err := json.MarshalIndent(data, "", "  ")
-		if err == nil {
+		if err != nil {
 			log.Errorf("error occurred on marshalling with JSON: %v", err)
+			return
 		}
 		log.Info("%v", string(bytes))
 	}

@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	enabled  = "ENABLED"
-	disabled = "DISABLED"
+	enabled   = "ENABLED"
+	disabled  = "DISABLED"
+	lineLimit = 50
 )
 
 // lsCmd represents the ls command
@@ -44,6 +45,10 @@ func printLs(cmd *cobra.Command, args []string) {
 	for _, targetPersona := range workspace.TargetPersonas {
 		result := handlePersonResult(config, &targetPersona)
 		data = append(data, result...)
+		if len(data) > 50 {
+			data = data[:50]
+			break
+		}
 	}
 	// add sorting for output
 	sort.Slice(data, func(i, j int) bool {

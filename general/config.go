@@ -2,6 +2,7 @@ package general
 
 import (
 	"errors"
+	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
@@ -21,18 +22,22 @@ func ReadConfigInPath(path string) (*Config, error) {
 	log.Infof("used config in directory %v", path)
 	var config Config
 	if path == "" {
-		log.Infof("Path for config shouldn't be empty")
+		log.Errorf("Path for config shouldn't be empty")
 		return nil, errors.New("config path can't be empty")
+	}
+	if !FileExists(path) {
+		log.Errorf("file not found: %v", path)
+		return nil, fmt.Errorf("file not found: %v", path)
 	}
 	// read config from file
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Infof("file not found: %v", err)
+		log.Errorf("file not found: %v", err)
 		return nil, err
 	}
 	err = yaml.Unmarshal(bytes, &config)
 	if err != nil {
-		log.Infof("error occurred on config file unmarshaling: %v", err)
+		log.Errorf("error occurred on config file unmarshaling: %v", err)
 		return nil, err
 	}
 	if !IsConfigFileCorrect(&config) {
@@ -62,7 +67,7 @@ func LoadConfig() (*Config, error) {
 func readHomeDirectoryConfig() (*Config, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Debugf("error occurred on home dir retrieval: %v", err)
+		log.Errorf("error occurred on home dir retrieval: %v", err)
 		return nil, err
 	}
 	path := GetConfigPath(home)
@@ -107,15 +112,15 @@ func FileExists(path string) bool {
 func IsConfigFileCorrect(config *Config) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
-		log.Infof("access_token is not set")
+		log.Errorf("access_token is not set")
 		isConfigCorrect = false
 	}
 	if config.Qordoba.OrganizationID == 0 {
-		log.Infof("organization_id is not set")
+		log.Errorf("organization_id is not set")
 		isConfigCorrect = false
 	}
 	if config.Qordoba.ProjectID == 0 {
-		log.Infof("product_id is not set")
+		log.Errorf("product_id is not set")
 		isConfigCorrect = false
 	}
 	return isConfigCorrect
@@ -125,23 +130,23 @@ func IsConfigFileCorrect(config *Config) bool {
 func SaveMainConfig(config *Config) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		log.Debugf("error occurred on home dir retrieval: %v", err)
+		log.Errorf("error occurred on home dir retrieval: %v", err)
 		return
 	}
 	path := GetConfigPath(home)
 	marshaledConfig, err := yaml.Marshal(config)
 	if err != nil {
-		log.Infof("error occurred on marshalling config file: %v", err)
+		log.Errorf("error occurred on marshalling config file: %v", err)
 		return
 	}
 	qordobaHome := getQordobaHomeDir(home)
 	err = os.MkdirAll(qordobaHome, os.ModePerm)
 	if err != nil {
-		log.Infof("error occurred on creating qordoba's folder: %v", err)
+		log.Errorf("error occurred on creating qordoba's folder: %v", err)
 	}
 	err = ioutil.WriteFile(path, marshaledConfig, 0644)
 	if err != nil {
-		log.Infof("error occurred on writing config: %v", err)
+		log.Errorf("error occurred on writing config: %v", err)
 	}
 }
 

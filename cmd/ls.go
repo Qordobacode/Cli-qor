@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"encoding/json"
 	"github.com/olekukonko/tablewriter"
 	"github.com/qordobacode/cli-v2/general"
+	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -37,19 +40,34 @@ func printLs(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	data := make([][]string, 0, 0)
-
+	data := make([]*ResponseRow, 0, 0)
 	for _, targetPersona := range workspace.TargetPersonas {
 		result := handlePersonResult(config, &targetPersona)
 		data = append(data, result...)
 	}
+	// add sorting for output
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].Name < data[j].Name
+	})
 
-	render2Stdin(data)
+	printFile2Stdin(data)
 }
 
-func handlePersonResult(config *general.Config, persona *general.Person) [][]string {
+func printFile2Stdin(data []*ResponseRow) {
+	if !IsJson {
+		render2Stdin(data)
+	} else {
+		bytes, err := json.MarshalIndent(data, "", "  ")
+		if err == nil {
+			log.Errorf("error occurred on marshalling with JSON: %v", err)
+		}
+		log.Info("%v", string(bytes))
+	}
+}
+
+func handlePersonResult(config *general.Config, persona *general.Person) []*ResponseRow {
 	files, e := general.GetFilesForTargetPerson(config, persona.ID)
-	data := make([][]string, 0, 0)
+	data := make([]*ResponseRow, 0, 0)
 	if e != nil {
 		return data
 	}
@@ -63,24 +81,52 @@ func handlePersonResult(config *general.Config, persona *general.Person) [][]str
 	return data
 }
 
-func buildDataRowFromFile(file *general.File) []string {
-	row := make([]string, len(lsHeaders), len(lsHeaders))
-	row[0] = strconv.Itoa(file.FileID)
-	row[1] = file.Filename
-	row[2] = file.Version
-	row[3] = strings.Join(file.Tags, ", ")
-	row[4] = "" // TODO: add #segments here
-	row[5] = general.GetDateFromTimestamp(file.Update)
-	row[6] = disabled
-	if file.Enabled {
-		row[6] = enabled
+func buildDataRowFromFile(file *general.File) *ResponseRow {
+	// strconv.Itoa
+	row := ResponseRow{
+		ID:        file.FileID,
+		Name:      file.Filename,
+		Version:   file.Version,
+		Tag:       file.Tags,
+		UpdatedOn: general.GetDateFromTimestamp(file.Update),
+		Status:    disabled,
 	}
-	return row
+	if file.Enabled {
+		row.Status = enabled
+	}
+	return &row
 }
 
-func render2Stdin(data [][]string) {
+func render2Stdin(response []*ResponseRow) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(lsHeaders)
+	data := formatResponse2Array(response)
 	table.AppendBulk(data)
 	table.Render() // Send output
+}
+
+func formatResponse2Array(rows []*ResponseRow) [][]string {
+	data := make([][]string, 0, len(rows))
+	for _, responseRow := range rows {
+		row := make([]string, len(lsHeaders), len(lsHeaders))
+		row[0] = strconv.Itoa(responseRow.ID)
+		row[1] = responseRow.Name
+		row[2] = responseRow.Version
+		row[3] = strings.Join(responseRow.Tag, ", ")
+		row[4] = "" // TODO: add #segments here
+		row[5] = responseRow.UpdatedOn
+		row[6] = responseRow.Status
+		data = append(data, row)
+	}
+	return data
+}
+
+type ResponseRow struct {
+	ID          int      `json:"id"`
+	Name        string   `json:"name"`
+	Version     string   `json:"version"`
+	Tag         []string `json:"tag"`
+	SegmentNums int      `json:"#segments"`
+	UpdatedOn   string   `json:"updated_on"`
+	Status      string   `json:"status"`
 }

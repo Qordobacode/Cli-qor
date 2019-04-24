@@ -26,23 +26,25 @@ import (
 
 var cfgFile string
 
-var Help bool
-var Version bool
-
 // rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:     "qor",
-	Short:   "Quordoba CLI",
-	Long:    `This CLI is used for simplified access to Quordoba API`,
-	Version: ApiVersion,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-		if Version {
-			printVersion()
-		}
-	},
-}
+var (
+	rootCmd = &cobra.Command{
+		Use:     "qor",
+		Short:   "Quordoba CLI",
+		Long:    `This CLI is used for simplified access to Quordoba API`,
+		Version: ApiVersion,
+		// Uncomment the following line if your bare application
+		// has an action associated with it:
+		Run: func(cmd *cobra.Command, args []string) {
+			if Version {
+				printVersion()
+			}
+		},
+	}
+	Help    bool
+	Version bool
+	IsJson  bool
+)
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
@@ -62,6 +64,7 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "--version")
 	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "--verbose")
+	rootCmd.PersistentFlags().BoolVar(&IsJson, "json", false, "--json")
 }
 
 // initConfig reads in config file and ENV variables if set.

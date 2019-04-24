@@ -67,7 +67,7 @@ func printFile2Stdin(data []*ResponseRow) {
 			log.Errorf("error occurred on marshalling with JSON: %v", err)
 			return
 		}
-		log.Info("%v", string(bytes))
+		log.Infof("%v", string(bytes))
 	}
 }
 

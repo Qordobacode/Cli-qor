@@ -16,13 +16,19 @@ package cmd
 
 import (
 	"github.com/qordobacode/cli-v2/general"
+	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 const (
 	original = "original"
+)
+
+var (
+	ops uint64
 )
 
 // downloadCmd represents the download command
@@ -31,7 +37,7 @@ var (
 		Use:   "download",
 		Short: "Downloads selected files",
 		Long:  "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
-		Run:   pullCommand,
+		Run:   downloadCommand,
 	}
 	isDownloadCurrent  = false
 	downloadAudience   = ""
@@ -50,7 +56,7 @@ func init() {
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
 }
 
-func pullCommand(cmd *cobra.Command, args []string) {
+func downloadCommand(cmd *cobra.Command, args []string) {
 	config, err := general.LoadConfig()
 	if err != nil {
 		return
@@ -82,6 +88,11 @@ func pullCommand(cmd *cobra.Command, args []string) {
 		}
 	}
 	wg.Wait()
+	if isDownloadCurrent {
+		log.Infof("downloaded %v files", ops)
+	} else {
+		log.Infof("downloaded %v completed files", ops)
+	}
 }
 
 func handleFile(config *general.Config, personaID int, file *general.File, wg *sync.WaitGroup) {
@@ -92,10 +103,15 @@ func handleFile(config *general.Config, personaID int, file *general.File, wg *s
 		// isDownloadCurrent - skip files with version
 		return
 	}
+	if file.ErrorID != 0 {
+		log.Errorf("'%s'(id=%v) has error. Skip its download", file.Filename, file.FileID)
+		return
+	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
 			fileName := general.BuildFileName(file, "")
 			general.DownloadSourceFile(config, fileName, file, true)
+			atomic.AddUint64(&ops, 1)
 		}
 		if isDownloadOriginal {
 			suffix := ""
@@ -105,11 +121,13 @@ func handleFile(config *general.Config, personaID int, file *general.File, wg *s
 			}
 			fileName := general.BuildFileName(file, suffix)
 			general.DownloadSourceFile(config, fileName, file, false)
+			atomic.AddUint64(&ops, 1)
 		}
 	} else {
 		fileName := general.BuildFileName(file, "")
 		if !isPullSkip || !general.FileExists(fileName) {
 			general.DownloadFile(config, personaID, fileName, file)
+			atomic.AddUint64(&ops, 1)
 		}
 	}
 }

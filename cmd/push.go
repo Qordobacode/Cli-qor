@@ -140,9 +140,9 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 		}
 	} else {
 		if tag == "" {
-			log.Infof("File %s was pushed to server.", filePath)
+			log.Infof("File '%s' was pushed to server.", filePath)
 		} else {
-			log.Infof("File %s (version '%v') was pushed to server.", filePath, tag)
+			log.Infof("File '%s' (version '%v') was pushed to server.", filePath, tag)
 		}
 	}
 }

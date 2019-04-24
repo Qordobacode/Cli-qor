@@ -2,6 +2,7 @@ package general
 
 import (
 	"errors"
+	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"io"
 	"io/ioutil"
@@ -48,15 +49,13 @@ func GetFromServer(qordoba *Config, getURL string) ([]byte, error) {
 	}
 	bodyBytes, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		log.Errorf("error occurred on body read: %v", err)
-		return nil, err
+		return nil, fmt.Errorf("error occurred on body read: %v", err)
 	}
 	if response.StatusCode/100 != 2 {
 		if response.StatusCode == http.StatusUnauthorized {
-			log.Debugf("current access_token='%v'", qordoba.Qordoba.AccessToken)
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Errorf("Error occurred on %s request. Status: %d, Response : %v", getURL, response.Status, string(bodyBytes))
+			log.Debugf("Error occurred on get request. Status: %d, Response : %v", response.StatusCode, string(bodyBytes))
 		}
 		return nil, errors.New("unsuccessful request")
 	}
@@ -85,7 +84,7 @@ func DeleteFromServer(qordoba *Config, deleteURL string) ([]byte, error) {
 		if response.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Errorf("Error occurred on %s request. Status: %d, Response : %v", deleteURL, response.Status, string(bodyBytes))
+			log.Errorf("Error occurred on %s request. Status: %d, Response : %v", deleteURL, response.StatusCode, string(bodyBytes))
 		}
 		return nil, errors.New("unsuccessful request")
 	}

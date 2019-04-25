@@ -6,9 +6,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// version-related constants
 const (
-	ApplicationName = "Qordoba CLI"
-	ApiVersion      = "Qordoba Cli v4.0"
+	APIVersion = "Qordoba Cli v4.0"
 )
 
 // versionCmd represents the version command
@@ -21,7 +21,7 @@ var versionCmd = &cobra.Command{
 }
 
 func printVersion() {
-	fmt.Println(ApiVersion)
+	fmt.Println(APIVersion)
 }
 
 func init() {

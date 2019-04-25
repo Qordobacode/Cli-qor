@@ -41,7 +41,7 @@ func printLs(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	data := make([]*ResponseRow, 0, 0)
+	data := make([]*responseRow, 0, 0)
 	for _, targetPersona := range workspace.TargetPersonas {
 		result := handlePersonResult(config, &targetPersona)
 		data = append(data, result...)
@@ -58,8 +58,8 @@ func printLs(cmd *cobra.Command, args []string) {
 	printFile2Stdin(data)
 }
 
-func printFile2Stdin(data []*ResponseRow) {
-	if !IsJson {
+func printFile2Stdin(data []*responseRow) {
+	if !IsJSON {
 		render2Stdin(data)
 	} else {
 		bytes, err := json.MarshalIndent(data, "", "  ")
@@ -71,9 +71,9 @@ func printFile2Stdin(data []*ResponseRow) {
 	}
 }
 
-func handlePersonResult(config *general.Config, persona *general.Person) []*ResponseRow {
+func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
 	files, e := general.GetFilesForTargetPerson(config, persona.ID)
-	data := make([]*ResponseRow, 0, 0)
+	data := make([]*responseRow, 0, 0)
 	if e != nil {
 		return data
 	}
@@ -87,9 +87,9 @@ func handlePersonResult(config *general.Config, persona *general.Person) []*Resp
 	return data
 }
 
-func buildDataRowFromFile(file *general.File) *ResponseRow {
+func buildDataRowFromFile(file *general.File) *responseRow {
 	// strconv.Itoa
-	row := ResponseRow{
+	row := responseRow{
 		ID:        file.FileID,
 		Name:      file.Filename,
 		Version:   file.Version,
@@ -103,7 +103,7 @@ func buildDataRowFromFile(file *general.File) *ResponseRow {
 	return &row
 }
 
-func render2Stdin(response []*ResponseRow) {
+func render2Stdin(response []*responseRow) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(lsHeaders)
 	data := formatResponse2Array(response)
@@ -111,7 +111,7 @@ func render2Stdin(response []*ResponseRow) {
 	table.Render() // Send output
 }
 
-func formatResponse2Array(rows []*ResponseRow) [][]string {
+func formatResponse2Array(rows []*responseRow) [][]string {
 	data := make([][]string, 0, len(rows))
 	for _, responseRow := range rows {
 		row := make([]string, len(lsHeaders), len(lsHeaders))
@@ -127,7 +127,8 @@ func formatResponse2Array(rows []*ResponseRow) [][]string {
 	return data
 }
 
-type ResponseRow struct {
+// responseRow struct
+type responseRow struct {
 	ID          int      `json:"id"`
 	Name        string   `json:"name"`
 	Version     string   `json:"version"`

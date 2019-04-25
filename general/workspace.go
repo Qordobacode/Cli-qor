@@ -11,7 +11,7 @@ const (
 	getWorkspacesTemnplate = "%s/v3/organizations/%d/workspaces"
 )
 
-// GetAllWorkspaces function retrieve list of all workspaces
+// GetWorkspace function retrieves a workspace
 func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 	allWorkspaces, err := GetAllWorkspaces(qordobaConfig)
 	if err != nil {

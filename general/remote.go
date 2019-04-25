@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	// ApplicationJsonType used in Http header 'Content-Type'
-	ApplicationJsonType = "application/json"
+	// ApplicationJSONType used in Http header 'Content-Type'
+	ApplicationJSONType = "application/json"
 )
 
 var (
@@ -30,7 +30,7 @@ func PostToServer(qordoba *Config, postURL string, reader io.Reader) (*http.Resp
 		return nil, err
 	}
 	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
-	request.Header.Add("Content-Type", ApplicationJsonType)
+	request.Header.Add("Content-Type", ApplicationJSONType)
 	return HTTPClient.Do(request)
 }
 

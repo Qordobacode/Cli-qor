@@ -15,13 +15,14 @@ var initCmd = &cobra.Command{
 	Short:       "Init configuration for QordobaConfig CLI from STDIN",
 	RunE:        RunInitRoot,
 	Example:     "qor init",
-	Annotations: map[string]string{"version": ApiVersion},
+	Annotations: map[string]string{"version": APIVersion},
 }
 
 func init() {
 	rootCmd.AddCommand(initCmd)
 }
 
+// RunInitRoot function starts config initialization
 func RunInitRoot(cmd *cobra.Command, args []string) error {
 	fmt.Println("init called")
 	fileName := ""
@@ -31,7 +32,7 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 	return RunInit(fileName)
 }
 
-// RunConfigCreate creates a config with the given options.
+// RunInit creates a config with the given options.
 func RunInit(fileName string) error {
 	var config *general.Config
 	var err error

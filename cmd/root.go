@@ -32,7 +32,7 @@ var (
 		Use:     "qor",
 		Short:   "Quordoba CLI",
 		Long:    `This CLI is used for simplified access to Quordoba API`,
-		Version: ApiVersion,
+		Version: APIVersion,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:
 		Run: func(cmd *cobra.Command, args []string) {
@@ -43,7 +43,7 @@ var (
 	}
 	Help    bool
 	Version bool
-	IsJson  bool
+	IsJSON  bool
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -64,7 +64,7 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "--version")
 	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "--verbose")
-	rootCmd.PersistentFlags().BoolVar(&IsJson, "json", false, "--json")
+	rootCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "--json")
 }
 
 // initConfig reads in config file and ENV variables if set.

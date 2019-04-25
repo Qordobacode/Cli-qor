@@ -17,7 +17,7 @@ const (
 	defaultFilePerm            os.FileMode = 0666
 )
 
-// DownloadFile function retrieves all files in workspace
+// GetFilesForTargetPerson function retrieves all files in workspace
 func GetFilesForTargetPerson(config *Config, personaID int) ([]File, error) {
 	base := config.GetAPIBase()
 	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID)
@@ -34,7 +34,7 @@ func GetFilesForTargetPerson(config *Config, personaID int) ([]File, error) {
 	return response.Files, nil
 }
 
-// DownloadFile function retrieves all files in workspace
+// DownloadFile function retrieves file in workspace
 func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	base := config.GetAPIBase()
 	getFileContent := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
@@ -47,7 +47,7 @@ func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
 }
 
-// DownloadFile function retrieves all files in workspace
+// DownloadSourceFile function retrieves all source files in workspace
 func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates bool) {
 	base := config.GetAPIBase()
 	getFileContent := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
@@ -79,6 +79,7 @@ func BuildFileName(file *File, suffix string) string {
 	return file.Filename
 }
 
+// FindFileAndDelete function retrieve file and delete it remotedly
 func FindFileAndDelete(config *Config, fileName, version string) {
 	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
 	workspace, err := GetWorkspace(config)
@@ -102,6 +103,7 @@ func FindFileAndDelete(config *Config, fileName, version string) {
 	}
 }
 
+// DeleteFile func delete file from parameters
 func DeleteFile(config *Config, file *File) {
 	base := config.GetAPIBase()
 	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)

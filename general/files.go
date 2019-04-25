@@ -79,12 +79,12 @@ func BuildFileName(file *File, suffix string) string {
 	return file.Filename
 }
 
-// FindFileAndDelete function retrieve file and delete it remotedly
-func FindFileAndDelete(config *Config, fileName, version string) {
-	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
+// FindFile function
+func FindFile(config *Config, fileName, version string) *File {
+	log.Debugf("FindFile was called for file '%v'('%v')", fileName, version)
 	workspace, err := GetWorkspace(config)
 	if err != nil {
-		return
+		return nil
 	}
 	for _, persona := range workspace.TargetPersonas {
 		files, err := GetFilesForTargetPerson(config, persona.ID)
@@ -94,12 +94,21 @@ func FindFileAndDelete(config *Config, fileName, version string) {
 		for _, file := range files {
 			if file.Filename == fileName {
 				if file.Version == version {
-					DeleteFile(config, &file)
-					return
+					return &file
 				}
 			}
 		}
-		log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
+	}
+	log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
+	return nil
+}
+
+// FindFileAndDelete function retrieve file and delete it remotedly
+func FindFileAndDelete(config *Config, fileName, version string) {
+	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
+	file := FindFile(config, fileName, version)
+	if file != nil {
+		DeleteFile(config, file)
 	}
 }
 

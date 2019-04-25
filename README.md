@@ -5,6 +5,9 @@ Cli v4 (using Go)
 url - https://app.qordobatest.com
 
 
+## Platforms
+Mac - `$ GOOS=darwin GOARCH=amd64 go build`
+      
 ### List of supported commands:
 - version
 - init

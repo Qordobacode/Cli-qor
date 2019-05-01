@@ -1,14 +1,13 @@
+all: build
 
-build:
-		build-windows
-		build-linux
-		build-arm
+clean:
+	rm -rf pkg bin
 
-build-windows:
-	GOOS=windows go build -o cli.exe
+test: clean
+	gb test
 
-build-linux:
-    GOOS=linux go build -o cli
-    
-build-arm:
-    GOARCH=armv7 GOOS=linux go build -o cli-rpi
+build: test
+	gb build all
+
+update:
+	gb vendor update --all

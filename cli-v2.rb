@@ -1,7 +1,8 @@
 class CliV2 < Formula
+  desc "Cli v2 (using Go)"
   homepage "https://github.com/Qordobacode/Cli-v2"
   url "https://github.com/Qordobacode/Cli-v2/archive/version-0.1.tar.gz"
-  sha256 "8e4bd52a7204526c7ce649bf954c576e0e15c24adcb52e0a1edcdb1204996c79"
+  sha256 "aafa200e49341bfbe0b0ebc7c7ab53df606da976243f37b688dc0136d1215346"
 
   depends_on "go" => :build
 

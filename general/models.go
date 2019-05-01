@@ -57,12 +57,8 @@ type WorkspaceResponse struct {
 
 // WorkspaceData contains workflow and workspace data
 type WorkspaceData struct {
-	Workflow []struct {
-		ID    int    `json:"id"`
-		Name  string `json:"name"`
-		Order int    `json:"order"`
-	} `json:"workflow"`
-	Workspace Workspace `json:"workspace"`
+	Workflow  []Workflow `json:"workflow"`
+	Workspace Workspace  `json:"workspace"`
 }
 
 // Workspace is qordoba object with workspace's parameters
@@ -103,22 +99,45 @@ type FileSearchResponse struct {
 	} `json:"meta"`
 }
 
-// File - DTO object for qordoba's file
 type File struct {
-	Completed    bool     `json:"completed"`
-	CreatedAt    int64    `json:"createdAt"`
-	Deleted      bool     `json:"deleted"`
-	Enabled      bool     `json:"enabled"`
-	ErrorID      int      `json:"errorId"`
-	ErrorMessage string   `json:"errorMessage"`
-	FileID       int      `json:"fileId"`
-	Filename     string   `json:"filename"`
-	Filepath     string   `json:"filepath"`
-	Preparing    bool     `json:"preparing"`
-	Tags         []string `json:"tags"`
-	Update       int64    `json:"update"`
-	URL          string   `json:"url"`
-	Version      string   `json:"version"`
+	FileID             int                  `json:"fileId"`
+	Enabled            bool                 `json:"enabled"`
+	Completed          bool                 `json:"completed"`
+	Preparing          bool                 `json:"preparing"`
+	Filename           string               `json:"filename"`
+	Filepath           string               `json:"filepath"`
+	Version            string               `json:"version"`
+	Tags               []Tags               `json:"tags"`
+	Update             int64                `json:"update"`
+	CreatedAt          int64                `json:"createdAt"`
+	ErrorID            int                  `json:"errorId"`
+	ErrorMessage       string               `json:"errorMessage"`
+	Deleted            bool                 `json:"deleted"`
+	ByWorkflowProgress []ByWorkflowProgress `json:"byWorkflowProgress"`
+}
+type Tags struct {
+	TagID int    `json:"tagId"`
+	Name  string `json:"name"`
+}
+type Workflow struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	Order    int    `json:"order"`
+	Complete bool   `json:"complete"`
+}
+
+type Counts struct {
+	SegmentCount int `json:"segmentCount"`
+	WordCount    int `json:"wordCount"`
+}
+type ByWorkflowProgress struct {
+	Workflow Workflow `json:"workflow"`
+	Counts   Counts   `json:"counts"`
+}
+
+type TagRequest struct {
+	TagID int64  `json:"tagId"`
+	Name  string `json:"name"`
 }
 
 // FileDeleteResponse struct for response for file deletion

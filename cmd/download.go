@@ -78,7 +78,7 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}
-		files, err := general.GetFilesForTargetPerson(config, persona.ID)
+		files, err := general.GetFilesForTargetPerson(config, persona.ID, false)
 		if err != nil {
 			continue
 		}

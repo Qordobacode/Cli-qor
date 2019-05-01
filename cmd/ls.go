@@ -72,7 +72,7 @@ func printFile2Stdin(data []*responseRow) {
 }
 
 func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
-	files, e := general.GetFilesForTargetPerson(config, persona.ID)
+	files, e := general.GetFilesForTargetPerson(config, persona.ID, true)
 	data := make([]*responseRow, 0, 0)
 	if e != nil {
 		return data
@@ -88,12 +88,16 @@ func handlePersonResult(config *general.Config, persona *general.Person) []*resp
 }
 
 func buildDataRowFromFile(file *general.File) *responseRow {
+	tags := make([]string, 0, len(file.Tags))
+	for _, tag := range file.Tags {
+		tags = append(tags, tag.Name)
+	}
 	// strconv.Itoa
 	row := responseRow{
 		ID:        file.FileID,
 		Name:      file.Filename,
 		Version:   file.Version,
-		Tag:       file.Tags,
+		Tag:       tags,
 		UpdatedOn: general.GetDateFromTimestamp(file.Update),
 		Status:    disabled,
 	}

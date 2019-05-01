@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	fileListURLTemplate                    = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files"
+	fileListURLTemplate                    = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files?withProgressStatus=%v"
 	fileDownloadTemplate                   = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
 	sourceFileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
 	fileDeleteTemplate                     = "%s/v3/organizations/%d/workspaces/%d/files/%d"
@@ -18,9 +18,9 @@ const (
 )
 
 // GetFilesForTargetPerson function retrieves all files in workspace
-func GetFilesForTargetPerson(config *Config, personaID int) ([]File, error) {
+func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus bool) ([]File, error) {
 	base := config.GetAPIBase()
-	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID)
+	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
 	fileBytesResponse, err := GetFromServer(config, getUserFiles)
 	if err != nil {
 		return nil, err
@@ -87,7 +87,7 @@ func FindFile(config *Config, fileName, version string) *File {
 		return nil
 	}
 	for _, persona := range workspace.TargetPersonas {
-		files, err := GetFilesForTargetPerson(config, persona.ID)
+		files, err := GetFilesForTargetPerson(config, persona.ID, false)
 		if err != nil {
 			continue
 		}

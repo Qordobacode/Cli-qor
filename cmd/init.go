@@ -29,11 +29,6 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fileName = args[0]
 	}
-	return RunInit(fileName)
-}
-
-// RunInit creates a config with the given options.
-func RunInit(fileName string) error {
 	var config *general.Config
 	var err error
 	if fileName != "" {
@@ -43,24 +38,29 @@ func RunInit(fileName string) error {
 		}
 	}
 	if config == nil {
-		scanner := bufio.NewScanner(os.Stdin)
-		accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty\n", scanner)
-		organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty\n", scanner)
-		projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty\n", scanner)
-		config = &general.Config{
-			Qordoba: general.QordobaConfig{
-				AccessToken:    accessToken,
-				ProjectID:      projectID,
-				OrganizationID: organizationID,
-			},
-		}
+		config = buildConfigFromStdin()
 	}
 
 	general.SaveMainConfig(config)
 	return nil
 }
 
-func readVariable(header, errMesage string, scanner *bufio.Scanner) string {
+func buildConfigFromStdin() *general.Config {
+	scanner := bufio.NewScanner(os.Stdin)
+	accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty\n", scanner)
+	organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty\n", scanner)
+	projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty\n", scanner)
+	config := &general.Config{
+		Qordoba: general.QordobaConfig{
+			AccessToken:    accessToken,
+			ProjectID:      projectID,
+			OrganizationID: organizationID,
+		},
+	}
+	return config
+}
+
+func readVariable(header, errMessage string, scanner *bufio.Scanner) string {
 	for {
 		fmt.Print(header)
 		scanner.Scan()
@@ -68,7 +68,7 @@ func readVariable(header, errMesage string, scanner *bufio.Scanner) string {
 		if text != "" {
 			return text
 		}
-		fmt.Printf(errMesage)
+		fmt.Printf(errMessage)
 	}
 }
 

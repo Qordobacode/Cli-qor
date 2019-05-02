@@ -9,9 +9,6 @@ fmt
 # JetBrains tools' data
 .idea
 
-# Vendored packages
-vendor/
-
 config.yml
 
 # Binaries

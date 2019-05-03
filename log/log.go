@@ -60,5 +60,5 @@ func out(format string, v ...interface{}) {
 // TimeTrack function for printing function time in log
 func TimeTrack(start time.Time, name string) {
 	elapsed := time.Since(start)
-	Infof("---%s took %s---", name, elapsed)
+	Debugf("---%s took %s---", name, elapsed)
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
+	"time"
 )
 
 const (
@@ -13,6 +14,10 @@ const (
 
 // GetWorkspace function retrieves a workspace
 func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
+	start := time.Now()
+	defer func() {
+		log.TimeTrack(start, "GetWorkspace")
+	}()
 	allWorkspaces, err := GetAllWorkspaces(qordobaConfig)
 	if err != nil {
 		return nil, err
@@ -27,6 +32,10 @@ func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 
 // GetAllWorkspaces function retrieve list of all workspaces
 func GetAllWorkspaces(qordobaConfig *Config) (*WorkspaceResponse, error) {
+	start := time.Now()
+	defer func() {
+		log.TimeTrack(start, "GetAllWorkspaces")
+	}()
 	base := qordobaConfig.GetAPIBase()
 	// retrieve from server list of workspaces
 	workspaceRequestURL := fmt.Sprintf(getWorkspacesTemnplate, base, qordobaConfig.Qordoba.OrganizationID)

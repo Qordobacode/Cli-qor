@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -36,6 +37,10 @@ func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus b
 
 // DownloadFile function retrieves file in workspace
 func DownloadFile(config *Config, personaID int, fileName string, file *File) {
+	start := time.Now()
+	defer func () {
+		log.TimeTrack(start, "DownloadFile")
+	}()
 	base := config.GetAPIBase()
 	getFileContent := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
 	fileBytesResponse, err := GetFromServer(config, getFileContent)

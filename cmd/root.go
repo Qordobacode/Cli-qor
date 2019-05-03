@@ -61,9 +61,9 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
-	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "--version")
-	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "--verbose")
-	rootCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "--json")
+	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "Get version of CLI")
+	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "Print verbose output")
+	rootCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
 }
 
 // initConfig reads in config file and ENV variables if set.

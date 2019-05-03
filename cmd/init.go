@@ -12,7 +12,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:         "init",
-	Short:       "Init configuration for QordobaConfig CLI from STDIN",
+	Short:       "Init configuration for QordobaConfig CLI from STDIN or file",
 	RunE:        RunInitRoot,
 	Example:     "qor init",
 	Annotations: map[string]string{"version": APIVersion},

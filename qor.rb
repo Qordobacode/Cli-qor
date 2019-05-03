@@ -1,4 +1,4 @@
-class CliV2 < Formula
+class Qor < Formula
   desc "Cli v2 (using Go)"
   homepage "https://github.com/Qordobacode/Cli-v2"
   url "https://github.com/Qordobacode/Cli-v2/archive/version-0.2.tar.gz"

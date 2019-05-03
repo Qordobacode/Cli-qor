@@ -47,7 +47,7 @@ func ReadConfigInPath(path string) (*Config, error) {
 	return &config, nil
 }
 
-// LoadConfig function loads content of main quordoba configuration
+// LoadConfig function loads content of main qordoba configuration
 // Read configuration from ~/.qordoba/config-v4.yaml
 // Check if current folder contains ./.qordoba.yaml if not search a parent directories for one.
 // If you find  set directory with this file as a root to the plugin operations. .qordoba.yaml

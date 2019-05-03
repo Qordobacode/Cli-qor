@@ -29,8 +29,8 @@ var cfgFile string
 var (
 	rootCmd = &cobra.Command{
 		Use:     "qor",
-		Short:   "Quordoba CLI",
-		Long:    `This CLI is used for simplified access to Quordoba API`,
+		Short:   "Qordoba CLI",
+		Long:    `This CLI is used for simplified access to Qordoba API`,
 		Version: APIVersion,
 		// Uncomment the following line if your bare application
 		// has an action associated with it:

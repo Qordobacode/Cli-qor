@@ -58,9 +58,10 @@ func printLs(cmd *cobra.Command, args []string) {
 	printFile2Stdin(data)
 }
 
-func printFile2Stdin(data []*responseRow) {
+func printFile2Stdin(response []*responseRow) {
 	if !IsJSON {
-		render2Stdin(data)
+		data := formatResponse2Array(response)
+		renderTable2Stdin(lsHeaders, data)
 	} else {
 		bytes, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
@@ -107,10 +108,9 @@ func buildDataRowFromFile(file *general.File) *responseRow {
 	return &row
 }
 
-func render2Stdin(response []*responseRow) {
+func renderTable2Stdin(header []string, data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(lsHeaders)
-	data := formatResponse2Array(response)
+	table.SetHeader(header)
 	table.AppendBulk(data)
 	table.Render() // Send output
 }

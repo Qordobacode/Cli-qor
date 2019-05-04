@@ -128,15 +128,18 @@ func IsConfigFileCorrect(config *Config) bool {
 
 // SaveMainConfig function update content of application's config
 func SaveMainConfig(config *Config) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Errorf("error occurred on home dir retrieval: %v", err)
-		return
-	}
-	path := GetConfigPath(home)
 	marshaledConfig, err := yaml.Marshal(config)
 	if err != nil {
 		log.Errorf("error occurred on marshalling config file: %v", err)
+		return
+	}
+	writeFile2Path(homeConfigName, marshaledConfig)
+}
+
+func writeFile2Path(fileName string, marshaledConfig []byte) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Errorf("error occurred on home dir retrieval: %v", err)
 		return
 	}
 	qordobaHome := getQordobaHomeDir(home)
@@ -144,6 +147,7 @@ func SaveMainConfig(config *Config) {
 	if err != nil {
 		log.Errorf("error occurred on creating qordoba's folder: %v", err)
 	}
+	path := qordobaHome + string(os.PathSeparator) + fileName
 	err = ioutil.WriteFile(path, marshaledConfig, 0644)
 	if err != nil {
 		log.Errorf("error occurred on writing config: %v", err)

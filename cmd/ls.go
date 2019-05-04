@@ -10,7 +10,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 const (
@@ -23,7 +22,7 @@ const (
 var (
 	lsCmd = &cobra.Command{
 		Use:   "ls",
-		Short: "List files (show 50 only)",
+		Short: "Ls files (show 50 only)",
 		Run:   printLs,
 	}
 	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
@@ -42,43 +41,21 @@ func printLs(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	rowChannel := make(chan *responseRow)
-	var wg sync.WaitGroup
-	wg.Add(len(workspace.TargetPersonas))
+	data := make([]*responseRow, 0, 0)
 	for _, targetPersona := range workspace.TargetPersonas {
-		go handleTargetPerson(config, targetPersona, rowChannel, &wg)
-	}
-	wg.Wait()
-	close(rowChannel)
-	data := make([]*responseRow, 0, len(rowChannel))
-	for len(rowChannel) > 0 {
-		data = append(data, <-rowChannel)
-	}
-	if len(data) > lineLimit {
-		data = data[:lineLimit]
+		result := handlePersonResult(config, &targetPersona)
+		data = append(data, result...)
+		if len(data) > 50 {
+			data = data[:50]
+			break
+		}
 	}
 	// add sorting for output
 	sort.Slice(data, func(i, j int) bool {
 		return data[i].Name < data[j].Name
 	})
-	printFile2Stdin(data)
-}
 
-func handleTargetPerson(config *general.Config, targetPersona general.Person, data chan *responseRow, wg *sync.WaitGroup) {
-	defer func() {
-		wg.Done()
-	}()
-	files, e := general.GetFilesForTargetPerson(config, targetPersona.ID, true)
-	if e != nil {
-		return
-	}
-	audiences := config.GetAudiences()
-	for _, file := range files {
-		if _, ok := audiences[targetPersona.Code]; len(audiences) > 0 && !ok {
-			continue
-		}
-		data <- buildDataRowFromFile(&file)
-	}
+	printFile2Stdin(data)
 }
 
 func printFile2Stdin(data []*responseRow) {
@@ -92,6 +69,22 @@ func printFile2Stdin(data []*responseRow) {
 		}
 		log.Infof("%v", string(bytes))
 	}
+}
+
+func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
+	files, e := general.GetFilesForTargetPerson(config, persona.ID, true)
+	data := make([]*responseRow, 0, 0)
+	if e != nil {
+		return data
+	}
+	audiences := config.GetAudiences()
+	for _, file := range files {
+		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
+			continue
+		}
+		data = append(data, buildDataRowFromFile(&file))
+	}
+	return data
 }
 
 func buildDataRowFromFile(file *general.File) *responseRow {

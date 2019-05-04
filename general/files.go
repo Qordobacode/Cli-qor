@@ -6,6 +6,7 @@ import (
 	"github.com/qordobacode/cli-v2/log"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -20,6 +21,10 @@ const (
 
 // GetFilesForTargetPerson function retrieves all files in workspace
 func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus bool) ([]File, error) {
+	start := time.Now()
+	defer func() {
+		log.TimeTrack(start, "GetFilesForTargetPerson " + strconv.Itoa(personaID))
+	}()
 	base := config.GetAPIBase()
 	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
 	fileBytesResponse, err := GetFromServer(config, getUserFiles)

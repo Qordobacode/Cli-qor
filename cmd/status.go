@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -10,11 +8,13 @@ import (
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Status per project or file (Support file versions)",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("status called")
-	},
+	Run: runStatus,
 }
 
 func init() {
 	rootCmd.AddCommand(statusCmd)
+}
+
+func runStatus(cmd *cobra.Command, args []string) {
+
 }

@@ -20,10 +20,10 @@ const (
 )
 
 // GetFilesForTargetPerson function retrieves all files in workspace
-func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus bool) ([]File, error) {
+func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus bool) (*FileSearchResponse, error) {
 	start := time.Now()
 	defer func() {
-		log.TimeTrack(start, "GetFilesForTargetPerson " + strconv.Itoa(personaID))
+		log.TimeTrack(start, "GetFilesForTargetPerson "+strconv.Itoa(personaID))
 	}()
 	base := config.GetAPIBase()
 	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
@@ -37,13 +37,13 @@ func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus b
 		log.Errorf("error occurred on server response unmarshalling: %v", err)
 		return nil, err
 	}
-	return response.Files, nil
+	return response, nil
 }
 
 // DownloadFile function retrieves file in workspace
 func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	start := time.Now()
-	defer func () {
+	defer func() {
 		log.TimeTrack(start, "DownloadFile")
 	}()
 	base := config.GetAPIBase()

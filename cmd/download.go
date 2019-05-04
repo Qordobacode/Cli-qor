@@ -78,10 +78,11 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}
-		files, err := general.GetFilesForTargetPerson(config, persona.ID, false)
+		response, err := general.GetFilesForTargetPerson(config, persona.ID, false)
 		if err != nil {
 			continue
 		}
+		files := response.Files
 		wg.Add(len(files))
 		for i := range files {
 			go handleFile(config, persona.ID, &files[i], &wg)
@@ -95,7 +96,7 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 	}
 }
 
-func handleFile(config *general.Config, personaID int, file *general.File, wg *sync.WaitGroup) {
+func handleFile(config *general.Config, personaID int, file *general.Files, wg *sync.WaitGroup) {
 	defer func() {
 		wg.Done()
 	}()

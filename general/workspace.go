@@ -45,7 +45,7 @@ func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 // cache is `invalidationPeriod`
 func getCachedWorkspace() (*WorkspaceResponse, error) {
 	workspaceFilePath, err := getCachedWorkspaceFilePath()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	// read config from file

@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	headers = []string{
+	statusHeaders = []string{
 		"#AUDIENSES", "#WORDS", "#SEGMENTS", "EDITING", "PROOFREADING", "COMPLETED",
 	}
 )
@@ -37,15 +37,26 @@ func runStatus(cmd *cobra.Command, args []string) {
 }
 
 func buildProjectStatus(config *general.Config) {
-	data := make([][]string, 0, 0)
 	response, err := general.GetWorkspace(config)
 	if err != nil {
 		return
 	}
-	renderTable2Stdin(headers, data)
+	data := make([][]string, 0, len(response.TargetPersonas))
+	for _, person := range response.TargetPersonas {
+		row := make([]string, len(statusHeaders), len(statusHeaders))
+		row[0] = person.Code
+		personFiles, err := general.GetFilesForTargetPerson(config, person.ID, true)
+		if err != nil {
+			continue
+		}
+
+		data = append(data, row)
+	}
+
+	renderTable2Stdin(statusHeaders, data)
 }
 
 func runFileStatusFile(fileName string, config *general.Config) {
 	data := make([][]string, 0, 0)
-	renderTable2Stdin(headers, data)
+	renderTable2Stdin(statusHeaders, data)
 }

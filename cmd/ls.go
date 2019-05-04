@@ -88,7 +88,7 @@ func handlePersonResult(config *general.Config, persona *general.Person) []*resp
 	return data
 }
 
-func buildDataRowFromFile(file *general.File) *responseRow {
+func buildDataRowFromFile(file *general.Files) *responseRow {
 	tags := make([]string, 0, len(file.Tags))
 	for _, tag := range file.Tags {
 		tags = append(tags, tag.Name)

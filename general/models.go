@@ -90,35 +90,30 @@ type Person struct {
 
 // FileSearchResponse - DTO object for qordoba's file search response
 type FileSearchResponse struct {
-	Files []File `json:"files"`
-	Meta  struct {
-		Paging struct {
-			TotalEnabled int `json:"totalEnabled"`
-			TotalResults int `json:"totalResults"`
-		} `json:"paging"`
-	} `json:"meta"`
+	Meta              Meta                `json:"meta"`
+	Files             []Files             `json:"files"`
+	ByPersonaProgress []ByPersonaProgress `json:"byPersonaProgress"`
+	TotalCounts       TotalCounts         `json:"totalCounts"`
 }
 
-type File struct {
-	FileID             int                  `json:"fileId"`
-	Enabled            bool                 `json:"enabled"`
-	Completed          bool                 `json:"completed"`
-	Preparing          bool                 `json:"preparing"`
-	Filename           string               `json:"filename"`
-	Filepath           string               `json:"filepath"`
-	Version            string               `json:"version"`
-	Tags               []Tags               `json:"tags"`
-	Update             int64                `json:"update"`
-	CreatedAt          int64                `json:"createdAt"`
-	ErrorID            int                  `json:"errorId"`
-	ErrorMessage       string               `json:"errorMessage"`
-	Deleted            bool                 `json:"deleted"`
-	ByWorkflowProgress []ByWorkflowProgress `json:"byWorkflowProgress"`
+// Paging struct
+type Paging struct {
+	TotalEnabled int `json:"totalEnabled"`
+	TotalResults int `json:"totalResults"`
 }
+
+// Meta struct
+type Meta struct {
+	Paging Paging `json:"paging"`
+}
+
+// Tags struct
 type Tags struct {
 	TagID int    `json:"tagId"`
 	Name  string `json:"name"`
 }
+
+// Workflow struct contains data about workflow
 type Workflow struct {
 	ID       int    `json:"id"`
 	Name     string `json:"name"`
@@ -126,15 +121,56 @@ type Workflow struct {
 	Complete bool   `json:"complete"`
 }
 
+// Counts struct
 type Counts struct {
 	SegmentCount int `json:"segmentCount"`
 	WordCount    int `json:"wordCount"`
 }
+
+// ByWorkflowProgress struct
 type ByWorkflowProgress struct {
 	Workflow Workflow `json:"workflow"`
 	Counts   Counts   `json:"counts"`
 }
 
+// Files struct
+type Files struct {
+	FileID             int                  `json:"fileId"`
+	Enabled            bool                 `json:"enabled"`
+	Completed          bool                 `json:"completed"`
+	Preparing          bool                 `json:"preparing"`
+	Filename           string               `json:"filename"`
+	Filepath           string               `json:"filepath"`
+	Version            string               `json:"version,omitempty"`
+	Tags               []Tags               `json:"tags"`
+	Update             int64                `json:"update"`
+	CreatedAt          int64                `json:"createdAt"`
+	Deleted            bool                 `json:"deleted"`
+	ByWorkflowProgress []ByWorkflowProgress `json:"byWorkflowProgress"`
+	ErrorID            int                  `json:"errorId,omitempty"`
+	ErrorMessage       string               `json:"errorMessage,omitempty"`
+}
+
+// Persona struct contain persona's data
+type Persona struct {
+	Code string `json:"code"`
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+// ByPersonaProgress struct used for `status` calculation
+type ByPersonaProgress struct {
+	Persona            Persona              `json:"persona"`
+	ByWorkflowProgress []ByWorkflowProgress `json:"byWorkflowProgress"`
+}
+
+// TotalCounts struct
+type TotalCounts struct {
+	SegmentCount int `json:"segmentCount"`
+	WordCount    int `json:"wordCount"`
+}
+
+// TagRequest struct
 type TagRequest struct {
 	TagID int64  `json:"tagId"`
 	Name  string `json:"name"`

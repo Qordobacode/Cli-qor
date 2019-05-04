@@ -13,17 +13,21 @@ import (
 
 const (
 	getWorkspacesTemnplate = "%s/v3/organizations/%d/workspaces"
-	workspaceName  = "workspace.json"
+	workspaceFileName      = "workspace.json"
+)
+
+var (
+	invalidationPeriod = time.Hour * 4
 )
 
 // GetWorkspace function retrieves a workspace
 func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 	start := time.Now()
 	defer func() {
-		log.TimeTrack(start, "GetWorkspace " + strconv.Itoa(int(qordobaConfig.Qordoba.ProjectID)))
+		log.TimeTrack(start, "GetWorkspace "+strconv.Itoa(int(qordobaConfig.Qordoba.ProjectID)))
 	}()
 	workspaceResponse, err := GetCachedWorkspace()
-	if err != nil || workspaceResponse == nil{
+	if err != nil || workspaceResponse == nil {
 		workspaceResponse, err = GetAllWorkspaces(qordobaConfig)
 	}
 	if err != nil {
@@ -37,26 +41,12 @@ func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
 	return nil, errors.New("workspace with id=" + string(qordobaConfig.Qordoba.ProjectID) + " was not found")
 }
 
+// GetCachedWorkspace function returns cached workspace if it present AND still valid (invalidation period for
+// cache is `invalidationPeriod`
 func GetCachedWorkspace() (*WorkspaceResponse, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		log.Errorf("error occurred on home dir retrieval: %v", err)
+	workspaceFilePath, err := getCachedWorkspaceFilePath()
+	if err != nil{
 		return nil, err
-	}
-	workspaceFilePath := getQordobaHomeDir(home) + string(os.PathSeparator) + workspaceName
-	file, err := os.Stat(workspaceFilePath)
-	if err != nil {
-		return nil, err
-	}
-	modifiedtime := file.ModTime()
-	// don't use cached workspace if 1 day has came
-	if modifiedtime.Add(time.Hour * 24).Before(time.Now()) {
-		return nil, errors.New("outdated file")
-	}
-
-	if !FileExists(workspaceFilePath) {
-		log.Debugf("workspace not found: %v", workspaceFilePath)
-		return nil, fmt.Errorf("cached workspace file was not found")
 	}
 	// read config from file
 	bodyBytes, err := ioutil.ReadFile(workspaceFilePath)
@@ -71,6 +61,30 @@ func GetCachedWorkspace() (*WorkspaceResponse, error) {
 		return nil, err
 	}
 	return &workspaceResponse, nil
+}
+
+func getCachedWorkspaceFilePath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		log.Errorf("error occurred on home dir retrieval: %v", err)
+		return "", err
+	}
+	workspaceFilePath := getQordobaHomeDir(home) + string(os.PathSeparator) + workspaceFileName
+	file, err := os.Stat(workspaceFilePath)
+	if err != nil {
+		return "", err
+	}
+	modifiedtime := file.ModTime()
+	// don't use cached workspace if 1 day has came
+	if modifiedtime.Add(invalidationPeriod).Before(time.Now()) {
+		return "", errors.New("outdated file")
+	}
+
+	if !FileExists(workspaceFilePath) {
+		log.Debugf("workspace not found: %v", workspaceFilePath)
+		return "", fmt.Errorf("cached workspace file was not found")
+	}
+	return workspaceFilePath, nil
 }
 
 // GetAllWorkspaces function retrieve list of all workspaces
@@ -88,5 +102,6 @@ func GetAllWorkspaces(qordobaConfig *Config) (*WorkspaceResponse, error) {
 		log.Errorf("error occurred on request for workspace: %v", err)
 		return nil, err
 	}
+	writeFile2Path(workspaceFileName, bodyBytes)
 	return &workspaceResponse, nil
 }

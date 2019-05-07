@@ -4,11 +4,12 @@ import (
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
+	"strconv"
 )
 
 var (
 	statusHeaders = []string{
-		"#AUDIENSES", "#WORDS", "#SEGMENTS", "EDITING", "PROOFREADING", "COMPLETED",
+		"#AUDIENSES", "#WORDS", "#SEGMENTS",
 	}
 )
 
@@ -42,18 +43,54 @@ func buildProjectStatus(config *general.Config) {
 		return
 	}
 	data := make([][]string, 0, len(response.TargetPersonas))
-	for _, person := range response.TargetPersonas {
-		row := make([]string, len(statusHeaders), len(statusHeaders))
-		row[0] = person.Code
-		personFiles, err := general.GetFilesForTargetPerson(config, person.ID, true)
+	for i, person := range response.TargetPersonas {
+		fileSearchResponse, err := general.SearchForFiles(config, person.ID, true)
 		if err != nil {
 			continue
 		}
-
+		var personaProgress *general.ByPersonaProgress
+		for _, personaElem := range fileSearchResponse.ByPersonaProgress {
+			if personaElem.Persona.ID == person.ID {
+				personaProgress = &personaElem
+				break
+			}
+		}
+		if personaProgress == nil {
+			continue
+		}
+		statusHeaders = updateTableHeader(i, personaProgress)
+		row, err := buildTableRow(&person, fileSearchResponse, personaProgress)
+		if err != nil {
+			continue
+		}
 		data = append(data, row)
 	}
 
 	renderTable2Stdin(statusHeaders, data)
+}
+
+func updateTableHeader(i int, personaProgress *general.ByPersonaProgress) []string {
+	if i == 0 {
+		for _, byWorkflowProgress := range personaProgress.ByWorkflowProgress {
+			statusHeaders = append(statusHeaders, byWorkflowProgress.Workflow.Name)
+		}
+	}
+	return statusHeaders
+}
+
+func buildTableRow(person *general.Person, fileSearchResponse *general.FileSearchResponse, personProgress *general.ByPersonaProgress) ([]string, error) {
+	row := make([]string, len(statusHeaders), len(statusHeaders))
+	row[0] = person.Code
+	row[1] = strconv.Itoa(fileSearchResponse.TotalCounts.WordCount)
+	row[2] = strconv.Itoa(fileSearchResponse.TotalCounts.SegmentCount)
+	headerMap := make(map[string]int)
+	total := 0
+	for _, byWorkflowProgress := range personProgress.ByWorkflowProgress {
+		total += byWorkflowProgress.Counts.WordCount
+		headerMap[byWorkflowProgress.Workflow.Name] = byWorkflowProgress.Counts.WordCount
+	}
+
+	return row, nil
 }
 
 func runFileStatusFile(fileName string, config *general.Config) {

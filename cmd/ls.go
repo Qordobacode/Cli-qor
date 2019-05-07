@@ -63,7 +63,7 @@ func printFile2Stdin(response []*responseRow) {
 		data := formatResponse2Array(response)
 		renderTable2Stdin(lsHeaders, data)
 	} else {
-		bytes, err := json.MarshalIndent(data, "", "  ")
+		bytes, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
 			log.Errorf("error occurred on marshalling with JSON: %v", err)
 			return
@@ -73,13 +73,13 @@ func printFile2Stdin(response []*responseRow) {
 }
 
 func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
-	files, e := general.GetFilesForTargetPerson(config, persona.ID, true)
+	files, e := general.SearchForFiles(config, persona.ID, true)
 	data := make([]*responseRow, 0, 0)
 	if e != nil {
 		return data
 	}
 	audiences := config.GetAudiences()
-	for _, file := range files {
+	for _, file := range files.Files {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}

@@ -19,11 +19,11 @@ const (
 	defaultFilePerm            os.FileMode = 0666
 )
 
-// GetFilesForTargetPerson function retrieves all files in workspace
-func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus bool) (*FileSearchResponse, error) {
+// SearchForFiles function retrieves all files in workspace
+func SearchForFiles(config *Config, personaID int, withProgressStatus bool) (*FileSearchResponse, error) {
 	start := time.Now()
 	defer func() {
-		log.TimeTrack(start, "GetFilesForTargetPerson "+strconv.Itoa(personaID))
+		log.TimeTrack(start, "SearchForFiles "+strconv.Itoa(personaID))
 	}()
 	base := config.GetAPIBase()
 	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
@@ -37,11 +37,11 @@ func GetFilesForTargetPerson(config *Config, personaID int, withProgressStatus b
 		log.Errorf("error occurred on server response unmarshalling: %v", err)
 		return nil, err
 	}
-	return response, nil
+	return &response, nil
 }
 
 // DownloadFile function retrieves file in workspace
-func DownloadFile(config *Config, personaID int, fileName string, file *File) {
+func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "DownloadFile")
@@ -58,7 +58,7 @@ func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 }
 
 // DownloadSourceFile function retrieves all source files in workspace
-func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates bool) {
+func DownloadSourceFile(config *Config, fileName string, file *Files, withUpdates bool) {
 	base := config.GetAPIBase()
 	getFileContent := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
 	fileBytesResponse, err := GetFromServer(config, getFileContent)
@@ -71,7 +71,7 @@ func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates
 }
 
 // BuildFileName according to stored file name and version
-func BuildFileName(file *File, suffix string) string {
+func BuildFileName(file *Files, suffix string) string {
 	fileNames := strings.SplitN(file.Filename, ".", 2)
 	if file.Version != "" {
 		if suffix != "" {
@@ -90,18 +90,18 @@ func BuildFileName(file *File, suffix string) string {
 }
 
 // FindFile function
-func FindFile(config *Config, fileName, version string) *File {
+func FindFile(config *Config, fileName, version string) *Files {
 	log.Debugf("FindFile was called for file '%v'('%v')", fileName, version)
 	workspace, err := GetWorkspace(config)
 	if err != nil {
 		return nil
 	}
 	for _, persona := range workspace.TargetPersonas {
-		files, err := GetFilesForTargetPerson(config, persona.ID, false)
+		fileSearchResponse, err := SearchForFiles(config, persona.ID, false)
 		if err != nil {
 			continue
 		}
-		for _, file := range files {
+		for _, file := range fileSearchResponse.Files {
 			if file.Filename == fileName {
 				if file.Version == version {
 					return &file
@@ -123,7 +123,7 @@ func FindFileAndDelete(config *Config, fileName, version string) {
 }
 
 // DeleteFile func delete file from parameters
-func DeleteFile(config *Config, file *File) {
+func DeleteFile(config *Config, file *Files) {
 	base := config.GetAPIBase()
 	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
 	bytes, err := DeleteFromServer(config, deleteFileURL)

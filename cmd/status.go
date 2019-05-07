@@ -39,30 +39,45 @@ func runStatus(cmd *cobra.Command, args []string) {
 }
 
 func buildProjectStatus(config *general.Config) {
-	response, err := general.GetWorkspace(config)
+	workspace, err := general.GetWorkspace(config)
 	if err != nil {
 		return
 	}
-	header := buildTableHeader(response, config)
-	data := buildTableData(response, config, header)
+	person2FilesMap := getPerson2FilesMap(workspace, config)
+	header := buildTableHeader(person2FilesMap)
+	data := buildTableData(person2FilesMap, header)
 
 	renderTable2Stdin(header, data)
 }
 
-func buildTableHeader(response *general.Workspace, config *general.Config) []string {
-	workflowName2ColumnMap := make(map[string]int)
+func getPerson2FilesMap(response *general.Workspace, config *general.Config) map[string]*general.FileSearchResponse {
+	person2FileMap := make(map[string]*general.FileSearchResponse)
+	//var wg sync.WaitGroup
+	//wg.Add(len(response.TargetPersonas))
 	for _, person := range response.TargetPersonas {
 		fileSearchResponse, err := general.SearchForFiles(config, person.ID, true)
 		if err != nil {
 			continue
 		}
-		personaProgress := getPersonaProgress(fileSearchResponse, person)
-		if personaProgress == nil {
-			continue
-		}
-		updateWorkflowColumnMap(personaProgress, workflowName2ColumnMap)
+		person2FileMap[person.Code] = fileSearchResponse
 	}
-	result := make([]string, 0, len(workflowName2ColumnMap) + 3)
+	//wg.Wait()
+	return person2FileMap
+}
+
+func buildTableHeader(person2FilesMap map[string]*general.FileSearchResponse) []string {
+	workflowName2ColumnMap := make(map[string]int)
+	for person, fileSearchResponse := range person2FilesMap {
+		for _, byPersonaProgress := range fileSearchResponse.ByPersonaProgress {
+			if byPersonaProgress.Persona.Code != person {
+				continue
+			}
+			for _, progress := range byPersonaProgress.ByWorkflowProgress {
+				workflowName2ColumnMap[progress.Workflow.Name] = len(workflowName2ColumnMap)
+			}
+		}
+	}
+	result := make([]string, 0, len(workflowName2ColumnMap)+3)
 	result = append(result, basicHeaders...)
 	for key := range workflowName2ColumnMap {
 		result = append(result, key)
@@ -70,18 +85,10 @@ func buildTableHeader(response *general.Workspace, config *general.Config) []str
 	return result
 }
 
-func buildTableData(response *general.Workspace, config *general.Config, header []string) [][]string {
-	data := make([][]string, 0, len(response.TargetPersonas))
-	for _, person := range response.TargetPersonas {
-		fileSearchResponse, err := general.SearchForFiles(config, person.ID, true)
-		if err != nil {
-			continue
-		}
-		personaProgress := getPersonaProgress(fileSearchResponse, person)
-		if personaProgress == nil {
-			continue
-		}
-		row, err := buildTableRow(&person, fileSearchResponse, personaProgress, header)
+func buildTableData(person2FilesMap map[string]*general.FileSearchResponse, header []string) [][]string {
+	data := make([][]string, 0, len(person2FilesMap))
+	for person, fileSearchResponse := range person2FilesMap {
+		row, err := buildTableRow(fileSearchResponse, person, header)
 		if err != nil {
 			continue
 		}
@@ -90,41 +97,28 @@ func buildTableData(response *general.Workspace, config *general.Config, header 
 	return data
 }
 
-func getPersonaProgress(fileSearchResponse *general.FileSearchResponse, person general.Person) *general.ByPersonaProgress {
-	for _, personaElem := range fileSearchResponse.ByPersonaProgress {
-		if personaElem.Persona.ID == person.ID {
-			return &personaElem
-		}
-	}
-	return nil
-}
-
-func updateWorkflowColumnMap(personaProgress *general.ByPersonaProgress, workflowName2ColumnMap map[string]int) {
-	for _, byWorkflowProgress := range personaProgress.ByWorkflowProgress {
-		if _, ok := workflowName2ColumnMap[byWorkflowProgress.Workflow.Name]; !ok {
-			workflowName2ColumnMap[byWorkflowProgress.Workflow.Name] = len(workflowName2ColumnMap)
-		}
-	}
-}
-
-func buildTableRow(person *general.Person, fileSearchResponse *general.FileSearchResponse,
-	personProgress *general.ByPersonaProgress, header []string) ([]string, error) {
+func buildTableRow(fileSearchResponse *general.FileSearchResponse,
+	persona string, header []string) ([]string, error) {
 	row := make([]string, len(header), len(header))
-	row[0] = person.Code
+	row[0] = persona
 	row[1] = strconv.Itoa(fileSearchResponse.TotalCounts.WordCount)
 	row[2] = strconv.Itoa(fileSearchResponse.TotalCounts.SegmentCount)
 	headerMap := make(map[string]int)
 	total := 0
-	for _, byWorkflowProgress := range personProgress.ByWorkflowProgress {
-		total += byWorkflowProgress.Counts.WordCount
-		headerMap[byWorkflowProgress.Workflow.Name] = byWorkflowProgress.Counts.WordCount
+	for _, personaProgress := range fileSearchResponse.ByPersonaProgress {
+		if personaProgress.Persona.Code != persona {
+			continue
+		}
+		for _, byWorkflowProgress := range personaProgress.ByWorkflowProgress {
+			total += byWorkflowProgress.Counts.WordCount
+			headerMap[byWorkflowProgress.Workflow.Name] = byWorkflowProgress.Counts.WordCount
+		}
 	}
 	for i := 3; i < len(header); i++ {
 		statusCount := headerMap[header[i]]
 		percent := float64(statusCount) / float64(total) * 100
 		row[i] = fmt.Sprintf("%v%", percent)
 	}
-
 	return row, nil
 }
 

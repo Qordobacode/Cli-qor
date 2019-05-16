@@ -19,7 +19,6 @@ import (
 	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
 	"strings"
-	"sync"
 	"sync/atomic"
 )
 
@@ -65,7 +64,41 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	var wg sync.WaitGroup
+	files2Download := getFiles2Download(config, workspace)
+	jobs := make(chan *File2Download, 1000)
+	results := make(chan struct{}, 1000)
+
+	for i := 0; i < 3; i++ {
+		go worker(config, jobs, results)
+	}
+	for _, file2Download := range files2Download {
+		jobs <- file2Download
+	}
+	close(jobs)
+	for i := 0; i < len(files2Download); i++ {
+		<-results
+	}
+
+	if isDownloadCurrent {
+		log.Infof("downloaded %v files", ops)
+	} else {
+		log.Infof("downloaded %v completed files", ops)
+	}
+}
+
+func worker(config *general.Config, jobs chan *File2Download, results chan struct{}) {
+	for j := range jobs {
+		handleFile(config, j.PersonaID, j.File)
+		results <- struct{}{}
+	}
+}
+
+type File2Download struct {
+	File      *general.Files
+	PersonaID int
+}
+
+func getFiles2Download(config *general.Config, workspace *general.Workspace) []*File2Download {
 	audiences := config.GetAudiences()
 	if downloadAudience != "" {
 		audienceList := strings.Split(downloadAudience, ",")
@@ -74,6 +107,7 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 			audiences[lang] = true
 		}
 	}
+	files2Download := make([]*File2Download, 0, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
@@ -83,52 +117,77 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 			continue
 		}
 		files := response.Files
-		wg.Add(len(files))
 		for i := range files {
-			go handleFile(config, persona.ID, &files[i], &wg)
+			files2Download = append(files2Download, &File2Download{
+				File:      &files[i],
+				PersonaID: persona.ID,
+			})
 		}
 	}
-	wg.Wait()
-	if isDownloadCurrent {
-		log.Infof("downloaded %v files", ops)
-	} else {
-		log.Infof("downloaded %v completed files", ops)
-	}
+	return files2Download
 }
 
-func handleFile(config *general.Config, personaID int, file *general.Files, wg *sync.WaitGroup) {
-	defer func() {
-		wg.Done()
-	}()
+func handleFile(config *general.Config, personaID int, file *general.Files) {
 	if !file.Completed && !isDownloadCurrent {
 		// isDownloadCurrent - skip files with version
 		return
 	}
-	if file.ErrorID != 0 {
-		log.Errorf("'%s'(id=%v) has error. Skip its download", file.Filename, file.FileID)
+	if file.ErrorID != 0 || !file.Enabled {
+		handleInvalidFile(file)
 		return
 	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
-			fileName := general.BuildFileName(file, "")
-			general.DownloadSourceFile(config, fileName, file, true)
-			atomic.AddUint64(&ops, 1)
+			downloadSourceFile(file, config)
 		}
 		if isDownloadOriginal {
-			suffix := ""
-			if isDownloadSource {
-				// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
-				suffix = original
-			}
-			fileName := general.BuildFileName(file, suffix)
-			general.DownloadSourceFile(config, fileName, file, false)
-			atomic.AddUint64(&ops, 1)
+			downloadOriginalFile(file, config)
 		}
 	} else {
-		fileName := general.BuildFileName(file, "")
-		if !isPullSkip || !general.FileExists(fileName) {
-			general.DownloadFile(config, personaID, fileName, file)
-			atomic.AddUint64(&ops, 1)
-		}
+		downloadFile(file, config, personaID)
 	}
+}
+
+func handleInvalidFile(file *general.Files) {
+	if file.ErrorID != 0 {
+		if file.Version != "" {
+			log.Errorf("'%s'(version '%v') has error. Skip its download", file.Filename, file.Version)
+		} else {
+			log.Errorf("'%s' has error. Skip its download", file.Filename)
+		}
+		return
+	}
+	if !file.Enabled {
+		if file.Version != "" {
+			log.Errorf("File '%s' (version '%s') is disabled. Skip its download", file.Filename, file.Version)
+		} else {
+			log.Errorf("File '%s' is disabled. Skip its download", file.Filename)
+		}
+		return
+	}
+}
+
+func downloadFile(file *general.Files, config *general.Config, personaID int) {
+	fileName := general.BuildFileName(file, "")
+	if !isPullSkip || !general.FileExists(fileName) {
+		general.DownloadFile(config, personaID, fileName, file)
+		atomic.AddUint64(&ops, 1)
+	}
+}
+
+func downloadSourceFile(file *general.Files, config *general.Config) {
+	fileName := general.BuildFileName(file, "")
+	general.DownloadSourceFile(config, fileName, file, true)
+	atomic.AddUint64(&ops, 1)
+}
+
+func downloadOriginalFile(file *general.Files, config *general.Config) {
+	suffix := ""
+	if isDownloadSource {
+		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
+		suffix = original
+	}
+	fileName := general.BuildFileName(file, suffix)
+	general.DownloadSourceFile(config, fileName, file, false)
+	atomic.AddUint64(&ops, 1)
 }

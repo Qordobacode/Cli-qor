@@ -52,8 +52,7 @@ func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
 	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
 	fileBytesResponse, err := GetFromServer(config, getFileContentURL)
 	if err != nil {
-		log.Infof("url = %v", getFileContentURL)
-		log.Errorf("error occurred on file %s download: %v", fileName, err)
+		log.Errorf("error occurred on file '%s' download: %v (url = %v)", fileName, err, getFileContentURL)
 		return
 	}
 	log.Infof("file '%v' was downloaded", fileName)
@@ -66,8 +65,7 @@ func DownloadSourceFile(config *Config, fileName string, file *Files, withUpdate
 	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
 	fileBytesResponse, err := GetFromServer(config, getFileContentURL)
 	if err != nil {
-		log.Infof("url = %v", getFileContentURL)
-		log.Errorf("error occurred on file %s download: %v", fileName, err)
+		log.Errorf("error occurred on file '%s' download: %v (url = %v)", fileName, err, getFileContentURL)
 		return
 	}
 	log.Infof("source file '%v' was downloaded", fileName)

@@ -71,7 +71,7 @@ func GetFromServer(qordoba *Config, getURL string) ([]byte, error) {
 		if response.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Debugf("Error occurred on get request. Status: %d, Response : %v", response.StatusCode, string(bodyBytes))
+			log.Debugf("Error occurred on get request. Status: %v, Response : %v", response.Status, string(bodyBytes))
 		}
 		return nil, errors.New("unsuccessful request")
 	}

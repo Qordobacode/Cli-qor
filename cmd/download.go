@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"strings"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -79,6 +80,8 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 		<-results
 	}
 
+	// let all error logs go before final messages
+	time.Sleep(time.Second)
 	if isDownloadCurrent {
 		log.Infof("downloaded %v files", ops)
 	} else {

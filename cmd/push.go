@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"time"
 )
 
 const (
@@ -66,12 +67,6 @@ func pushFolder(folder string, qordobaConfig *general.Config) {
 	pushFiles(fileList, qordobaConfig)
 }
 
-func pushFiles(fileList []string, qordobaConfig *general.Config) {
-	for _, file := range fileList {
-		pushFile(qordobaConfig, file)
-	}
-}
-
 func getFilesInFolder(folderPath string) []string {
 	result := make([]string, 0, 0)
 	curFolderFiles, err := ioutil.ReadDir(folderPath)
@@ -89,32 +84,75 @@ func getFilesInFolder(folderPath string) []string {
 	return result
 }
 
-func pushFile(qordoba *general.Config, filePath string) {
+func pushFiles(fileList []string, config *general.Config) {
+	jobs := make(chan *pushFileTask, 1000)
+	results := make(chan struct{}, 1000)
+
+	for i := 0; i < 3; i++ {
+		go startPushWorker(config, jobs, results)
+	}
+
+	// let all error logs go before final messages
+	time.Sleep(time.Second)
+	totalFilesPushed := 0
+	for _, file := range fileList {
+		totalFilesPushed += pushFile(file, jobs)
+	}
+	close(jobs)
+	for i:= 0; i < totalFilesPushed; i++ {
+		<-results
+	}
+}
+
+func startPushWorker(config *general.Config, jobs chan *pushFileTask, results chan struct{}) {
+	base := config.GetAPIBase()
+	pushFileURL := fmt.Sprintf(pushFileTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID)
+	for j := range jobs {
+		sendFileToServer(config, j.fileInfo, j.FilePath, pushFileURL)
+		results <- struct{}{}
+	}
+}
+
+func pushFile(filePath string, jobs chan *pushFileTask) int {
 	fileInfo, e := os.Stat(filePath)
 	if e != nil {
 		log.Errorf("error occurred in file read: %v", e)
-		return
+		return 0
 	}
-	base := qordoba.GetAPIBase()
-	pushFileURL := fmt.Sprintf(pushFileTemplate, base, qordoba.Qordoba.OrganizationID, qordoba.Qordoba.ProjectID)
 	if fileInfo.IsDir() {
-		err := filepath.Walk(filePath, func(path string, childFileInfo os.FileInfo, err error) error {
-			if childFileInfo.IsDir() {
-				return nil
-			}
-			sendFileToServer(childFileInfo, qordoba, path, pushFileURL)
-			return nil
-		})
-		if err != nil {
-			log.Errorf("error occurred: %v", err)
-		}
-	} else {
-		sendFileToServer(fileInfo, qordoba, filePath, pushFileURL)
+		return handleDirectory2Push(filePath, jobs)
 	}
-
+	jobs <- &pushFileTask{
+		FilePath: filePath,
+		fileInfo: fileInfo,
+	}
+	return 1
 }
 
-func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, pushFileURL string) {
+func handleDirectory2Push(filePath string, jobs chan *pushFileTask) int {
+	file2Push := 0
+	err := filepath.Walk(filePath, func(path string, childFileInfo os.FileInfo, err error) error {
+		if !childFileInfo.IsDir() {
+			jobs <- &pushFileTask{
+				FilePath: filePath,
+				fileInfo: childFileInfo,
+			}
+			file2Push++
+		}
+		return nil
+	})
+	if err != nil {
+		log.Errorf("error occurred: %v", err)
+	}
+	return file2Push
+}
+
+type pushFileTask struct {
+	FilePath string
+	fileInfo os.FileInfo
+}
+
+func sendFileToServer(config *general.Config, fileInfo os.FileInfo, filePath, pushFileURL string) {
 	if fileInfo.IsDir() {
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
@@ -123,7 +161,7 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 	if err != nil {
 		return
 	}
-	resp, err := general.PostToServer(qordoba, pushFileURL, pushRequest)
+	resp, err := general.PostToServer(config, pushFileURL, pushRequest)
 	if err != nil {
 		log.Errorf("error occurred on building file post request: %v", err)
 		return

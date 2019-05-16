@@ -1,13 +1,10 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -122,11 +119,11 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
 	}
-	reader, err := buildPushRequestBody(fileInfo, filePath)
+	pushRequest, err := buildPushRequest(fileInfo, filePath)
 	if err != nil {
 		return
 	}
-	resp, err := general.PostToServer(qordoba, pushFileURL, reader)
+	resp, err := general.PostToServer(qordoba, pushFileURL, pushRequest)
 	if err != nil {
 		log.Errorf("error occurred on building file post request: %v", err)
 		return
@@ -147,23 +144,15 @@ func sendFileToServer(fileInfo os.FileInfo, qordoba *general.Config, filePath, p
 	}
 }
 
-func buildPushRequestBody(fileInfo os.FileInfo, filePath string) (io.Reader, error) {
+func buildPushRequest(fileInfo os.FileInfo, filePath string) (*general.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)
 		return nil, err
 	}
-	requestBody := general.PushRequest{
+	return &general.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  tag,
 		Content:  string(fileContent),
-	}
-
-	marshaledBody, err := json.Marshal(requestBody)
-	if err != nil {
-		log.Errorf("error occurred on marshalling object: %v", err)
-		return nil, err
-	}
-	reader := bytes.NewReader(marshaledBody)
-	return reader, nil
+	}, nil
 }

@@ -1,6 +1,8 @@
 package general
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
@@ -23,7 +25,11 @@ var (
 )
 
 // PostToServer send POST request to server with specified body
-func PostToServer(qordoba *Config, postURL string, reader io.Reader) (*http.Response, error) {
+func PostToServer(qordoba *Config, postURL string, requestBody interface{}) (*http.Response, error) {
+	reader, err := wrapRequest2Reader(requestBody)
+	if err != nil {
+		return nil, err
+	}
 	request, err := http.NewRequest("POST", postURL, reader)
 
 	if err != nil {
@@ -32,6 +38,16 @@ func PostToServer(qordoba *Config, postURL string, reader io.Reader) (*http.Resp
 	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
 	request.Header.Add("Content-Type", ApplicationJSONType)
 	return HTTPClient.Do(request)
+}
+
+func wrapRequest2Reader(requestBody interface{}) (io.Reader, error) {
+	marshaledBody, err := json.Marshal(requestBody)
+	if err != nil {
+		log.Errorf("error occurred on marshalling object: %v", err)
+		return nil, err
+	}
+	reader := bytes.NewReader(marshaledBody)
+	return reader, nil
 }
 
 // GetFromServer - util function for general request to server. Adds x-auth-token from config, validate response

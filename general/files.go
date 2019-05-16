@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -16,6 +17,7 @@ const (
 	fileDownloadTemplate                   = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
 	sourceFileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
 	fileDeleteTemplate                     = "%s/v3/organizations/%d/workspaces/%d/files/%d"
+	keyAddTemplate                         = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
 	defaultFilePerm            os.FileMode = 0666
 )
 
@@ -47,10 +49,11 @@ func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
 		log.TimeTrack(start, "DownloadFile")
 	}()
 	base := config.GetAPIBase()
-	getFileContent := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
-	fileBytesResponse, err := GetFromServer(config, getFileContent)
+	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID)
+	fileBytesResponse, err := GetFromServer(config, getFileContentURL)
 	if err != nil {
-		log.Errorf("error occurred on file %s download", fileName)
+		log.Infof("url = %v", getFileContentURL)
+		log.Errorf("error occurred on file %s download: %v", fileName, err)
 		return
 	}
 	log.Infof("file '%v' was downloaded", fileName)
@@ -60,10 +63,11 @@ func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
 // DownloadSourceFile function retrieves all source files in workspace
 func DownloadSourceFile(config *Config, fileName string, file *Files, withUpdates bool) {
 	base := config.GetAPIBase()
-	getFileContent := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
-	fileBytesResponse, err := GetFromServer(config, getFileContent)
+	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
+	fileBytesResponse, err := GetFromServer(config, getFileContentURL)
 	if err != nil {
-		log.Errorf("error occurred on file %s download", fileName)
+		log.Infof("url = %v", getFileContentURL)
+		log.Errorf("error occurred on file %s download: %v", fileName, err)
 		return
 	}
 	log.Infof("source file '%v' was downloaded", fileName)
@@ -109,7 +113,11 @@ func FindFile(config *Config, fileName, version string) *Files {
 			}
 		}
 	}
-	log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
+	if version == "" {
+		log.Errorf("File '%s' WAS NOT FOUND", fileName)
+	} else {
+		log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
+	}
 	return nil
 }
 
@@ -140,5 +148,38 @@ func DeleteFile(config *Config, file *Files) {
 		log.Infof("File '%s' with version '%s' was removed", file.Filename, file.Version)
 	} else {
 		log.Errorf("File '%s' with version '%s' WAS NOT REMOVED", file.Filename, file.Version)
+	}
+}
+
+func AddKey(config *Config, fileName, version string, keyAddRequest *KeyAddRequest) {
+	file := FindFile(config, fileName, version)
+	if file == nil {
+		return
+	}
+	base := config.GetAPIBase()
+	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
+	log.Debugf("call %v to add key", addKeyRequestURL)
+	resp, err := PostToServer(config, addKeyRequestURL, keyAddRequest)
+	if err != nil {
+		log.Errorf("error occurred on post key-pair: %v", err)
+		return
+	}
+	handleAddKeyResponse(resp, keyAddRequest, version, fileName)
+}
+
+func handleAddKeyResponse(resp *http.Response, keyAddRequest *KeyAddRequest, version , fileName string) {
+	body, _ := ioutil.ReadAll(resp.Body)
+	if resp.StatusCode/100 != 2 {
+		if resp.StatusCode == http.StatusUnauthorized {
+			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+		} else {
+			log.Errorf("Problem to add key '%s'. Status: %v\nResponse : %v", keyAddRequest.Key, resp.Status, string(body))
+		}
+	} else {
+		if version == "" {
+			log.Infof("Key '%s' was added to file '%s'.", keyAddRequest.Key, fileName)
+		} else {
+			log.Infof("Key '%s' was added to file '%s' (%v).", keyAddRequest.Key, fileName, version)
+		}
 	}
 }

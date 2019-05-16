@@ -59,6 +59,7 @@ func getPerson2FilesMap(response *general.Workspace, config *general.Config) map
 		if err != nil {
 			continue
 		}
+		fmt.Printf("fileSearchResponse =%+v", fileSearchResponse)
 		person2FileMap[person.Code] = fileSearchResponse
 	}
 	//wg.Wait()

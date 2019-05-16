@@ -183,7 +183,7 @@ type FileDeleteResponse struct {
 
 // KeyAddRequest struct for request to add provided key into file
 type KeyAddRequest struct {
-	Key       string
-	Source    string
-	Reference string
+	Key       string `json:"key"`
+	Source    string `json:"source"`
+	Reference string `json:"reference"`
 }

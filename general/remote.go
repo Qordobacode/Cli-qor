@@ -40,6 +40,23 @@ func PostToServer(qordoba *Config, postURL string, requestBody interface{}) (*ht
 	return HTTPClient.Do(request)
 }
 
+// PutToServer send PUT request to server with specified body
+func PutToServer(qordoba *Config, postURL string, requestBody interface{}) (*http.Response, error) {
+	reader, err := wrapRequest2Reader(requestBody)
+	if err != nil {
+		return nil, err
+	}
+	request, err := http.NewRequest("PUT", postURL, reader)
+
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Add("x-auth-token", qordoba.Qordoba.AccessToken)
+	request.Header.Add("Content-Type", ApplicationJSONType)
+	return HTTPClient.Do(request)
+}
+
+
 func wrapRequest2Reader(requestBody interface{}) (io.Reader, error) {
 	marshaledBody, err := json.Marshal(requestBody)
 	if err != nil {

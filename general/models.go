@@ -47,11 +47,7 @@ type PushRequest struct {
 
 // WorkspaceResponse is a qordoba general response from obtaining list of workspaces
 type WorkspaceResponse struct {
-	Meta struct {
-		Paging struct {
-			TotalResults int `json:"totalResults"`
-		} `json:"paging"`
-	} `json:"meta"`
+	Meta Meta `json:"meta"`
 	Workspaces []WorkspaceData `json:"workspaces"`
 }
 
@@ -91,7 +87,7 @@ type Person struct {
 // FileSearchResponse - DTO object for qordoba's file search response
 type FileSearchResponse struct {
 	Meta              Meta                `json:"meta"`
-	Files             []Files             `json:"files"`
+	Files             []File              `json:"files"`
 	ByPersonaProgress []ByPersonaProgress `json:"byPersonaProgress"`
 	TotalCounts       TotalCounts         `json:"totalCounts"`
 }
@@ -133,8 +129,8 @@ type ByWorkflowProgress struct {
 	Counts   Counts   `json:"counts"`
 }
 
-// Files struct
-type Files struct {
+// File struct
+type File struct {
 	FileID             int                  `json:"fileId"`
 	Enabled            bool                 `json:"enabled"`
 	Completed          bool                 `json:"completed"`
@@ -186,4 +182,24 @@ type KeyAddRequest struct {
 	Key       string `json:"key"`
 	Source    string `json:"source"`
 	Reference string `json:"reference"`
+}
+
+type SegmentSearchResponse struct {
+	Meta     Meta      `json:"meta"`
+	Segments []Segment `json:"segments"`
+}
+
+type Segment struct {
+	LastSaved  int    `json:"lastSaved"`
+	Order      int    `json:"order"`
+	PluralRule string `json:"pluralRule"`
+	Plurals    string `json:"plurals"`
+	Reference  string `json:"reference"`
+	Segment    string `json:"segment"`
+	SegmentID  int    `json:"segmentId"`
+	SsMatch    int    `json:"ssMatch"`
+	SsText     string `json:"ssText"`
+	StringKey  string `json:"stringKey"`
+	Target     string `json:"target"`
+	TargetID   int    `json:"targetId"`
 }

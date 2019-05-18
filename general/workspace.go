@@ -22,23 +22,32 @@ var (
 
 // GetWorkspace function retrieves a workspace
 func GetWorkspace(qordobaConfig *Config) (*Workspace, error) {
+	data, err := GetWorkspaceData(qordobaConfig)
+	if data != nil {
+		return &data.Workspace, err
+	}
+	return nil, err
+}
+
+// GetWorkspace function retrieves a workspace
+func GetWorkspaceData(config *Config) (*WorkspaceData, error) {
 	start := time.Now()
 	defer func() {
-		log.TimeTrack(start, "GetWorkspace "+strconv.Itoa(int(qordobaConfig.Qordoba.ProjectID)))
+		log.TimeTrack(start, "GetWorkspace "+strconv.Itoa(int(config.Qordoba.ProjectID)))
 	}()
 	workspaceResponse, err := getCachedWorkspace()
 	if err != nil || workspaceResponse == nil {
-		workspaceResponse, err = GetAllWorkspaces(qordobaConfig)
+		workspaceResponse, err = GetAllWorkspaces(config)
 	}
 	if err != nil {
 		return nil, err
 	}
 	for _, workspaceData := range workspaceResponse.Workspaces {
-		if workspaceData.Workspace.ID == int(qordobaConfig.Qordoba.ProjectID) {
-			return &workspaceData.Workspace, nil
+		if workspaceData.Workspace.ID == int(config.Qordoba.ProjectID) {
+			return &workspaceData, nil
 		}
 	}
-	return nil, errors.New("workspace with id=" + string(qordobaConfig.Qordoba.ProjectID) + " was not found")
+	return nil, errors.New("workspace with id=" + string(config.Qordoba.ProjectID) + " was not found")
 }
 
 // getCachedWorkspace function returns cached workspace if it present AND still valid (invalidation period for

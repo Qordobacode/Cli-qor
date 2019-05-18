@@ -97,7 +97,7 @@ func worker(config *general.Config, jobs chan *File2Download, results chan struc
 }
 
 type File2Download struct {
-	File      *general.Files
+	File      *general.File
 	PersonaID int
 }
 
@@ -130,7 +130,7 @@ func getFiles2Download(config *general.Config, workspace *general.Workspace) []*
 	return files2Download
 }
 
-func handleFile(config *general.Config, personaID int, file *general.Files) {
+func handleFile(config *general.Config, personaID int, file *general.File) {
 	if !file.Completed && !isDownloadCurrent {
 		// isDownloadCurrent - skip files with version
 		return
@@ -151,7 +151,7 @@ func handleFile(config *general.Config, personaID int, file *general.Files) {
 	}
 }
 
-func handleInvalidFile(file *general.Files) {
+func handleInvalidFile(file *general.File) {
 	if file.ErrorID != 0 {
 		if file.Version != "" {
 			log.Errorf("'%s'(version '%v') has error. Skip its download", file.Filename, file.Version)
@@ -170,7 +170,7 @@ func handleInvalidFile(file *general.Files) {
 	}
 }
 
-func downloadFile(file *general.Files, config *general.Config, personaID int) {
+func downloadFile(file *general.File, config *general.Config, personaID int) {
 	fileName := general.BuildFileName(file, "")
 	if !isPullSkip || !general.FileExists(fileName) {
 		general.DownloadFile(config, personaID, fileName, file)
@@ -178,13 +178,13 @@ func downloadFile(file *general.Files, config *general.Config, personaID int) {
 	}
 }
 
-func downloadSourceFile(file *general.Files, config *general.Config) {
+func downloadSourceFile(file *general.File, config *general.Config) {
 	fileName := general.BuildFileName(file, "")
 	general.DownloadSourceFile(config, fileName, file, true)
 	atomic.AddUint64(&ops, 1)
 }
 
-func downloadOriginalFile(file *general.Files, config *general.Config) {
+func downloadOriginalFile(file *general.File, config *general.Config) {
 	suffix := ""
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx

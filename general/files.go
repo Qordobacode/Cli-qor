@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
@@ -17,7 +16,7 @@ const (
 	fileDownloadTemplate                   = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
 	sourceFileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
 	fileDeleteTemplate                     = "%s/v3/organizations/%d/workspaces/%d/files/%d"
-	keyAddTemplate                         = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
+
 	defaultFilePerm            os.FileMode = 0666
 )
 
@@ -43,7 +42,7 @@ func SearchForFiles(config *Config, personaID int, withProgressStatus bool) (*Fi
 }
 
 // DownloadFile function retrieves file in workspace
-func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
+func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "DownloadFile")
@@ -60,7 +59,7 @@ func DownloadFile(config *Config, personaID int, fileName string, file *Files) {
 }
 
 // DownloadSourceFile function retrieves all source files in workspace
-func DownloadSourceFile(config *Config, fileName string, file *Files, withUpdates bool) {
+func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates bool) {
 	base := config.GetAPIBase()
 	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, withUpdates)
 	fileBytesResponse, err := GetFromServer(config, getFileContentURL)
@@ -73,7 +72,7 @@ func DownloadSourceFile(config *Config, fileName string, file *Files, withUpdate
 }
 
 // BuildFileName according to stored file name and version
-func BuildFileName(file *Files, suffix string) string {
+func BuildFileName(file *File, suffix string) string {
 	fileNames := strings.SplitN(file.Filename, ".", 2)
 	if file.Version != "" {
 		if suffix != "" {
@@ -92,11 +91,11 @@ func BuildFileName(file *Files, suffix string) string {
 }
 
 // FindFile function
-func FindFile(config *Config, fileName, version string) *Files {
+func FindFile(config *Config, fileName, version string) (*File, int) {
 	log.Debugf("FindFile was called for file '%v'('%v')", fileName, version)
 	workspace, err := GetWorkspace(config)
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 	for _, persona := range workspace.TargetPersonas {
 		fileSearchResponse, err := SearchForFiles(config, persona.ID, false)
@@ -106,7 +105,7 @@ func FindFile(config *Config, fileName, version string) *Files {
 		for _, file := range fileSearchResponse.Files {
 			if file.Filename == fileName {
 				if file.Version == version {
-					return &file
+					return &file, persona.ID
 				}
 			}
 		}
@@ -116,20 +115,20 @@ func FindFile(config *Config, fileName, version string) *Files {
 	} else {
 		log.Errorf("File '%s' with version '%s' WAS NOT FOUND", fileName, version)
 	}
-	return nil
+	return nil, 0
 }
 
 // FindFileAndDelete function retrieve file and delete it remotedly
 func FindFileAndDelete(config *Config, fileName, version string) {
 	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
-	file := FindFile(config, fileName, version)
+	file,_ := FindFile(config, fileName, version)
 	if file != nil {
 		DeleteFile(config, file)
 	}
 }
 
 // DeleteFile func delete file from parameters
-func DeleteFile(config *Config, file *Files) {
+func DeleteFile(config *Config, file *File) {
 	base := config.GetAPIBase()
 	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
 	bytes, err := DeleteFromServer(config, deleteFileURL)
@@ -146,38 +145,5 @@ func DeleteFile(config *Config, file *Files) {
 		log.Infof("File '%s' with version '%s' was removed", file.Filename, file.Version)
 	} else {
 		log.Errorf("File '%s' with version '%s' WAS NOT REMOVED", file.Filename, file.Version)
-	}
-}
-
-func AddKey(config *Config, fileName, version string, keyAddRequest *KeyAddRequest) {
-	file := FindFile(config, fileName, version)
-	if file == nil {
-		return
-	}
-	base := config.GetAPIBase()
-	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
-	log.Debugf("call %v to add key", addKeyRequestURL)
-	resp, err := PostToServer(config, addKeyRequestURL, keyAddRequest)
-	if err != nil {
-		log.Errorf("error occurred on post key-pair: %v", err)
-		return
-	}
-	handleAddKeyResponse(resp, keyAddRequest, version, fileName)
-}
-
-func handleAddKeyResponse(resp *http.Response, keyAddRequest *KeyAddRequest, version , fileName string) {
-	body, _ := ioutil.ReadAll(resp.Body)
-	if resp.StatusCode/100 != 2 {
-		if resp.StatusCode == http.StatusUnauthorized {
-			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
-		} else {
-			log.Errorf("Problem to add key '%s'. Status: %v\nResponse : %v", keyAddRequest.Key, resp.Status, string(body))
-		}
-	} else {
-		if version == "" {
-			log.Infof("Key '%s' was added to file '%s'.", keyAddRequest.Key, fileName)
-		} else {
-			log.Infof("Key '%s' was added to file '%s' (%v).", keyAddRequest.Key, fileName, version)
-		}
 	}
 }

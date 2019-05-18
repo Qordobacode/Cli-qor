@@ -45,7 +45,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 	}
 	if folderPath == "" && files == "" {
 		pushSources := qordobaConfig.Push.Sources
-		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  Files: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
+		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
 		pushFiles(pushSources.Files, qordobaConfig)
 		for _, folder := range pushSources.Folders {
 			pushFolder(folder, qordobaConfig)

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/qordobacode/cli-v2/general"
+	"github.com/qordobacode/cli-v2/log"
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
@@ -68,7 +69,7 @@ func readVariable(header, errMessage string, scanner *bufio.Scanner) string {
 		if text != "" {
 			return text
 		}
-		fmt.Printf(errMessage)
+		log.Infof("%s", errMessage)
 	}
 }
 

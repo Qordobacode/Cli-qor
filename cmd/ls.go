@@ -41,12 +41,12 @@ func printLs(cmd *cobra.Command, args []string) {
 	if err != nil {
 		return
 	}
-	data := make([]*responseRow, 0, 0)
+	data := make([]*responseRow, 0)
 	for _, targetPersona := range workspace.TargetPersonas {
 		result := handlePersonResult(config, &targetPersona)
 		data = append(data, result...)
-		if len(data) > 50 {
-			data = data[:50]
+		if len(data) > lineLimit {
+			data = data[:lineLimit]
 			break
 		}
 	}
@@ -73,8 +73,8 @@ func printFile2Stdin(response []*responseRow) {
 }
 
 func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
-	files, e := general.SearchForFiles(config, persona.ID, true)
-	data := make([]*responseRow, 0, 0)
+	files, e := general.SearchForFilesWithLimit(config, persona.ID, false, lineLimit)
+	data := make([]*responseRow, 0)
 	if e != nil {
 		return data
 	}
@@ -95,12 +95,13 @@ func buildDataRowFromFile(file *general.File) *responseRow {
 	}
 	// strconv.Itoa
 	row := responseRow{
-		ID:        file.FileID,
-		Name:      file.Filename,
-		Version:   file.Version,
-		Tag:       tags,
-		UpdatedOn: general.GetDateFromTimestamp(file.Update),
-		Status:    disabled,
+		ID:          file.FileID,
+		Name:        file.Filename,
+		Version:     file.Version,
+		Tag:         tags,
+		UpdatedOn:   general.GetDateFromTimestamp(file.Update),
+		SegmentNums: file.Counts.SegmentCount,
+		Status:      disabled,
 	}
 	if file.Enabled {
 		row.Status = enabled
@@ -118,12 +119,12 @@ func renderTable2Stdin(header []string, data [][]string) {
 func formatResponse2Array(rows []*responseRow) [][]string {
 	data := make([][]string, 0, len(rows))
 	for _, responseRow := range rows {
-		row := make([]string, len(lsHeaders), len(lsHeaders))
+		row := make([]string, len(lsHeaders))
 		row[0] = strconv.Itoa(responseRow.ID)
 		row[1] = responseRow.Name
 		row[2] = responseRow.Version
 		row[3] = strings.Join(responseRow.Tag, ", ")
-		row[4] = "" // TODO: add #segments here
+		row[4] = strconv.Itoa(responseRow.SegmentNums)
 		row[5] = responseRow.UpdatedOn
 		row[6] = responseRow.Status
 		data = append(data, row)

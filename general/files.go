@@ -6,18 +6,24 @@ import (
 	"github.com/qordobacode/cli-v2/log"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
 
 const (
-	fileListURLTemplate                    = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files?withProgressStatus=%v"
-	fileDownloadTemplate                   = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
-	sourceFileDownloadTemplate             = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
-	fileDeleteTemplate                     = "%s/v3/organizations/%d/workspaces/%d/files/%d"
+	fileListURLTemplate                      = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files?withProgressStatus=%v"
+	fileListURLTemplateWithLimit             = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files?withProgressStatus=%v&limit=%v"
+	fileSearchURLTemplate                    = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files?withProgressStatus=%v&filename=%v&version=%v"
+	fileDownloadTemplate                     = "%s/v3/organizations/%d/workspaces/%d/personas/%d/files/%d/download"
+	sourceFileDownloadTemplate               = "%s/v3/organizations/%d/workspaces/%d/files/%d/download/source?withUpdates=%v"
+	fileDeleteTemplate                       = "%s/v3/organizations/%d/workspaces/%d/files/%d"
+	defaultFilePerm              os.FileMode = 0666
+)
 
-	defaultFilePerm            os.FileMode = 0666
+var (
+	forbiddenInFileNameSymbols, _ = regexp.Compile(`[:?!\\*/|<>]`)
 )
 
 // SearchForFiles function retrieves all files in workspace
@@ -27,7 +33,21 @@ func SearchForFiles(config *Config, personaID int, withProgressStatus bool) (*Fi
 		log.TimeTrack(start, "SearchForFiles "+strconv.Itoa(personaID))
 	}()
 	base := config.GetAPIBase()
-	getUserFiles := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
+	fileListURL := fmt.Sprintf(fileListURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus)
+	return callFileRequestAndHandle(config, fileListURL)
+}
+
+func SearchForFilesWithLimit(config *Config, personaID int, withProgressStatus bool, limit int) (*FileSearchResponse, error) {
+	start := time.Now()
+	defer func() {
+		log.TimeTrack(start, "SearchForFilesWithLimit "+strconv.Itoa(personaID))
+	}()
+	base := config.GetAPIBase()
+	fileListURL := fmt.Sprintf(fileListURLTemplateWithLimit, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, withProgressStatus, limit)
+	return callFileRequestAndHandle(config, fileListURL)
+}
+
+func callFileRequestAndHandle(config *Config, getUserFiles string) (*FileSearchResponse, error) {
 	fileBytesResponse, err := GetFromServer(config, getUserFiles)
 	if err != nil {
 		return nil, err
@@ -56,6 +76,9 @@ func DownloadFile(config *Config, personaID int, fileName string, file *File) {
 	}
 	log.Infof("file '%v' was downloaded", fileName)
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
+	if err != nil {
+		log.Errorf("error occurred on writing file: %v", err)
+	}
 }
 
 // DownloadSourceFile function retrieves all source files in workspace
@@ -69,6 +92,9 @@ func DownloadSourceFile(config *Config, fileName string, file *File, withUpdates
 	}
 	log.Infof("source file '%v' was downloaded", fileName)
 	err = ioutil.WriteFile(fileName, fileBytesResponse, defaultFilePerm)
+	if err != nil {
+		log.Errorf("error occurred on writing file: %v", err)
+	}
 }
 
 // BuildFileName according to stored file name and version
@@ -81,13 +107,15 @@ func BuildFileName(file *File, suffix string) string {
 			suffix = file.Version
 		}
 	}
+	resultName := file.Filename
 	if suffix != "" {
 		if len(fileNames) > 1 {
-			return fileNames[0] + "_" + suffix + "." + fileNames[1]
+			resultName = fileNames[0] + "_" + suffix + "." + fileNames[1]
 		}
-		return file.Filename + "_" + suffix
+		resultName = file.Filename + "_" + suffix
 	}
-	return file.Filename
+	resultName = forbiddenInFileNameSymbols.ReplaceAllString(resultName, "")
+	return resultName
 }
 
 // FindFile function
@@ -97,8 +125,10 @@ func FindFile(config *Config, fileName, version string) (*File, int) {
 	if err != nil {
 		return nil, 0
 	}
+	base := config.GetAPIBase()
 	for _, persona := range workspace.TargetPersonas {
-		fileSearchResponse, err := SearchForFiles(config, persona.ID, false)
+		fileListURL := fmt.Sprintf(fileSearchURLTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, persona.ID, false, fileName, version)
+		fileSearchResponse, err := callFileRequestAndHandle(config, fileListURL)
 		if err != nil {
 			continue
 		}
@@ -121,7 +151,7 @@ func FindFile(config *Config, fileName, version string) (*File, int) {
 // FindFileAndDelete function retrieve file and delete it remotedly
 func FindFileAndDelete(config *Config, fileName, version string) {
 	log.Debugf("FindFileAndDelete was called for file '%v'('%v')", fileName, version)
-	file,_ := FindFile(config, fileName, version)
+	file, _ := FindFile(config, fileName, version)
 	if file != nil {
 		DeleteFile(config, file)
 	}

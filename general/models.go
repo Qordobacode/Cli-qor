@@ -47,7 +47,7 @@ type PushRequest struct {
 
 // WorkspaceResponse is a qordoba general response from obtaining list of workspaces
 type WorkspaceResponse struct {
-	Meta Meta `json:"meta"`
+	Meta       Meta            `json:"meta"`
 	Workspaces []WorkspaceData `json:"workspaces"`
 }
 
@@ -145,6 +145,7 @@ type File struct {
 	ByWorkflowProgress []ByWorkflowProgress `json:"byWorkflowProgress"`
 	ErrorID            int                  `json:"errorId,omitempty"`
 	ErrorMessage       string               `json:"errorMessage,omitempty"`
+	Counts             TotalCounts          `json:"counts,omitempty"`
 }
 
 // Persona struct contain persona's data

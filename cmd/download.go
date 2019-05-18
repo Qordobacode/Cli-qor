@@ -110,7 +110,7 @@ func getFiles2Download(config *general.Config, workspace *general.Workspace) []*
 			audiences[lang] = true
 		}
 	}
-	files2Download := make([]*File2Download, 0, 0)
+	files2Download := make([]*File2Download, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue

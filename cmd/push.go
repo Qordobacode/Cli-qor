@@ -21,7 +21,7 @@ var (
 	tag                 string
 	files               string
 	folderPath          string
-	allowedMimeTypes, _ = regexp.Compile("\\.(csv|xml|json|txt|yaml|yml)$")
+	allowedMimeTypes, _ = regexp.Compile(`\.(csv|xml|json|txt|yaml|yml)$`)
 
 	// pushCmd represents the push command
 	pushCmd = &cobra.Command{
@@ -68,7 +68,7 @@ func pushFolder(folder string, qordobaConfig *general.Config) {
 }
 
 func getFilesInFolder(folderPath string) []string {
-	result := make([]string, 0, 0)
+	result := make([]string, 0)
 	curFolderFiles, err := ioutil.ReadDir(folderPath)
 	if err != nil {
 		log.Errorf("error occurred on retrieving list of all files in current folder: %v", err)
@@ -76,9 +76,6 @@ func getFilesInFolder(folderPath string) []string {
 	}
 	for _, f := range curFolderFiles {
 		file := folderPath + string(os.PathSeparator) + f.Name()
-		if allowedMimeTypes.FindString(file) != "" {
-			//fmt.Printf("push file: %v", file)
-		}
 		result = append(result, file)
 	}
 	return result

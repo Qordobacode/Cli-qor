@@ -1,6 +1,7 @@
 package general
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/log"
 	"io/ioutil"
@@ -9,12 +10,12 @@ import (
 
 var (
 	keyAddTemplate     = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
-	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyUpdate"
 	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments"
+	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyUpdate"
 )
 
 func AddKey(config *Config, fileName, version string, keyAddRequest *KeyAddRequest) {
-	file := FindFile(config, fileName, version)
+	file, _ := FindFile(config, fileName, version)
 	if file == nil {
 		return
 	}
@@ -53,12 +54,39 @@ func UpdateKey(config *Config, fileName, version string, keyAddRequest *KeyAddRe
 	if file == nil {
 		return
 	}
-	segment := FindSegment(config, base, keyAddRequest.Key)
+	segment := FindSegment(config, base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
-		updateKeyRequestURL := fmt.Sprintf(getSegmentTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID, segment.SegmentID)
+		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
 		resp, err := PutToServer(config, updateKeyRequestURL, keyAddRequest)
 		handleUpdateKeyResult(resp, err)
 	}
+}
+
+func FindSegment(config *Config, base, segmentName string, personaID int, file *File) *Segment {
+	workspaceData, err := GetWorkspaceData(config)
+	if err != nil {
+		log.Errorf("error occurred on retrieving workspace workspaceData ")
+		return nil
+	}
+	for _, workflow := range workspaceData.Workflow {
+		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID)
+		resp, err := GetFromServer(config, getSegmentRequest)
+		if err != nil {
+			continue
+		}
+		var segmentSearchResponse SegmentSearchResponse
+		err = json.Unmarshal(resp, &segmentSearchResponse)
+		if err != nil {
+			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)
+			continue
+		}
+		for _, segment := range segmentSearchResponse.Segments {
+			if segment.StringKey == segmentName {
+				return &segment
+			}
+		}
+	}
+	return nil
 }
 
 func handleUpdateKeyResult(resp *http.Response, err error) {
@@ -74,18 +102,6 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 			log.Errorf("Segment update status: %v. Response : %v", resp.Status, string(body))
 		}
 	} else {
-		log.Info("Segment was succesfully updated")
+		log.Info("Segment was successfully updated")
 	}
-}
-
-func FindSegment(config *Config, base, segmentName string) *Segment {
-	//workspaceData, e := GetWorkspaceData(config)
-	//if e != nil {
-	//	log.Errorf("error occurred on retrieving workspace workspaceData ")
-	//	return nil
-	//}
-	//for _, workflow := range workspaceData.Workflow {
-	//
-	//}
-	return nil
 }

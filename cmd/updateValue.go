@@ -15,6 +15,7 @@
 package cmd
 
 import (
+	"github.com/qordobacode/cli-v2/general"
 	"github.com/spf13/cobra"
 )
 
@@ -40,5 +41,14 @@ func init() {
 }
 
 func updateValue(cmd *cobra.Command, args []string) {
-
+	config, e := general.LoadConfig()
+	if e != nil {
+		return
+	}
+	keyAddRequest := &general.KeyAddRequest{
+		Key:       addKeyKey,
+		Source:    addKeyValue,
+		Reference: addKeyRef,
+	}
+	general.UpdateKey(config, args[0], updateKeyVersion, keyAddRequest)
 }

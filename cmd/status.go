@@ -100,7 +100,7 @@ func buildTableData(person2FilesMap map[string]*general.FileSearchResponse, head
 
 func buildTableRow(fileSearchResponse *general.FileSearchResponse,
 	persona string, header []string) ([]string, error) {
-	row := make([]string, len(header), len(header))
+	row := make([]string, len(header))
 	row[0] = persona
 	row[1] = strconv.Itoa(fileSearchResponse.TotalCounts.WordCount)
 	row[2] = strconv.Itoa(fileSearchResponse.TotalCounts.SegmentCount)
@@ -124,7 +124,7 @@ func buildTableRow(fileSearchResponse *general.FileSearchResponse,
 }
 
 func runFileStatusFile(fileName string, config *general.Config) {
-	data := make([][]string, 0, 0)
-	header := make([]string, 0, 0)
+	data := make([][]string, 0)
+	header := make([]string, 0)
 	renderTable2Stdin(header, data)
 }

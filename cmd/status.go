@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/general"
 	"github.com/qordobacode/cli-v2/log"
@@ -43,53 +44,43 @@ func buildProjectStatus(config *general.Config) {
 	if err != nil {
 		return
 	}
-	person2FilesMap := getPerson2FilesMap(workspace, config)
-	header := buildTableHeader(person2FilesMap)
-	data := buildTableData(person2FilesMap, header)
-
+	fileSearchResponse := getFileSearchResponse(workspace, config)
+	header := buildTableHeader(fileSearchResponse)
+	data := buildTableData(fileSearchResponse.ByPersonaProgress, header)
 	renderTable2Stdin(header, data)
 }
 
-func getPerson2FilesMap(response *general.Workspace, config *general.Config) map[string]*general.FileSearchResponse {
-	person2FileMap := make(map[string]*general.FileSearchResponse)
-	//var wg sync.WaitGroup
-	//wg.Add(len(response.TargetPersonas))
+func getFileSearchResponse(response *general.Workspace, config *general.Config) *general.FileSearchResponse {
 	for _, person := range response.TargetPersonas {
 		fileSearchResponse, err := general.SearchForFiles(config, person.ID, true)
 		if err != nil {
 			continue
 		}
-		fmt.Printf("fileSearchResponse =%+v", fileSearchResponse)
-		person2FileMap[person.Code] = fileSearchResponse
+		body, err := json.MarshalIndent(fileSearchResponse, "  ", "  ")
+		if err != nil {
+			log.Debugf("person %v fileSearchResponse\n%s", person.Code, string(body))
+		}
+		return fileSearchResponse
 	}
-	//wg.Wait()
-	return person2FileMap
+	return nil
 }
 
-func buildTableHeader(person2FilesMap map[string]*general.FileSearchResponse) []string {
-	workflowName2ColumnMap := make(map[string]int)
-	for person, fileSearchResponse := range person2FilesMap {
-		for _, byPersonaProgress := range fileSearchResponse.ByPersonaProgress {
-			if byPersonaProgress.Persona.Code != person {
-				continue
-			}
-			for _, progress := range byPersonaProgress.ByWorkflowProgress {
-				workflowName2ColumnMap[progress.Workflow.Name] = len(workflowName2ColumnMap)
-			}
-		}
-	}
-	result := make([]string, 0, len(workflowName2ColumnMap)+3)
+func buildTableHeader(fileSearchResponse *general.FileSearchResponse) []string {
+	result := make([]string, 0, len(fileSearchResponse.ByPersonaProgress)+3)
 	result = append(result, basicHeaders...)
-	for key := range workflowName2ColumnMap {
-		result = append(result, key)
+	for _, personaProgress := range fileSearchResponse.ByPersonaProgress {
+		for _, workflowState := range personaProgress.ByWorkflowProgress {
+			result = append(result, workflowState.Workflow.Name)
+		}
+		break
 	}
 	return result
 }
 
-func buildTableData(person2FilesMap map[string]*general.FileSearchResponse, header []string) [][]string {
-	data := make([][]string, 0, len(person2FilesMap))
-	for person, fileSearchResponse := range person2FilesMap {
-		row, err := buildTableRow(fileSearchResponse, person, header)
+func buildTableData(personaProgress []general.ByPersonaProgress, header []string) [][]string {
+	data := make([][]string, 0, len(personaProgress))
+	for _, progress := range personaProgress {
+		row, err := buildTableRow(&progress, header)
 		if err != nil {
 			continue
 		}
@@ -98,27 +89,23 @@ func buildTableData(person2FilesMap map[string]*general.FileSearchResponse, head
 	return data
 }
 
-func buildTableRow(fileSearchResponse *general.FileSearchResponse,
-	persona string, header []string) ([]string, error) {
+func buildTableRow(personProgress *general.ByPersonaProgress, header []string) ([]string, error) {
 	row := make([]string, len(header))
-	row[0] = persona
-	row[1] = strconv.Itoa(fileSearchResponse.TotalCounts.WordCount)
-	row[2] = strconv.Itoa(fileSearchResponse.TotalCounts.SegmentCount)
-	headerMap := make(map[string]int)
-	total := 0
-	for _, personaProgress := range fileSearchResponse.ByPersonaProgress {
-		if personaProgress.Persona.Code != persona {
-			continue
-		}
-		for _, byWorkflowProgress := range personaProgress.ByWorkflowProgress {
-			total += byWorkflowProgress.Counts.WordCount
-			headerMap[byWorkflowProgress.Workflow.Name] = byWorkflowProgress.Counts.WordCount
-		}
+	row[0] = personProgress.Persona.Code
+	totalWords := 0
+	totalSegments := 0
+	for _, workflowProgress := range personProgress.ByWorkflowProgress {
+		totalWords += workflowProgress.Counts.WordCount
+		totalSegments += workflowProgress.Counts.SegmentCount
 	}
-	for i := 3; i < len(header); i++ {
-		statusCount := headerMap[header[i]]
-		percent := float64(statusCount) / float64(total) * 100
-		row[i] = fmt.Sprintf("%v%", percent)
+	row[1] = strconv.Itoa(totalWords)
+	row[2] = strconv.Itoa(totalSegments)
+	i := 0
+	// same order in iteration as it was on header filling step
+	for _, workflowProgress := range personProgress.ByWorkflowProgress {
+		percent := float64(workflowProgress.Counts.SegmentCount) / float64(totalSegments) * 100
+		row[i+3] = fmt.Sprintf(`%.2f%%`, percent)
+		i++
 	}
 	return row, nil
 }

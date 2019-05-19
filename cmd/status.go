@@ -104,7 +104,7 @@ func buildTableRow(personProgress *general.ByPersonaProgress, header []string) (
 	// same order in iteration as it was on header filling step
 	for _, workflowProgress := range personProgress.ByWorkflowProgress {
 		percent := float64(workflowProgress.Counts.SegmentCount) / float64(totalSegments) * 100
-		row[i+3] = fmt.Sprintf(`%.2f%%`, percent)
+		row[i+3] = fmt.Sprintf(`%6.2f%%`, percent)
 		i++
 	}
 	return row, nil

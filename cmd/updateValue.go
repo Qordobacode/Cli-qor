@@ -22,7 +22,7 @@ import (
 // updateValueCmd represents the updateValue command
 var (
 	updateValueCmd = &cobra.Command{
-		Use:   "updateValue",
+		Use:   "update-value",
 		Short: "Update value by key",
 		Run:   updateValue,
 	}

@@ -36,6 +36,12 @@ Application Commands:
            --json                   Print output in json format
       
     - delete      Delete file from server (support file versions)  
+    
+    - status Status per project or file (Support file versions) 
+    
+    - add-key functionality
+    
+    - update-value functionality
    
     Help Options:
       -h, --help            Show this help message    
@@ -57,8 +63,6 @@ bin/tf --version
 Homebrew support is in progress
 
 # Roadmap
-- Add status command
-- Add key command
 - Update value by key command
 - Create content command
 - Pull value by key command

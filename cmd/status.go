@@ -14,6 +14,10 @@ var (
 	basicHeaders = []string{
 		"#AUDIENSES", "#WORDS", "#SEGMENTS",
 	}
+	fileHeaders = []string{
+		"FILE NAME", "#WORDS", "#SEGMENTS",
+	}
+	statusFileVersion string
 )
 
 // statusCmd represents the status command
@@ -25,6 +29,7 @@ var statusCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(statusCmd)
+	pushCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
 }
 
 func runStatus(cmd *cobra.Command, args []string) {
@@ -32,20 +37,21 @@ func runStatus(cmd *cobra.Command, args []string) {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	if len(args) > 0 {
-		runFileStatusFile(args[0])
-	} else {
-		buildProjectStatus()
-	}
-}
-
-func buildProjectStatus() {
 	workspace, err := WorkspaceService.LoadWorkspace()
 	if err != nil || workspace == nil {
 		return
 	}
+	if len(args) > 0 {
+		runFileStatusFile(args[0], workspace)
+	} else {
+		buildProjectStatus(workspace)
+	}
+}
+
+func buildProjectStatus(workspace *types.WorkspaceData) {
 	fileSearchResponse := getFileSearchResponse(&workspace.Workspace)
-	header := buildTableHeader(fileSearchResponse)
+	progress := fileSearchResponse.ByPersonaProgress[0].ByWorkflowProgress
+	header := buildTableHeader(progress, basicHeaders)
 	data := buildTableData(fileSearchResponse.ByPersonaProgress, header)
 	renderTable2Stdin(header, data)
 }
@@ -65,14 +71,11 @@ func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse 
 	return nil
 }
 
-func buildTableHeader(fileSearchResponse *types.FileSearchResponse) []string {
-	result := make([]string, 0, len(fileSearchResponse.ByPersonaProgress)+3)
-	result = append(result, basicHeaders...)
-	for _, personaProgress := range fileSearchResponse.ByPersonaProgress {
-		for _, workflowState := range personaProgress.ByWorkflowProgress {
-			result = append(result, workflowState.Workflow.Name)
-		}
-		break
+func buildTableHeader(workflowProgress []types.ByWorkflowProgress, headers []string) []string {
+	result := make([]string, 0, len(workflowProgress)+len(headers))
+	result = append(result, headers...)
+	for _, workflowState := range workflowProgress {
+		result = append(result, workflowState.Workflow.Name)
 	}
 	return result
 }
@@ -110,8 +113,13 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 	return row, nil
 }
 
-func runFileStatusFile(fileName string) {
+func runFileStatusFile(fileName string, workspace *types.WorkspaceData) {
+	fileSearchResponse, _ := FileService.FindFile(fileName, statusFileVersion, true)
+	if fileSearchResponse == nil {
+		log.Debugf("file %s('%s') was not found", fileName, statusFileVersion)
+		return
+	}
+	header := buildTableHeader(fileSearchResponse.ByWorkflowProgress, fileHeaders)
 	data := make([][]string, 0)
-	header := make([]string, 0)
 	renderTable2Stdin(header, data)
 }

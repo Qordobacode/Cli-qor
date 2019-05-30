@@ -10,7 +10,7 @@ import (
 // deleteFoundFile function retrieve file and delete it remotedly
 func (f *FileService) DeleteFile(fileName, version string) {
 	log.Debugf("deleteFoundFile was called for file '%v'('%v')", fileName, version)
-	file, _ := f.FindFile(fileName, version)
+	file, _ := f.FindFile(fileName, version, false)
 	if file != nil {
 		f.deleteFoundFile(file)
 	}

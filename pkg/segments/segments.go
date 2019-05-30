@@ -24,7 +24,7 @@ type SegmentService struct {
 }
 
 func (s *SegmentService) AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
-	file, _ := s.FileService.FindFile(fileName, version)
+	file, _ := s.FileService.FindFile(fileName, version, false)
 	if file == nil {
 		return
 	}
@@ -59,7 +59,7 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 // UpdateKey function update key
 func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
 	base := s.Config.GetAPIBase()
-	file, personaID := s.FileService.FindFile(fileName, version)
+	file, personaID := s.FileService.FindFile(fileName, version, false)
 	if file == nil {
 		return
 	}

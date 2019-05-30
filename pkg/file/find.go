@@ -62,7 +62,7 @@ func (f *FileService) callFileRequestAndHandle(getUserFiles string) (*types.File
 }
 
 // FindFile function
-func (f *FileService) FindFile(fileName, version string) (*types.File, int) {
+func (f *FileService) FindFile(fileName, version string, withProgressStatus bool) (*types.File, int) {
 	log.Debugf("FindFile was called for file '%v'('%v')", fileName, version)
 	workspace, err := f.WorkspaceService.LoadWorkspace()
 	if err != nil {
@@ -70,7 +70,7 @@ func (f *FileService) FindFile(fileName, version string) (*types.File, int) {
 	}
 	base := f.Config.GetAPIBase()
 	for _, persona := range workspace.Workspace.TargetPersonas {
-		fileListURL := fmt.Sprintf(fileSearchURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, persona.ID, false, fileName, version)
+		fileListURL := fmt.Sprintf(fileSearchURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, persona.ID, withProgressStatus, fileName, version)
 		fileSearchResponse, err := f.callFileRequestAndHandle(fileListURL)
 		if err != nil {
 			continue

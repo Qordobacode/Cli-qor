@@ -7,6 +7,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -121,4 +122,42 @@ func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 		return nil, fmt.Errorf("cached workspace file was not found")
 	}
 	return l.Read(workspaceFilePath)
+}
+
+func (l *Local) FilesInFolder(filePath string) []string {
+	fileMap := make(map[string]bool)
+	matches, err := filepath.Glob(filePath)
+	if err == nil {
+		for _, match := range matches {
+			fileAbsPath, err := filepath.Abs(match)
+			if err == nil {
+				addFilesInMap(fileAbsPath, fileMap)
+			}
+		}
+	}
+	addFilesInMap(filePath, fileMap)
+	result := make([]string, 0)
+	for k, _ := range fileMap {
+		result = append(result, k)
+	}
+	return result
+}
+
+func addFilesInMap(path string, fileMap map[string]bool) {
+	pathStat, err := os.Stat(path)
+	if err != nil {
+		return
+	}
+	if pathStat.IsDir() {
+		infos, err := ioutil.ReadDir(path)
+		if err != nil {
+			return
+		}
+		for _, info := range infos {
+			fileName := filepath.Join(path, info.Name())
+			fileMap[fileName] = true
+		}
+	} else {
+		fileMap[path] = true
+	}
 }

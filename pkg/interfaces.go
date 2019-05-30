@@ -20,6 +20,7 @@ type Local interface {
 	QordobaHome() (string, error)
 	PutInHome(fileName string, body []byte)
 	LoadCached(cachedFileName string) ([]byte, error)
+	FilesInFolder(folderPath string) []string
 }
 
 type ConfigurationService interface {
@@ -35,9 +36,11 @@ type WorkspaceService interface {
 type FileService interface {
 	WorkspaceFiles(personaID int, withProgressStatus bool) (*types.FileSearchResponse, error)
 	WorkspaceFilesWithLimit(personaID int, withProgressStatus bool, limit int) (*types.FileSearchResponse, error)
+	FindFile(fileName, version string) (*types.File, int)
 	DownloadFile(personaID int, fileName string, file *types.File)
 	DownloadSourceFile(fileName string, file *types.File, withUpdates bool)
-	FindFile(fileName, version string) (*types.File, int)
+	PushFolder(folder, version string)
+	PushFiles(fileList []string, version string)
 	DeleteFile(fileName, version string)
 }
 

@@ -1,42 +1,4 @@
-package general
-
-// Config structs holds workspace's specific information
-type Config struct {
-	Qordoba   QordobaConfig   `yaml:"qordoba"`
-	Push      PushConfig      `yaml:"push"`
-	Download  DownloadConfig  `yaml:"download"`
-	Blacklist BlacklistConfig `yaml:"blacklist"`
-	BaseURL   string          `yaml:"base_url,omitempty"`
-}
-
-// QordobaConfig is a part of configuration with qordoba-related information
-type QordobaConfig struct {
-	AccessToken    string            `yaml:"access_token"`
-	OrganizationID int64             `yaml:"organization_id"`
-	ProjectID      int64             `yaml:"project_id"`
-	AudienceMap    map[string]string `yaml:"audiences_map"`
-}
-
-// PushConfig is push-related part of config
-type PushConfig struct {
-	Sources SourceConfig `yaml:"sources"`
-}
-
-// SourceConfig contains details about source configuration for push config
-type SourceConfig struct {
-	Files   []string `yaml:"files"`
-	Folders []string `yaml:"folders"`
-}
-
-// DownloadConfig is download-related part of config
-type DownloadConfig struct {
-	Targets []string `yaml:"targets"`
-}
-
-// BlacklistConfig is blacklist-related part of config
-type BlacklistConfig struct {
-	Sources []string `yaml:"sources"`
-}
+package types
 
 // PushRequest is a request, used to push file
 type PushRequest struct {
@@ -84,7 +46,7 @@ type Person struct {
 	Name      string `json:"name"`
 }
 
-// FileSearchResponse - DTO object for qordoba's file search response
+// FileSearchResponse - DTO object for.Config's file search response
 type FileSearchResponse struct {
 	Meta              Meta                `json:"meta"`
 	Files             []File              `json:"files"`
@@ -176,31 +138,4 @@ type TagRequest struct {
 // FileDeleteResponse struct for response for file deletion
 type FileDeleteResponse struct {
 	Success bool `json:"success"`
-}
-
-// KeyAddRequest struct for request to add provided key into file
-type KeyAddRequest struct {
-	Key       string `json:"key"`
-	Source    string `json:"source"`
-	Reference string `json:"reference"`
-}
-
-type SegmentSearchResponse struct {
-	Meta     Meta      `json:"meta"`
-	Segments []Segment `json:"segments"`
-}
-
-type Segment struct {
-	LastSaved  int    `json:"lastSaved"`
-	Order      int    `json:"order"`
-	PluralRule string `json:"pluralRule"`
-	Plurals    string `json:"plurals"`
-	Reference  string `json:"reference"`
-	Segment    string `json:"segment"`
-	SegmentID  int    `json:"segmentId"`
-	SsMatch    int    `json:"ssMatch"`
-	SsText     string `json:"ssText"`
-	StringKey  string `json:"stringKey"`
-	Target     string `json:"target"`
-	TargetID   int    `json:"targetId"`
 }

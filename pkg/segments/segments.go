@@ -1,9 +1,11 @@
-package general
+package segments
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 	"io/ioutil"
 	"net/http"
 )
@@ -14,15 +16,22 @@ var (
 	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyUpdate"
 )
 
-func AddKey(config *Config, fileName, version string, keyAddRequest *KeyAddRequest) {
-	file, _ := FindFile(config, fileName, version)
+type SegmentService struct {
+	Config           *types.Config
+	FileService      pkg.FileService
+	QordobaClient    pkg.QordobaClient
+	WorkspaceService pkg.WorkspaceService
+}
+
+func (s *SegmentService) AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
+	file, _ := s.FileService.FindFile(fileName, version)
 	if file == nil {
 		return
 	}
-	base := config.GetAPIBase()
-	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID)
+	base := s.Config.GetAPIBase()
+	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID)
 	log.Debugf("call %v to add key", addKeyRequestURL)
-	resp, err := PostToServer(config, addKeyRequestURL, keyAddRequest)
+	resp, err := s.QordobaClient.PostToServer(addKeyRequestURL, keyAddRequest)
 	if err != nil {
 		log.Errorf("error occurred on post key-pair: %v", err)
 		return
@@ -30,7 +39,7 @@ func AddKey(config *Config, fileName, version string, keyAddRequest *KeyAddReque
 	handleAddKeyResponse(resp, keyAddRequest, version, fileName)
 }
 
-func handleAddKeyResponse(resp *http.Response, keyAddRequest *KeyAddRequest, version, fileName string) {
+func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddRequest, version, fileName string) {
 	body, _ := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
@@ -48,33 +57,33 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *KeyAddRequest, ver
 }
 
 // UpdateKey function update key
-func UpdateKey(config *Config, fileName, version string, keyAddRequest *KeyAddRequest) {
-	base := config.GetAPIBase()
-	file, personaID := FindFile(config, fileName, version)
+func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
+	base := s.Config.GetAPIBase()
+	file, personaID := s.FileService.FindFile(fileName, version)
 	if file == nil {
 		return
 	}
-	segment := FindSegment(config, base, keyAddRequest.Key, personaID, file)
+	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
-		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
-		resp, err := PutToServer(config, updateKeyRequestURL, keyAddRequest)
+		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
+		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, keyAddRequest)
 		handleUpdateKeyResult(resp, err)
 	}
 }
 
-func FindSegment(config *Config, base, segmentName string, personaID int, file *File) *Segment {
-	workspaceData, err := GetWorkspaceData(config)
+func (s *SegmentService) FindSegment(base, segmentName string, personaID int, file *types.File) *types.Segment {
+	workspaceData, err := s.WorkspaceService.LoadWorkspace()
 	if err != nil {
 		log.Errorf("error occurred on retrieving workspace workspaceData ")
 		return nil
 	}
 	for _, workflow := range workspaceData.Workflow {
-		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID)
-		resp, err := GetFromServer(config, getSegmentRequest)
+		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID)
+		resp, err := s.QordobaClient.GetFromServer(getSegmentRequest)
 		if err != nil {
 			continue
 		}
-		var segmentSearchResponse SegmentSearchResponse
+		var segmentSearchResponse types.SegmentSearchResponse
 		err = json.Unmarshal(resp, &segmentSearchResponse)
 		if err != nil {
 			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)

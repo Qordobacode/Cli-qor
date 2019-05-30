@@ -2,9 +2,11 @@ package cmd
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/olekukonko/tablewriter"
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/date"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
 	"os"
 	"sort"
@@ -33,17 +35,13 @@ func init() {
 }
 
 func printLs(cmd *cobra.Command, args []string) {
-	config, e := general.LoadConfig()
-	if e != nil {
-		return
-	}
-	workspace, err := general.GetWorkspace(config)
+	workspace, err := WorkspaceService.LoadWorkspace()
 	if err != nil {
 		return
 	}
 	data := make([]*responseRow, 0)
-	for _, targetPersona := range workspace.TargetPersonas {
-		result := handlePersonResult(config, &targetPersona)
+	for _, targetPersona := range workspace.Workspace.TargetPersonas {
+		result := handlePersonResult(&targetPersona)
 		data = append(data, result...)
 		if len(data) > lineLimit {
 			data = data[:lineLimit]
@@ -72,13 +70,13 @@ func printFile2Stdin(response []*responseRow) {
 	}
 }
 
-func handlePersonResult(config *general.Config, persona *general.Person) []*responseRow {
-	files, e := general.SearchForFilesWithLimit(config, persona.ID, false, lineLimit)
+func handlePersonResult(persona *types.Person) []*responseRow {
+	files, e := FileService.WorkspaceFilesWithLimit(persona.ID, false, lineLimit)
 	data := make([]*responseRow, 0)
 	if e != nil {
 		return data
 	}
-	audiences := config.GetAudiences()
+	audiences := Config.Audiences()
 	for _, file := range files.Files {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
@@ -88,18 +86,19 @@ func handlePersonResult(config *general.Config, persona *general.Person) []*resp
 	return data
 }
 
-func buildDataRowFromFile(file *general.File) *responseRow {
+func buildDataRowFromFile(file *types.File) *responseRow {
 	tags := make([]string, 0, len(file.Tags))
 	for _, tag := range file.Tags {
 		tags = append(tags, tag.Name)
 	}
 	// strconv.Itoa
+	fmt.Printf("file = %v", file.Counts)
 	row := responseRow{
 		ID:          file.FileID,
 		Name:        file.Filename,
 		Version:     file.Version,
 		Tag:         tags,
-		UpdatedOn:   general.GetDateFromTimestamp(file.Update),
+		UpdatedOn:   date.GetDateFromTimestamp(file.Update),
 		SegmentNums: file.Counts.SegmentCount,
 		Status:      disabled,
 	}

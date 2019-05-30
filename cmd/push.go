@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
+
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
@@ -39,32 +40,31 @@ func init() {
 }
 
 func pushCommand(cmd *cobra.Command, args []string) {
-	qordobaConfig, err := general.LoadConfig()
-	if err != nil {
+	if Config == nil {
+		log.Errorf("error occurred on configuration load")
 		return
 	}
 	if folderPath == "" && files == "" {
-		pushSources := qordobaConfig.Push.Sources
+		pushSources := Config.Push.Sources
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
-		pushFiles(pushSources.Files, qordobaConfig)
+		pushFiles(pushSources.Files)
 		for _, folder := range pushSources.Folders {
-			pushFolder(folder, qordobaConfig)
+			pushFolder(folder)
 		}
-	} else {
-		if files != "" {
-			fileList := filepath.SplitList(files)
-			log.Debugf("Result list of files from line is: %v", string(os.PathListSeparator), fileList)
-			pushFiles(fileList, qordobaConfig)
-		}
-		if folderPath != "" {
-			pushFolder(folderPath, qordobaConfig)
-		}
+		return
+	}
+	if files != "" {
+		fileList := filepath.SplitList(files)
+		log.Debugf("Result list of files from line is: %v", string(os.PathListSeparator), fileList)
+		pushFiles(fileList)
+	} else if folderPath != "" {
+		pushFolder(folderPath)
 	}
 }
 
-func pushFolder(folder string, qordobaConfig *general.Config) {
+func pushFolder(folder string) {
 	fileList := getFilesInFolder(folder)
-	pushFiles(fileList, qordobaConfig)
+	pushFiles(fileList)
 }
 
 func getFilesInFolder(folderPath string) []string {
@@ -81,12 +81,12 @@ func getFilesInFolder(folderPath string) []string {
 	return result
 }
 
-func pushFiles(fileList []string, config *general.Config) {
+func pushFiles(fileList []string) {
 	jobs := make(chan *pushFileTask, 1000)
 	results := make(chan struct{}, 1000)
 
 	for i := 0; i < 3; i++ {
-		go startPushWorker(config, jobs, results)
+		go startPushWorker(jobs, results)
 	}
 
 	// let all error logs go before final messages
@@ -96,16 +96,16 @@ func pushFiles(fileList []string, config *general.Config) {
 		totalFilesPushed += pushFile(file, jobs)
 	}
 	close(jobs)
-	for i:= 0; i < totalFilesPushed; i++ {
+	for i := 0; i < totalFilesPushed; i++ {
 		<-results
 	}
 }
 
-func startPushWorker(config *general.Config, jobs chan *pushFileTask, results chan struct{}) {
-	base := config.GetAPIBase()
-	pushFileURL := fmt.Sprintf(pushFileTemplate, base, config.Qordoba.OrganizationID, config.Qordoba.ProjectID)
+func startPushWorker(jobs chan *pushFileTask, results chan struct{}) {
+	base := Config.GetAPIBase()
+	pushFileURL := fmt.Sprintf(pushFileTemplate, base, Config.Qordoba.OrganizationID, Config.Qordoba.ProjectID)
 	for j := range jobs {
-		sendFileToServer(config, j.fileInfo, j.FilePath, pushFileURL)
+		sendFileToServer(j.fileInfo, j.FilePath, pushFileURL)
 		results <- struct{}{}
 	}
 }
@@ -149,7 +149,7 @@ type pushFileTask struct {
 	fileInfo os.FileInfo
 }
 
-func sendFileToServer(config *general.Config, fileInfo os.FileInfo, filePath, pushFileURL string) {
+func sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL string) {
 	if fileInfo.IsDir() {
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
@@ -158,7 +158,7 @@ func sendFileToServer(config *general.Config, fileInfo os.FileInfo, filePath, pu
 	if err != nil {
 		return
 	}
-	resp, err := general.PostToServer(config, pushFileURL, pushRequest)
+	resp, err := QordobaClient.PostToServer(pushFileURL, pushRequest)
 	if err != nil {
 		log.Errorf("error occurred on building file post request: %v", err)
 		return
@@ -179,13 +179,13 @@ func sendFileToServer(config *general.Config, fileInfo os.FileInfo, filePath, pu
 	}
 }
 
-func buildPushRequest(fileInfo os.FileInfo, filePath string) (*general.PushRequest, error) {
+func buildPushRequest(fileInfo os.FileInfo, filePath string) (*types.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)
 		return nil, err
 	}
-	return &general.PushRequest{
+	return &types.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  tag,
 		Content:  string(fileContent),

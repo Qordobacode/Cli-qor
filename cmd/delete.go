@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
 )
 
@@ -18,12 +17,12 @@ var deleteCmd = &cobra.Command{
 }
 
 func deleteFile(cmd *cobra.Command, args []string) {
+	if Config == nil {
+		log.Errorf("error occurred on configuration load")
+		return
+	}
 	if len(args) > 0 {
-		qordobaConfig, err := general.LoadConfig()
-		if err != nil {
-			return
-		}
-		general.FindFileAndDelete(qordobaConfig, args[0], deleteFileVersion)
+		FileService.DeleteFile(args[0], deleteFileVersion)
 	} else {
 		log.Infof("No files to delete were specified")
 	}

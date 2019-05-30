@@ -3,8 +3,9 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
+
 	"github.com/spf13/cobra"
 	"strconv"
 )
@@ -27,32 +28,31 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, args []string) {
-	config, err := general.LoadConfig()
-	if err != nil {
-		log.Errorf("error occurred on configuration load: ", err)
+	if Config == nil {
+		log.Errorf("error occurred on configuration load")
 		return
 	}
 	if len(args) > 0 {
-		runFileStatusFile(args[0], config)
+		runFileStatusFile(args[0])
 	} else {
-		buildProjectStatus(config)
+		buildProjectStatus()
 	}
 }
 
-func buildProjectStatus(config *general.Config) {
-	workspace, err := general.GetWorkspace(config)
-	if err != nil {
+func buildProjectStatus() {
+	workspace, err := WorkspaceService.LoadWorkspace()
+	if err != nil || workspace == nil {
 		return
 	}
-	fileSearchResponse := getFileSearchResponse(workspace, config)
+	fileSearchResponse := getFileSearchResponse(&workspace.Workspace)
 	header := buildTableHeader(fileSearchResponse)
 	data := buildTableData(fileSearchResponse.ByPersonaProgress, header)
 	renderTable2Stdin(header, data)
 }
 
-func getFileSearchResponse(response *general.Workspace, config *general.Config) *general.FileSearchResponse {
+func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse {
 	for _, person := range response.TargetPersonas {
-		fileSearchResponse, err := general.SearchForFiles(config, person.ID, true)
+		fileSearchResponse, err := FileService.WorkspaceFiles(person.ID, true)
 		if err != nil {
 			continue
 		}
@@ -65,7 +65,7 @@ func getFileSearchResponse(response *general.Workspace, config *general.Config) 
 	return nil
 }
 
-func buildTableHeader(fileSearchResponse *general.FileSearchResponse) []string {
+func buildTableHeader(fileSearchResponse *types.FileSearchResponse) []string {
 	result := make([]string, 0, len(fileSearchResponse.ByPersonaProgress)+3)
 	result = append(result, basicHeaders...)
 	for _, personaProgress := range fileSearchResponse.ByPersonaProgress {
@@ -77,7 +77,7 @@ func buildTableHeader(fileSearchResponse *general.FileSearchResponse) []string {
 	return result
 }
 
-func buildTableData(personaProgress []general.ByPersonaProgress, header []string) [][]string {
+func buildTableData(personaProgress []types.ByPersonaProgress, header []string) [][]string {
 	data := make([][]string, 0, len(personaProgress))
 	for _, progress := range personaProgress {
 		row, err := buildTableRow(&progress, header)
@@ -89,7 +89,7 @@ func buildTableData(personaProgress []general.ByPersonaProgress, header []string
 	return data
 }
 
-func buildTableRow(personProgress *general.ByPersonaProgress, header []string) ([]string, error) {
+func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]string, error) {
 	row := make([]string, len(header))
 	row[0] = personProgress.Persona.Code
 	totalWords := 0
@@ -110,7 +110,7 @@ func buildTableRow(personProgress *general.ByPersonaProgress, header []string) (
 	return row, nil
 }
 
-func runFileStatusFile(fileName string, config *general.Config) {
+func runFileStatusFile(fileName string) {
 	data := make([][]string, 0)
 	header := make([]string, 0)
 	renderTable2Stdin(header, data)

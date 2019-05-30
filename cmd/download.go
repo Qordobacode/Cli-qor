@@ -15,8 +15,8 @@
 package cmd
 
 import (
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
 	"strings"
 	"sync/atomic"
@@ -57,20 +57,20 @@ func init() {
 }
 
 func downloadCommand(cmd *cobra.Command, args []string) {
-	config, err := general.LoadConfig()
-	if err != nil {
+	if Config == nil {
+		log.Errorf("error occurred on configuration load")
 		return
 	}
-	workspace, err := general.GetWorkspace(config)
-	if err != nil {
+	workspace, err := WorkspaceService.LoadWorkspace()
+	if err != nil || workspace == nil {
 		return
 	}
-	files2Download := getFiles2Download(config, workspace)
+	files2Download := files2Download(&workspace.Workspace)
 	jobs := make(chan *File2Download, 1000)
 	results := make(chan struct{}, 1000)
 
 	for i := 0; i < 3; i++ {
-		go worker(config, jobs, results)
+		go worker(jobs, results)
 	}
 	for _, file2Download := range files2Download {
 		jobs <- file2Download
@@ -89,20 +89,20 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 	}
 }
 
-func worker(config *general.Config, jobs chan *File2Download, results chan struct{}) {
+func worker(jobs chan *File2Download, results chan struct{}) {
 	for j := range jobs {
-		handleFile(config, j.PersonaID, j.File)
+		handleFile(j.PersonaID, j.File)
 		results <- struct{}{}
 	}
 }
 
 type File2Download struct {
-	File      *general.File
+	File      *types.File
 	PersonaID int
 }
 
-func getFiles2Download(config *general.Config, workspace *general.Workspace) []*File2Download {
-	audiences := config.GetAudiences()
+func files2Download(workspace *types.Workspace) []*File2Download {
+	audiences := Config.Audiences()
 	if downloadAudience != "" {
 		audienceList := strings.Split(downloadAudience, ",")
 		audiences = make(map[string]bool)
@@ -115,7 +115,7 @@ func getFiles2Download(config *general.Config, workspace *general.Workspace) []*
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}
-		response, err := general.SearchForFiles(config, persona.ID, false)
+		response, err := FileService.WorkspaceFiles(persona.ID, false)
 		if err != nil {
 			continue
 		}
@@ -130,7 +130,7 @@ func getFiles2Download(config *general.Config, workspace *general.Workspace) []*
 	return files2Download
 }
 
-func handleFile(config *general.Config, personaID int, file *general.File) {
+func handleFile(personaID int, file *types.File) {
 	if !file.Completed && !isDownloadCurrent {
 		// isDownloadCurrent - skip files with version
 		return
@@ -141,17 +141,17 @@ func handleFile(config *general.Config, personaID int, file *general.File) {
 	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
-			downloadSourceFile(file, config)
+			downloadSourceFile(file)
 		}
 		if isDownloadOriginal {
-			downloadOriginalFile(file, config)
+			downloadOriginalFile(file)
 		}
 	} else {
-		downloadFile(file, config, personaID)
+		downloadFile(file, personaID)
 	}
 }
 
-func handleInvalidFile(file *general.File) {
+func handleInvalidFile(file *types.File) {
 	if file.ErrorID != 0 {
 		if file.Version != "" {
 			log.Errorf("'%s'(version '%v') has error. Skip its download", file.Filename, file.Version)
@@ -170,27 +170,27 @@ func handleInvalidFile(file *general.File) {
 	}
 }
 
-func downloadFile(file *general.File, config *general.Config, personaID int) {
-	fileName := general.BuildFileName(file, "")
-	if !isPullSkip || !general.FileExists(fileName) {
-		general.DownloadFile(config, personaID, fileName, file)
+func downloadFile(file *types.File, personaID int) {
+	fileName := Local.BuildFileName(file, "")
+	if !isPullSkip || !Local.FileExists(fileName) {
+		FileService.DownloadFile(personaID, fileName, file)
 		atomic.AddUint64(&ops, 1)
 	}
 }
 
-func downloadSourceFile(file *general.File, config *general.Config) {
-	fileName := general.BuildFileName(file, "")
-	general.DownloadSourceFile(config, fileName, file, true)
+func downloadSourceFile(file *types.File) {
+	fileName := Local.BuildFileName(file, "")
+	FileService.DownloadSourceFile(fileName, file, true)
 	atomic.AddUint64(&ops, 1)
 }
 
-func downloadOriginalFile(file *general.File, config *general.Config) {
+func downloadOriginalFile(file *types.File) {
 	suffix := ""
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	fileName := general.BuildFileName(file, suffix)
-	general.DownloadSourceFile(config, fileName, file, false)
+	fileName := Local.BuildFileName(file, suffix)
+	FileService.DownloadSourceFile(fileName, file, false)
 	atomic.AddUint64(&ops, 1)
 }

@@ -15,7 +15,8 @@
 package cmd
 
 import (
-	"github.com/qordobacode/cli-v2/general"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
 )
 
@@ -41,14 +42,14 @@ func init() {
 }
 
 func updateValue(cmd *cobra.Command, args []string) {
-	config, e := general.LoadConfig()
-	if e != nil {
+	if Config == nil {
+		log.Errorf("error occurred on configuration load: ")
 		return
 	}
-	keyAddRequest := &general.KeyAddRequest{
+	keyAddRequest := &types.KeyAddRequest{
 		Key:       addKeyKey,
 		Source:    addKeyValue,
 		Reference: addKeyRef,
 	}
-	general.UpdateKey(config, args[0], updateKeyVersion, keyAddRequest)
+	SegmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

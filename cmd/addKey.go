@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 
 	"github.com/spf13/cobra"
 )
@@ -36,17 +36,17 @@ func preValidateParameters(cmd *cobra.Command, args []string) error {
 }
 
 func addKey(cmd *cobra.Command, args []string) {
-	config, e := general.LoadConfig()
-	if e != nil {
+	log.Debugf("addKey called")
+	if Config == nil {
+		log.Errorf("error occurred on configuration load")
 		return
 	}
-	log.Debugf("addKey called")
-	keyAddRequest := &general.KeyAddRequest{
+	keyAddRequest := &types.KeyAddRequest{
 		Key:       addKeyKey,
 		Source:    addKeyValue,
 		Reference: addKeyRef,
 	}
-	general.AddKey(config, args[0], addKeyVersion, keyAddRequest)
+	SegmentService.AddKey(args[0], addKeyVersion, keyAddRequest)
 }
 
 func init() {

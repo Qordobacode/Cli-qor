@@ -3,8 +3,8 @@ package cmd
 import (
 	"bufio"
 	"fmt"
-	"github.com/qordobacode/cli-v2/general"
-	"github.com/qordobacode/cli-v2/log"
+	"github.com/qordobacode/cli-v2/pkg/general/log"
+	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
@@ -13,7 +13,7 @@ import (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:         "init",
-	Short:       "Init configuration for QordobaConfig CLI from STDIN or file",
+	Short:       "Init configuration for.ConfigConfig CLI from STDIN or file",
 	RunE:        RunInitRoot,
 	Example:     "qor init",
 	Annotations: map[string]string{"version": APIVersion},
@@ -30,35 +30,34 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 	if len(args) > 0 {
 		fileName = args[0]
 	}
-	var config *general.Config
+	var newConfig *types.Config
 	var err error
 	if fileName != "" {
-		config, err = general.ReadConfigInPath(fileName)
+		newConfig, err = ConfigurationService.ReadConfigInPath(fileName)
 		if err != nil {
 			return err
 		}
 	}
-	if config == nil {
-		config = buildConfigFromStdin()
+	if newConfig == nil {
+		newConfig = buildConfigFromStdin()
 	}
 
-	general.SaveMainConfig(config)
+	ConfigurationService.SaveMainConfig(newConfig)
 	return nil
 }
 
-func buildConfigFromStdin() *general.Config {
+func buildConfigFromStdin() *types.Config {
 	scanner := bufio.NewScanner(os.Stdin)
 	accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty\n", scanner)
 	organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty\n", scanner)
 	projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty\n", scanner)
-	config := &general.Config{
-		Qordoba: general.QordobaConfig{
+	return &types.Config{
+		Qordoba: types.QordobaConfig{
 			AccessToken:    accessToken,
 			ProjectID:      projectID,
 			OrganizationID: organizationID,
 		},
 	}
-	return config
 }
 
 func readVariable(header, errMessage string, scanner *bufio.Scanner) string {

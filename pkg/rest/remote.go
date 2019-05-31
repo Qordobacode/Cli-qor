@@ -9,6 +9,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"time"
 )
@@ -24,9 +25,18 @@ type RestClient struct {
 }
 
 func NewRestClient(qordobaConfig *types.Config) *RestClient {
+	transport := &http.Transport{
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 10 * time.Second,
+		}).DialContext,
+		TLSHandshakeTimeout: 10 * time.Second,
+		DisableKeepAlives:   true,
+	}
 	return &RestClient{
 		HTTPClient: http.Client{
 			Timeout: time.Minute * 1,
+			Transport: transport,
 		},
 		Config: qordobaConfig,
 	}

@@ -28,8 +28,8 @@ var statusCmd = &cobra.Command{
 }
 
 func init() {
+	statusCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
 	rootCmd.AddCommand(statusCmd)
-	pushCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
 }
 
 func runStatus(cmd *cobra.Command, args []string) {
@@ -50,10 +50,27 @@ func runStatus(cmd *cobra.Command, args []string) {
 
 func buildProjectStatus(workspace *types.WorkspaceData) {
 	fileSearchResponse := getFileSearchResponse(&workspace.Workspace)
+	if fileSearchResponse == nil {
+		log.Errorf("fileSearchResponse %v not found", workspace.Workspace.ID)
+		return
+	}
 	progress := fileSearchResponse.ByPersonaProgress[0].ByWorkflowProgress
 	header := buildTableHeader(progress, basicHeaders)
-	data := buildTableData(fileSearchResponse.ByPersonaProgress, header)
-	renderTable2Stdin(header, data)
+	dataRow, dataJson := buildTableData(fileSearchResponse.ByPersonaProgress, header)
+	printProjectStatus2Stdin(header, dataRow, dataJson)
+}
+
+func printProjectStatus2Stdin(header []string, tableData [][]string, dataJson []map[string]string) {
+	if !IsJSON {
+		renderTable2Stdin(header, tableData)
+	} else {
+		bytes, err := json.MarshalIndent(dataJson, "", "  ")
+		if err != nil {
+			log.Errorf("error occurred on marshalling with JSON: %v", err)
+			return
+		}
+		log.Infof("%v", string(bytes))
+	}
 }
 
 func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse {
@@ -80,21 +97,28 @@ func buildTableHeader(workflowProgress []types.ByWorkflowProgress, headers []str
 	return result
 }
 
-func buildTableData(personaProgress []types.ByPersonaProgress, header []string) [][]string {
+func buildTableData(personaProgress []types.ByPersonaProgress, header []string) ([][]string, []map[string]string) {
 	data := make([][]string, 0, len(personaProgress))
+	dataJSON := make([]map[string]string, 0, len(personaProgress))
 	for _, progress := range personaProgress {
-		row, err := buildTableRow(&progress, header)
+		row, rowJSON, err := buildTableRow(&progress, header)
 		if err != nil {
 			continue
 		}
 		data = append(data, row)
+		dataJSON = append(dataJSON, rowJSON)
 	}
-	return data
+	return data, dataJSON
 }
 
-func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]string, error) {
+func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]string, map[string]string, error) {
 	row := make([]string, len(header))
+	rowMap := make(map[string]string)
 	row[0] = personProgress.Persona.Code
+	rowMap["audiences_id"] = strconv.Itoa(personProgress.Persona.ID)
+	rowMap["audiences_code"] = personProgress.Persona.Code
+	rowMap["audiences_name"] = personProgress.Persona.Name
+
 	totalWords := 0
 	totalSegments := 0
 	for _, workflowProgress := range personProgress.ByWorkflowProgress {
@@ -102,15 +126,18 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 		totalSegments += workflowProgress.Counts.SegmentCount
 	}
 	row[1] = strconv.Itoa(totalWords)
+	rowMap["words_total"] = row[1]
 	row[2] = strconv.Itoa(totalSegments)
+	rowMap["segments_total"] = row[2]
 	i := 0
 	// same order in iteration as it was on header filling step
 	for _, workflowProgress := range personProgress.ByWorkflowProgress {
 		percent := float64(workflowProgress.Counts.SegmentCount) / float64(totalSegments) * 100
 		row[i+3] = fmt.Sprintf(`%6.2f%%`, percent)
+		rowMap[workflowProgress.Workflow.Name] = row[i+3]
 		i++
 	}
-	return row, nil
+	return row, rowMap, nil
 }
 
 func runFileStatusFile(fileName string, workspace *types.WorkspaceData) {

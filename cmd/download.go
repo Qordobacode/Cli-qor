@@ -133,6 +133,7 @@ func files2Download(workspace *types.Workspace) []*File2Download {
 func handleFile(personaID int, file *types.File) {
 	if !file.Completed && !isDownloadCurrent {
 		// isDownloadCurrent - skip files with version
+		log.Infof("file %s is not completed. Use flag '-c' or '--current' to download even not completed files", file.Filename)
 		return
 	}
 	if file.ErrorID != 0 || !file.Enabled {

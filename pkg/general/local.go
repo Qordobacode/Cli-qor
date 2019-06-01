@@ -131,7 +131,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 		for _, match := range matches {
 			fileAbsPath, err := filepath.Abs(match)
 			if err == nil {
-				addFilesInMap(fileAbsPath, fileMap)
+				addIfFiles(fileAbsPath, fileMap)
 			}
 		}
 	}
@@ -158,6 +158,16 @@ func addFilesInMap(path string, fileMap map[string]bool) {
 			fileMap[fileName] = true
 		}
 	} else {
+		fileMap[path] = true
+	}
+}
+
+func addIfFiles(path string, fileMap map[string]bool) {
+	pathStat, err := os.Stat(path)
+	if err != nil {
+		return
+	}
+	if !pathStat.IsDir() {
 		fileMap[path] = true
 	}
 }

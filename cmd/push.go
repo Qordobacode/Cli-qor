@@ -32,7 +32,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	if folderPath == "" && files == "" {
+	if folderPath == "" && files == "" && len(args) == 0 {
 		pushSources := Config.Push.Sources
 
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
@@ -42,10 +42,16 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		}
 		return
 	}
-	if files != "" {
+	if files != "" || len(args) != 0{
 		fileList := filepath.SplitList(files)
+		for _,arg := range args {
+			argFiles := filepath.SplitList(arg)
+			fileList = append(fileList, argFiles...)
+		}
 		log.Debugf("Result list of files from line is: %v", string(os.PathListSeparator), fileList)
-		FileService.PushFiles(fileList, pushVersion)
+		for _, file := range fileList {
+			FileService.PushFolder(file, pushVersion)
+		}
 	} else if folderPath != "" {
 		FileService.PushFolder(folderPath, pushVersion)
 	}

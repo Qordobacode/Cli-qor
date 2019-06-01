@@ -14,10 +14,7 @@ import (
 
 const (
 	pushFileTemplate = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
-)
-
-var (
-	allowedMimeTypes, _ = regexp.Compile(`\.(csv|xml|json|txt|yaml|yml)$`)
+	concurrencyLevel = 1
 )
 
 func (f *FileService) PushFolder(folder, version string) {
@@ -30,7 +27,7 @@ func (f *FileService) PushFiles(fileList []string, version string) {
 	results := make(chan struct{}, 1000)
 	filteredFileList := f.filterFiles(fileList)
 
-	for i := 0; i < 3; i++ {
+	for i := 0; i < concurrencyLevel; i++ {
 		go f.startPushWorker(jobs, results, version)
 	}
 

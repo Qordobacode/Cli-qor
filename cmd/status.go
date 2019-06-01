@@ -54,6 +54,10 @@ func buildProjectStatus(workspace *types.WorkspaceData) {
 		log.Errorf("fileSearchResponse %v not found", workspace.Workspace.ID)
 		return
 	}
+	if len(fileSearchResponse.ByPersonaProgress) == 0 {
+		log.Errorf("fileSearchResponse returned empty byPersonaProgress. Status is not available")
+		return
+	}
 	progress := fileSearchResponse.ByPersonaProgress[0].ByWorkflowProgress
 	header := buildTableHeader(progress, basicHeaders)
 	dataRow, dataJson := buildTableData(fileSearchResponse.ByPersonaProgress, header)
@@ -101,17 +105,14 @@ func buildTableData(personaProgress []types.ByPersonaProgress, header []string) 
 	data := make([][]string, 0, len(personaProgress))
 	dataJSON := make([]map[string]string, 0, len(personaProgress))
 	for _, progress := range personaProgress {
-		row, rowJSON, err := buildTableRow(&progress, header)
-		if err != nil {
-			continue
-		}
+		row, rowJSON := buildTableRow(&progress, header)
 		data = append(data, row)
 		dataJSON = append(dataJSON, rowJSON)
 	}
 	return data, dataJSON
 }
 
-func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]string, map[string]string, error) {
+func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]string, map[string]string) {
 	row := make([]string, len(header))
 	rowMap := make(map[string]string)
 	row[0] = personProgress.Persona.Code
@@ -137,7 +138,7 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 		rowMap[workflowProgress.Workflow.Name] = row[i+3]
 		i++
 	}
-	return row, rowMap, nil
+	return row, rowMap
 }
 
 func runFileStatusFile(fileName string, workspace *types.WorkspaceData) {
@@ -147,6 +148,33 @@ func runFileStatusFile(fileName string, workspace *types.WorkspaceData) {
 		return
 	}
 	header := buildTableHeader(fileSearchResponse.ByWorkflowProgress, fileHeaders)
-	data := make([][]string, 0)
-	renderTable2Stdin(header, data)
+	data, dataJSON := buildFileTableData(fileSearchResponse)
+	printProjectStatus2Stdin(header, data, dataJSON)
+}
+
+func buildFileTableData(file *types.File) ([][]string, []map[string]string) {
+	data := make([][]string, 0, len(file.ByWorkflowProgress))
+	dataJSON := make([]map[string]string, 0, len(file.ByWorkflowProgress))
+	fileRow := make([]string, 0, 0)
+	JSONdocument := make(map[string]string)
+	fileRow[0] = file.Filename + " " + file.Version
+	fileRow[1] = strconv.Itoa(file.Counts.WordCount)
+	JSONdocument["words"] = fileRow[1]
+	fileRow[2] = strconv.Itoa(file.Counts.SegmentCount)
+	JSONdocument["segments"] = fileRow[2]
+	JSONdocument["file_name"] = file.Filename
+	JSONdocument["version"] = file.Version
+	JSONdocument["file_id"] = strconv.Itoa(file.FileID)
+	if file.Completed {
+		JSONdocument["completed"] = strconv.FormatBool(file.Completed)
+	}
+	i := 0
+	for _, workflowProgress := range file.ByWorkflowProgress {
+		percent := float64(workflowProgress.Counts.SegmentCount) / float64(file.Counts.SegmentCount) * 100
+		fileRow[i+3] = fmt.Sprintf(`%6.2f%%`, percent)
+		JSONdocument[workflowProgress.Workflow.Name] = fileRow[i+3]
+		i++
+	}
+
+	return data, dataJSON
 }

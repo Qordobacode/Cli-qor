@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/olekukonko/tablewriter"
 	"github.com/qordobacode/cli-v2/pkg/general/date"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -92,7 +91,6 @@ func buildDataRowFromFile(file *types.File) *responseRow {
 		tags = append(tags, tag.Name)
 	}
 	// strconv.Itoa
-	fmt.Printf("file = %v", file.Counts)
 	row := responseRow{
 		ID:          file.FileID,
 		Name:        file.Filename,

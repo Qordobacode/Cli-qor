@@ -28,6 +28,7 @@ func (f *FileService) PushFolder(folder, version string) {
 func (f *FileService) PushFiles(fileList []string, version string) {
 	jobs := make(chan *pushFileTask, 1000)
 	results := make(chan struct{}, 1000)
+	filteredFileList := f.filterFiles(fileList)
 
 	for i := 0; i < 3; i++ {
 		go f.startPushWorker(jobs, results, version)
@@ -36,13 +37,37 @@ func (f *FileService) PushFiles(fileList []string, version string) {
 	// let all error logs go before final messages
 	time.Sleep(time.Second)
 	totalFilesPushed := 0
-	for _, file := range fileList {
+	for _, file := range filteredFileList {
 		totalFilesPushed += f.pushFile(file, jobs)
 	}
 	close(jobs)
 	for i := 0; i < totalFilesPushed; i++ {
 		<-results
 	}
+}
+
+func (f *FileService) filterFiles(files []string) []string {
+	filteredFiles := make([]string, 0, 0)
+	blacklistRegexp := make([]*regexp.Regexp, 0, len(f.Config.Blacklist.Sources))
+	for _, blackList := range f.Config.Blacklist.Sources {
+		compile, err := regexp.Compile(blackList)
+		if err != nil {
+			log.Errorf("invalid blacklist regexp '%s': %v\n", blackList, err)
+			os.Exit(1)
+		}
+		blacklistRegexp = append(blacklistRegexp, compile)
+	}
+fileSearch:
+	for _, file := range files {
+		for _, blackReg := range blacklistRegexp {
+			if blackReg.FindString(file) != "" {
+				log.Infof("file %s is not pushed due to black list", file)
+				continue fileSearch
+			}
+		}
+		filteredFiles = append(filteredFiles, file)
+	}
+	return filteredFiles
 }
 
 func (f *FileService) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
@@ -116,9 +141,9 @@ func (f *FileService) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileU
 		}
 	} else {
 		if version == "" {
-			log.Infof("File '%s' was pushed to server.", filePath)
+			log.Infof("File %s was pushed to server.", filePath)
 		} else {
-			log.Infof("File '%s' (version '%v') was pushed to server.", filePath, version)
+			log.Infof("File %s (version '%v') was pushed to server.", filePath, version)
 		}
 	}
 }

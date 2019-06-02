@@ -25,6 +25,7 @@ var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Status per project or file (Support file versions)",
 	Run:   runStatus,
+	PreRun: startLocalServices,
 }
 
 func init() {

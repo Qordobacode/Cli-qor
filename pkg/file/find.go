@@ -63,7 +63,11 @@ func (f *FileService) callFileRequestAndHandle(getUserFiles string) (*types.File
 
 // FindFile function
 func (f *FileService) FindFile(fileName, version string, withProgressStatus bool) (*types.File, int) {
-	log.Debugf("FindFile was called for file '%v'('%v')", fileName, version)
+	if version != "" {
+		log.Debugf("FindFile was called for file '%v %v')", fileName, version)
+	} else {
+		log.Debugf("FindFile was called for file '%v'", fileName)
+	}
 	workspace, err := f.WorkspaceService.LoadWorkspace()
 	if err != nil {
 		return nil, 0

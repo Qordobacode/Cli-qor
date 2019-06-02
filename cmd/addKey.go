@@ -32,6 +32,7 @@ func preValidateParameters(cmd *cobra.Command, args []string) error {
 	if addKeyValue == "" {
 		return fmt.Errorf("flag 'value' is mandatory")
 	}
+	startLocalServices(cmd, args)
 	return nil
 }
 

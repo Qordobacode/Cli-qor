@@ -23,9 +23,10 @@ import (
 // updateValueCmd represents the updateValue command
 var (
 	updateValueCmd = &cobra.Command{
-		Use:   "update-value",
-		Short: "Update value by key",
-		Run:   updateValue,
+		Use:    "update-value",
+		Short:  "Update value by key",
+		PreRun: startLocalServices,
+		Run:    updateValue,
 	}
 	updateKeyVersion string
 	updateKeyKey     string
@@ -47,9 +48,10 @@ func updateValue(cmd *cobra.Command, args []string) {
 		return
 	}
 	keyAddRequest := &types.KeyAddRequest{
-		Key:       addKeyKey,
-		Source:    addKeyValue,
-		Reference: addKeyRef,
+		Key:       updateKeyKey,
+		Source:    updateKeyValue,
+		Reference: updateKeyRef,
 	}
+	log.Infof("keyAddRequest = %+v", keyAddRequest)
 	SegmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

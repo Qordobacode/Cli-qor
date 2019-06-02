@@ -13,6 +13,7 @@ var (
 var deleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete files from workspace",
+	PreRun: startLocalServices,
 	Run:   deleteFile,
 }
 

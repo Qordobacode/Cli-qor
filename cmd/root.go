@@ -65,6 +65,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "Get version of CLI")
 	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "Print verbose output")
 	rootCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
+}
+
+func startLocalServices(cmd *cobra.Command, args []string) {
 	var err error
 	Config, err = ConfigurationService.LoadConfig()
 	if err != nil {

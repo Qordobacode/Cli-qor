@@ -22,9 +22,10 @@ const (
 // lsCmd represents the ls command
 var (
 	lsCmd = &cobra.Command{
-		Use:   "ls",
-		Short: "Ls files (show 50 only)",
-		Run:   printLs,
+		Use:    "ls",
+		Short:  "Ls files (show 50 only)",
+		PreRun: startLocalServices,
+		Run:    printLs,
 	}
 	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
 )

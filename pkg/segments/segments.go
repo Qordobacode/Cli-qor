@@ -12,7 +12,7 @@ import (
 
 var (
 	keyAddTemplate     = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
-	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments"
+	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments?search=%s"
 	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyUpdate"
 )
 
@@ -66,8 +66,16 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
 		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
+		//fmt.Printf("update = %v\n", updateKeyRequestURL)
+		//fmt.Printf("keyAddRequest = %+v\n", keyAddRequest)
 		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, keyAddRequest)
 		handleUpdateKeyResult(resp, err)
+	} else {
+		if version != "" {
+			log.Errorf("Segment %s in %s %s was not found", keyAddRequest.Key, fileName, version)
+			return
+		}
+		log.Errorf("Segment %s in %s was not found", keyAddRequest.Key, fileName)
 	}
 }
 
@@ -78,9 +86,11 @@ func (s *SegmentService) FindSegment(base, segmentName string, personaID int, fi
 		return nil
 	}
 	for _, workflow := range workspaceData.Workflow {
-		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID)
+		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID, segmentName)
+		fmt.Printf("segment = %v\n", getSegmentRequest)
 		resp, err := s.QordobaClient.GetFromServer(getSegmentRequest)
 		if err != nil {
+			log.Debugf("error occurred: %v", err)
 			continue
 		}
 		var segmentSearchResponse types.SegmentSearchResponse
@@ -89,6 +99,8 @@ func (s *SegmentService) FindSegment(base, segmentName string, personaID int, fi
 			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)
 			continue
 		}
+		bytes, _ := json.Marshal(segmentSearchResponse)
+		log.Debugf("segmentSearch response = %s", string(bytes))
 		for _, segment := range segmentSearchResponse.Segments {
 			if segment.StringKey == segmentName {
 				return &segment

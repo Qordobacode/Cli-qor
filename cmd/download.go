@@ -37,6 +37,7 @@ var (
 		Use:   "download",
 		Short: "Downloads selected files",
 		Long:  "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
+		PreRun: startLocalServices,
 		Run:   downloadCommand,
 	}
 	isDownloadCurrent  = false

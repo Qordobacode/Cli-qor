@@ -8,15 +8,16 @@ import (
 )
 
 var (
-	pushVersion         string
-	files               string
-	folderPath          string
+	pushVersion string
+	files       string
+	folderPath  string
 
 	// pushCmd represents the push command
 	pushCmd = &cobra.Command{
-		Use:   "push",
-		Short: "Push files or folders",
-		Run:   pushCommand,
+		Use:    "push",
+		Short:  "Push files or folders",
+		PreRun: startLocalServices,
+		Run:    pushCommand,
 	}
 )
 
@@ -42,9 +43,9 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		}
 		return
 	}
-	if files != "" || len(args) != 0{
+	if files != "" || len(args) != 0 {
 		fileList := filepath.SplitList(files)
-		for _,arg := range args {
+		for _, arg := range args {
 			argFiles := filepath.SplitList(arg)
 			fileList = append(fileList, argFiles...)
 		}
@@ -56,4 +57,3 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		FileService.PushFolder(folderPath, pushVersion)
 	}
 }
-

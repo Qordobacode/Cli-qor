@@ -124,3 +124,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 		log.Info("Segment was successfully updated")
 	}
 }
+
+func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
+
+}

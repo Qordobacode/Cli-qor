@@ -18,10 +18,10 @@ var (
 func NewAddKeyCommand() *cobra.Command {
 	addKeyCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
-		Use:     "add-key",
-		Short:   "Add segments into file",
-		PreRunE: preValidateParameters,
-		Run:     addKey,
+		Use:         "add-key",
+		Short:       "Add segments into file",
+		PreRunE:     preValidateAddKeyParameters,
+		Run:         addKey,
 	}
 	addKeyCmd.Flags().StringVarP(&addKeyVersion, "version", "v", "", "file version")
 	addKeyCmd.Flags().StringVarP(&addKeyKey, "key", "k", "", "key to add")
@@ -31,7 +31,7 @@ func NewAddKeyCommand() *cobra.Command {
 	return addKeyCmd
 }
 
-func preValidateParameters(cmd *cobra.Command, args []string) error {
+func preValidateAddKeyParameters(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("filename is mandatory")
 	}

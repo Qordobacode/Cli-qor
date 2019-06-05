@@ -8,8 +8,6 @@ import (
 var (
 	deleteKeyVersion string
 	deleteKeyKey     string
-	deleteKeyValue   string
-	deleteKeyRef     string
 )
 
 func NewDeleteSegmentCommand() *cobra.Command {
@@ -21,13 +19,11 @@ func NewDeleteSegmentCommand() *cobra.Command {
 		Run:         deleteSegment,
 	}
 
-	deleteKeyCmd.Flags().StringVarP(&addKeyVersion, "version", "v", "", "file version")
-	deleteKeyCmd.Flags().StringVarP(&addKeyKey, "key", "k", "", "key to add")
-	deleteKeyCmd.Flags().StringVar(&addKeyValue, "value", "", "value to add")
-	deleteKeyCmd.Flags().StringVarP(&addKeyRef, "ref", "r", "", "")
+	deleteKeyCmd.Flags().StringVarP(&deleteKeyVersion, "version", "v", "", "file version where update segment")
+	deleteKeyCmd.Flags().StringVarP(&deleteKeyKey, "key", "k", "", "key to delete")
 	return deleteKeyCmd
 }
 
 func deleteSegment(cmd *cobra.Command, args []string) {
-
+	SegmentService.DeleteKey()
 }

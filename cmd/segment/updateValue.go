@@ -15,6 +15,7 @@
 package segment
 
 import (
+	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
@@ -43,6 +44,21 @@ func NewUpdateSegmentCommand() *cobra.Command {
 	updateValueCmd.Flags().StringVarP(&updateKeyRef, "ref", "r", "", "")
 	return updateValueCmd
 }
+
+func preValidateUpdateKeyParameters(cmd *cobra.Command, args []string) error {
+	if len(args) < 1 {
+		return fmt.Errorf("filename is mandatory")
+	}
+	if addKeyKey == "" {
+		return fmt.Errorf("flag 'key' is mandatory")
+	}
+	if addKeyValue == "" {
+		return fmt.Errorf("flag 'value' is mandatory")
+	}
+	StartLocalServices(cmd, args)
+	return nil
+}
+
 
 func updateValue(cmd *cobra.Command, args []string) {
 	if Config == nil {

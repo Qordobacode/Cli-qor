@@ -45,7 +45,8 @@ type FileService interface {
 }
 
 type SegmentService interface {
+	FindSegment(base, segmentName string, personaID int, file *types.File) *types.Segment
 	AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest)
 	UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest)
-	FindSegment(base, segmentName string, personaID int, file *types.File) *types.Segment
+	DeleteKey(fileName, version, segmentKey string)
 }

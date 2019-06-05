@@ -1,4 +1,4 @@
-package cmd
+package segment
 
 import (
 	"fmt"
@@ -9,18 +9,27 @@ import (
 )
 
 var (
-	// addKeyCmd represents the add-key command
-	addKeyCmd = &cobra.Command{
-		Use:     "add-key",
-		Short:   "A brief description of your command",
-		PreRunE: preValidateParameters,
-		Run:     addKey,
-	}
 	addKeyVersion string
 	addKeyKey     string
 	addKeyValue   string
 	addKeyRef     string
 )
+
+func NewAddKeyCommand() *cobra.Command {
+	addKeyCmd := &cobra.Command{
+		Annotations: map[string]string{"group": "segment"},
+		Use:     "add-key",
+		Short:   "Add segments into file",
+		PreRunE: preValidateParameters,
+		Run:     addKey,
+	}
+	addKeyCmd.Flags().StringVarP(&addKeyVersion, "version", "v", "", "file version")
+	addKeyCmd.Flags().StringVarP(&addKeyKey, "key", "k", "", "key to add")
+	addKeyCmd.Flags().StringVar(&addKeyValue, "value", "", "value to add")
+	addKeyCmd.Flags().StringVarP(&addKeyRef, "ref", "r", "", "")
+
+	return addKeyCmd
+}
 
 func preValidateParameters(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
@@ -32,7 +41,7 @@ func preValidateParameters(cmd *cobra.Command, args []string) error {
 	if addKeyValue == "" {
 		return fmt.Errorf("flag 'value' is mandatory")
 	}
-	startLocalServices(cmd, args)
+	StartLocalServices(cmd, args)
 	return nil
 }
 
@@ -48,13 +57,4 @@ func addKey(cmd *cobra.Command, args []string) {
 		Reference: addKeyRef,
 	}
 	SegmentService.AddKey(args[0], addKeyVersion, keyAddRequest)
-}
-
-func init() {
-	rootCmd.AddCommand(addKeyCmd)
-
-	addKeyCmd.Flags().StringVarP(&addKeyVersion, "version", "v", "", "file version")
-	addKeyCmd.Flags().StringVarP(&addKeyKey, "key", "k", "", "key to add")
-	addKeyCmd.Flags().StringVar(&addKeyValue, "value", "", "value to add")
-	addKeyCmd.Flags().StringVarP(&addKeyRef, "ref", "r", "", "")
 }

@@ -1,4 +1,4 @@
-package cmd
+package file
 
 import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -11,21 +11,22 @@ var (
 	pushVersion string
 	files       string
 	folderPath  string
-
-	// pushCmd represents the push command
-	pushCmd = &cobra.Command{
-		Use:    "push",
-		Short:  "Push files or folders",
-		PreRun: startLocalServices,
-		Run:    pushCommand,
-	}
 )
 
-func init() {
+// NewPushCmd creates `push` command
+func NewPushCmd() *cobra.Command {
+	// pushCmd represents the push command
+	pushCmd := &cobra.Command{
+		Annotations: map[string]string{"group": "file"},
+		Use:    "push",
+		Short:  "Push files or folders",
+		PreRun: StartLocalServices,
+		Run:    pushCommand,
+	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "--version")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "--update")
 	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "--update")
-	rootCmd.AddCommand(pushCmd)
+	return pushCmd
 }
 
 func pushCommand(cmd *cobra.Command, args []string) {

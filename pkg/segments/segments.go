@@ -13,7 +13,7 @@ import (
 var (
 	keyAddTemplate     = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
 	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments?search=%s"
-	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyUpdate"
+	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/sourceUpdate"
 )
 
 type SegmentService struct {
@@ -66,8 +66,6 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
 		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
-		//fmt.Printf("update = %v\n", updateKeyRequestURL)
-		//fmt.Printf("keyAddRequest = %+v\n", keyAddRequest)
 		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, keyAddRequest)
 		handleUpdateKeyResult(resp, err)
 	} else {

@@ -1,4 +1,4 @@
-package cmd
+package info
 
 import (
 	"encoding/json"
@@ -21,17 +21,20 @@ const (
 
 // lsCmd represents the ls command
 var (
-	lsCmd = &cobra.Command{
-		Use:    "ls",
-		Short:  "Ls files (show 50 only)",
-		PreRun: startLocalServices,
-		Run:    printLs,
-	}
+	IsJSON bool
 	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
 )
 
-func init() {
-	rootCmd.AddCommand(lsCmd)
+func NewLsCommand() *cobra.Command{
+	lsCmd  := &cobra.Command{
+		Annotations: map[string]string{"group": "info"},
+		Use:    "ls",
+		Short:  "Ls files (show 50 only)",
+		PreRun: StartLocalServices,
+		Run:    printLs,
+	}
+	lsCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
+	return lsCmd
 }
 
 func printLs(cmd *cobra.Command, args []string) {

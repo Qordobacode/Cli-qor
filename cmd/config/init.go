@@ -1,8 +1,10 @@
-package cmd
+package config
 
 import (
 	"bufio"
 	"fmt"
+	"github.com/qordobacode/cli-v2/pkg/config"
+	"github.com/qordobacode/cli-v2/pkg/general"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
@@ -10,17 +12,22 @@ import (
 	"strconv"
 )
 
-// initCmd represents the init command
-var initCmd = &cobra.Command{
-	Use:         "init",
-	Short:       "Init configuration for.ConfigConfig CLI from STDIN or file",
-	RunE:        RunInitRoot,
-	Example:     "qor init",
-	Annotations: map[string]string{"version": APIVersion},
-}
+var (
+	Local                *general.Local
+	ConfigurationService = config.ConfigurationService{
+		Local: Local,
+	}
+)
 
-func init() {
-	rootCmd.AddCommand(initCmd)
+func NewInitCmd() *cobra.Command{
+	initCmd := &cobra.Command{
+		Use:         "init",
+		Short:       "Init configuration for.ConfigConfig CLI from STDIN or file",
+		RunE:        RunInitRoot,
+		Example:     "qor init",
+		Annotations: map[string]string{"group": "init"},
+	}
+	return initCmd
 }
 
 // RunInitRoot function starts config initialization

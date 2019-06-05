@@ -1,4 +1,4 @@
-package cmd
+package info
 
 import (
 	"encoding/json"
@@ -20,17 +20,18 @@ var (
 	statusFileVersion string
 )
 
-// statusCmd represents the status command
-var statusCmd = &cobra.Command{
-	Use:   "status",
-	Short: "Status per project or file (Support file versions)",
-	Run:   runStatus,
-	PreRun: startLocalServices,
-}
-
-func init() {
+func NewStatusCommand() *cobra.Command{
+	statusCmd := &cobra.Command{
+		Annotations: map[string]string{"group": "info"},
+		Use:   "status",
+		Short: "Status per project or file (Support file versions)",
+		Run:   runStatus,
+		PreRun: StartLocalServices,
+	}
 	statusCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
-	rootCmd.AddCommand(statusCmd)
+	statusCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
+	return statusCmd
+
 }
 
 func runStatus(cmd *cobra.Command, args []string) {

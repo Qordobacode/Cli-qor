@@ -1,4 +1,4 @@
-package cmd
+package file
 
 import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -9,12 +9,16 @@ var (
 	deleteFileVersion string
 )
 
-// deleteCmd represents the delete command
-var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete files from workspace",
-	PreRun: startLocalServices,
-	Run:   deleteFile,
+func NewDeleteFileCmd() *cobra.Command {
+	deleteCmd := &cobra.Command{
+		Annotations: map[string]string{"group": "file"},
+		Use:   "delete",
+		Short: "Delete files from workspace",
+		PreRun: StartLocalServices,
+		Run:   deleteFile,
+	}
+	deleteCmd.Flags().StringVar(&deleteFileVersion, "version", "", "version of file to delete")
+	return deleteCmd
 }
 
 func deleteFile(cmd *cobra.Command, args []string) {
@@ -27,9 +31,4 @@ func deleteFile(cmd *cobra.Command, args []string) {
 	} else {
 		log.Infof("No files to delete were specified")
 	}
-}
-
-func init() {
-	rootCmd.AddCommand(deleteCmd)
-	deleteCmd.Flags().StringVar(&deleteFileVersion, "version", "", "version of file to delete")
 }

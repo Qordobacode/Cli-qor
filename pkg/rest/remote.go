@@ -63,7 +63,7 @@ func (r *RestClient) GetFromServer(getURL string) ([]byte, error) {
 		if response.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Debugf("Error occurred on get request. Status: %v, Response : %v", response.Status, string(bodyBytes))
+			log.Debugf("Error occurred on get %s request. Status: %v, Response : %v", getURL, response.Status, string(bodyBytes))
 		}
 		return nil, errors.New("unsuccessful request")
 	}

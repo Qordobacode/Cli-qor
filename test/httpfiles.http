@@ -1,0 +1,31 @@
+# For a quick start check out our HTTP Requests collection (Tools|HTTP Client|Open HTTP Requests Collection).
+#
+# Following HTTP Request Live Templates are available:
+# * 'gtrp' and 'gtr' create a GET request with or without query parameters;
+# * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
+# * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
+
+GET https://app.qordobadev.com/v3/organizations/9/workspaces/334/personas/124/files?withProgressStatus=false&limit=50
+Accept: application/json
+x-auth-token: eyJhbGciOiJIUzI1NiJ9.eyJjaWQiOiIxMTAzIiwidXNyIjoieWFyYWQ4NjEzQGdtYWlsLmNvbSIsInR0cCI6InByaXZhdGUiLCJyc2h0cyI6MTU1OTEyNDE3NSwib3JpZ2lzcyI6MTU1OTEyMzU3NSwiZXhwIjoxNTkwMjI3NTc1LCJuYmYiOjE1NTkxMjM1NzUsImlhdCI6MTU1OTEyMzU3NX0.NTn1jzNGKk1yAZN78NNIDgVlM1zAr9o-h3WmJC2XNPc
+
+###
+
+
+POST https://app.qordobatest.com/v3/organizations/9/workspaces/99/files/7462/segments/keyAdd
+Content-Type: application/json
+Accept: application/json
+x-auth-token: eyJhbGciOiJIUzI1NiJ9.eyJjaWQiOiIxMTAzIiwidXNyIjoieWFyYWQ4NjEzQGdtYWlsLmNvbSIsInR0cCI6InByaXZhdGUiLCJyc2h0cyI6MTU1OTEyNDE3NSwib3JpZ2lzcyI6MTU1OTEyMzU3NSwiZXhwIjoxNTkwMjI3NTc1LCJuYmYiOjE1NTkxMjM1NzUsImlhdCI6MTU1OTEyMzU3NX0.NTn1jzNGKk1yAZN78NNIDgVlM1zAr9o-h3WmJC2XNPc
+{
+  "key": "/Some-Key2",
+  "source": "new-value",
+  "reference": "reference"
+}
+
+###
+
+POST https://app.qordobatest.com/v3/organizations/9/workspaces/2879/files/430003/download/source
+Accept: application/json
+x-auth-token: eyJhbGciOiJIUzI1NiJ9.eyJyc2giOjE1NTcyMzQ4MDc2ODksInVzciI6InlhcmFkODYxM0BnbWFpbC5jb20iLCJjaWQiOiIxMTcxIiwidHRwIjoicHJpdmF0ZSIsImV4cCI6MTU4ODMzODIwNywibmJmIjoxNTU3MjM0MjA3LCJpYXQiOjE1NTcyMzQyMDd9.XduVl4UPgiGh9nMbc96JwXB6Y6JR79BbNdKEU2053k0
+
+###

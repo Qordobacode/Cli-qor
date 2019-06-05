@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package cmd
+package segment
 
 import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -22,24 +22,26 @@ import (
 
 // updateValueCmd represents the updateValue command
 var (
-	updateValueCmd = &cobra.Command{
-		Use:    "update-value",
-		Short:  "Update value by key",
-		PreRun: startLocalServices,
-		Run:    updateValue,
-	}
 	updateKeyVersion string
 	updateKeyKey     string
 	updateKeyValue   string
 	updateKeyRef     string
 )
 
-func init() {
-	rootCmd.AddCommand(updateValueCmd)
+func NewUpdateSegmentCommand() *cobra.Command {
+	updateValueCmd := &cobra.Command{
+		Annotations: map[string]string{"group": "segment"},
+		Use:         "update-value",
+		Short:       "Update value by key",
+		PreRun:      StartLocalServices,
+		Run:         updateValue,
+	}
+
 	updateValueCmd.Flags().StringVarP(&updateKeyVersion, "version", "v", "", "file version")
 	updateValueCmd.Flags().StringVarP(&updateKeyKey, "key", "k", "", "key to add")
 	updateValueCmd.Flags().StringVar(&updateKeyValue, "value", "", "value to add")
 	updateValueCmd.Flags().StringVarP(&updateKeyRef, "ref", "r", "", "")
+	return updateValueCmd
 }
 
 func updateValue(cmd *cobra.Command, args []string) {

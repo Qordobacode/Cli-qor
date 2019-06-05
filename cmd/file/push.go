@@ -23,9 +23,9 @@ func NewPushCmd() *cobra.Command {
 		PreRun: StartLocalServices,
 		Run:    pushCommand,
 	}
-	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "--version")
-	pushCmd.Flags().StringVarP(&files, "files", "f", "", "--update")
-	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "--update")
+	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
+	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
+	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", " push entire (relative) file paths")
 	return pushCmd
 }
 

@@ -53,7 +53,7 @@ func NewDownloadCommand() *cobra.Command{
 	downloadCmd.Flags().BoolVarP(&isDownloadCurrent, "current", "c", false, "Pull the current state of the files")
 	downloadCmd.Flags().StringVarP(&downloadAudience, "audience", "a", "", "Option to work only on specific (comma-separated) languages. example: `qor pull -a en-us,de-de`")
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
-	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, " option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
+	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, "Option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
 	return downloadCmd
 }

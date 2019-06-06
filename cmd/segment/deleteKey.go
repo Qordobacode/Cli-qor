@@ -25,5 +25,5 @@ func NewDeleteSegmentCommand() *cobra.Command {
 }
 
 func deleteSegment(cmd *cobra.Command, args []string) {
-	SegmentService.DeleteKey()
+	SegmentService.DeleteKey(args[0], deleteKeyVersion, deleteKeyKey)
 }

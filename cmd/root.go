@@ -2,17 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/qordobacode/cli-v2/cmd/config"
 	"github.com/qordobacode/cli-v2/cmd/file"
 	"github.com/qordobacode/cli-v2/cmd/info"
-	"github.com/qordobacode/cli-v2/cmd/config"
 	"github.com/qordobacode/cli-v2/cmd/segment"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"os"
 
 	"github.com/spf13/cobra"
 )
-
-var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var (
@@ -24,11 +22,12 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 			if Version {
 				info.PrintVersion()
+			} else {
+				cmd.Help()
 			}
 		},
 	}
-	Help                 bool
-	Version              bool
+	Version bool
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -62,7 +61,5 @@ func init() {
 		info.NewCmdVersion(),
 		info.NewLsCommand(),
 		info.NewStatusCommand(),
-		)
+	)
 }
-
-

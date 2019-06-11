@@ -8,19 +8,19 @@ const (
 
 // Config structs holds workspace's specific information
 type Config struct {
-	Qordoba   QordobaConfig   `yaml:"qordoba"`
-	Push      PushConfig      `yaml:"push"`
-	Download  DownloadConfig  `yaml:"download"`
-	Blacklist BlacklistConfig `yaml:"blacklist"`
-	BaseURL   string          `yaml:"base_url,omitempty"`
+	Qordoba   QordobaConfig   `yaml:"qordoba" mapstructure:"qordoba"`
+	Push      PushConfig      `yaml:"push" mapstructure:"push"`
+	Download  DownloadConfig  `yaml:"download" mapstructure:"download"`
+	Blacklist BlacklistConfig `yaml:"blacklist" mapstructure:"blacklist"`
+	BaseURL   string          `yaml:"base_url" mapstructure:"base_url"`
 }
 
 // QordobaConfig is a part of configuration with qordoba-related information
 type QordobaConfig struct {
-	AccessToken    string            `yaml:"access_token"`
-	OrganizationID int64             `yaml:"organization_id"`
-	ProjectID      int64             `yaml:"project_id"`
-	AudienceMap    map[string]string `yaml:"audiences_map"`
+	AccessToken    string            `yaml:"access_token" mapstructure:"access_token"`
+	OrganizationID int64             `yaml:"organization_id" mapstructure:"organisation_id"`
+	ProjectID      int64             `yaml:"workspace_id" mapstructure:"workspace_id"`
+	AudienceMap    map[string]string `yaml:"audiences_map" mapstructure:"audiences_map"`
 }
 
 // PushConfig is push-related part of config

@@ -5,14 +5,16 @@ import (
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
+	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"os"
 	"path/filepath"
 )
 
 const (
-	configName      = ".qordoba.yaml"
-	homeConfigName  = "config-v4.yaml"
+	hiddenConfigName   = ".qordoba"
+	newConfigName      = "config.yaml"
+	configSearchRegexp = ""
 )
 
 type ConfigurationService struct {
@@ -21,7 +23,6 @@ type ConfigurationService struct {
 
 // ReadConfigInPath load config in some folder -> this might be source config OR local config for import
 func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, error) {
-	log.Infof("used config in directory %v", path)
 	bytes, err := c.Local.Read(path)
 	if err != nil {
 		return nil, err
@@ -36,6 +37,7 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 		return nil, errors.New("config file is incorrect")
 	}
 
+	log.Infof("config was read from: %s", path)
 	return &config, nil
 }
 
@@ -45,52 +47,75 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 // If you find  set directory with this file as a root to the plugin operations. .qordoba.yaml
 // Read content of the  overrides whatever is in  .qordoba.yaml ~/.qordoba/config-v4.yaml
 func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
-	parentConfig := c.findConfigHierarchically()
-	if parentConfig != "" {
-		configPath := getConfigPath(parentConfig)
-		config, e := c.ReadConfigInPath(configPath)
-		if e == nil {
-			return config, nil
-		}
-	}
-	return c.readHomeDirectoryConfig()
-}
-
-func (c *ConfigurationService) readHomeDirectoryConfig() (*types.Config, error) {
-	path, err := c.GetConfigPath()
+	config, err := c.loadConfigFromViper()
 	if err != nil {
-		log.Errorf("error occurred on home dir retrieval: %v", err)
-		return nil, err
+		return c.loadConfigFromHome()
 	}
-	return c.ReadConfigInPath(path)
+	return config, nil
 }
 
-func (c *ConfigurationService) findConfigHierarchically() string {
+func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
+	viper.Set("Verbose", true)
+	viper.SetConfigName(hiddenConfigName) // name of config file (without extension)
 	path, _ := os.Getwd()
 	prevPath := path
 	for {
-		if c.isConfigDir(path) {
-			return path
-		}
 		path = filepath.Clean(path)
+		viper.AddConfigPath(path)
 		dir, _ := filepath.Split(path)
-		if c.isConfigDir(dir) {
-			return dir
-		} else if prevPath == dir {
-			return ""
+		if prevPath == dir {
+			break
 		} else {
 			prevPath = path
 			path = dir
 		}
 	}
+	qordobaHome, err := c.Local.QordobaHome()
+	if err == nil {
+		viper.AddConfigPath(qordobaHome)
+	}
+	err = viper.ReadInConfig() // Find and read the config file
+	if err != nil {
+		log.Infof("%v", err.Error())
+		return c.readHomeDirectoryConfig()
+	}
+
+	var config types.Config
+	err = viper.Unmarshal(&config)
+	if err != nil {
+		log.Errorf("error occurred on unmarshalling properties: %v", err)
+	}
+	log.Infof("conig was taken from %v", viper.ConfigFileUsed())
+	return &config, err
 }
 
-func getConfigPath(path string) string {
-	return filepath.Join(path, configName)
+func (c *ConfigurationService) readHomeDirectoryConfig() (*types.Config, error) {
+	home, err := c.Local.QordobaHome()
+	if err != nil {
+		return nil, err
+	}
+	config, err := c.readConfig(home, "config")
+	if config != nil {
+		return config, err
+	}
+	config, err = c.readConfig(home, "config-v4")
+	if config != nil {
+		log.Infof("Config was taken from 'config-v4.yaml' in home qordoba directory. Please, rename this config file to 'config.yaml'")
+		return config, err
+	}
+	return nil, errors.New("config was not found")
 }
 
-func (c *ConfigurationService) isConfigDir(path string) bool {
-	return c.Local.FileExists(getConfigPath(path))
+func (c *ConfigurationService) readConfig(home, filename string) (*types.Config, error) {
+	yamlConfigPath := home + string(os.PathSeparator) + filename + ".yaml"
+	if c.Local.FileExists(yamlConfigPath) {
+		return c.ReadConfigInPath(yamlConfigPath)
+	}
+	ymlConfigPath := home + string(os.PathSeparator) + filename + ".yml"
+	if c.Local.FileExists(ymlConfigPath) {
+		return c.ReadConfigInPath(ymlConfigPath)
+	}
+	return nil, nil
 }
 
 // isConfigFileCorrect validates config file is correct
@@ -118,7 +143,7 @@ func (c *ConfigurationService) SaveMainConfig(config *types.Config) {
 		log.Errorf("error occurred on marshalling config file: %v", err)
 		return
 	}
-	c.Local.PutInHome(homeConfigName, marshaledConfig)
+	c.Local.PutInHome(newConfigName, marshaledConfig)
 }
 
 // GetConfigPath builds path to config according with template
@@ -127,5 +152,9 @@ func (c *ConfigurationService) GetConfigPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return home + string(os.PathSeparator) + homeConfigName, nil
+	return home + string(os.PathSeparator) + newConfigName, nil
+}
+
+func (c *ConfigurationService) loadConfigFromHome() (*types.Config, error) {
+	return &types.Config{}, nil
 }

@@ -3,7 +3,6 @@ package file
 import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
-	"os"
 	"path/filepath"
 )
 
@@ -18,10 +17,10 @@ func NewPushCmd() *cobra.Command {
 	// pushCmd represents the push command
 	pushCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "file"},
-		Use:    "push",
-		Short:  "Push files or folders",
-		PreRun: StartLocalServices,
-		Run:    pushCommand,
+		Use:         "push",
+		Short:       "Push files or folders",
+		PreRun:      StartLocalServices,
+		Run:         pushCommand,
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
@@ -50,11 +49,12 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			argFiles := filepath.SplitList(arg)
 			fileList = append(fileList, argFiles...)
 		}
-		log.Debugf("Result list of files from line is: %v", string(os.PathListSeparator), fileList)
+		log.Infof("Result list of files from line is: %v", fileList)
 		for _, file := range fileList {
 			FileService.PushFolder(file, pushVersion)
 		}
 	} else if folderPath != "" {
+		log.Infof("Push folder %v", folderPath)
 		FileService.PushFolder(folderPath, pushVersion)
 	}
 }

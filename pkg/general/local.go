@@ -37,7 +37,7 @@ func (l *Local) Read(path string) ([]byte, error) {
 	// read config from file
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Errorf("file not found: %v", err)
+		log.Errorf("problem on file read: %v", err)
 		return nil, err
 	}
 	return bytes, err
@@ -127,6 +127,7 @@ func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 func (l *Local) FilesInFolder(filePath string) []string {
 	fileMap := make(map[string]bool)
 	matches, err := filepath.Glob(filePath)
+	result := make([]string, 0)
 	if err == nil {
 		for _, match := range matches {
 			fileAbsPath, err := filepath.Abs(match)
@@ -134,12 +135,15 @@ func (l *Local) FilesInFolder(filePath string) []string {
 				addIfFiles(fileAbsPath, fileMap)
 			}
 		}
+	} else {
+		log.Infof("err occurred on files add: %v", err)
+		return result
 	}
 	addFilesInMap(filePath, fileMap)
-	result := make([]string, 0)
 	for k, _ := range fileMap {
 		result = append(result, k)
 	}
+
 	return result
 }
 

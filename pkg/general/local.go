@@ -128,6 +128,15 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	fileMap := make(map[string]bool)
 	matches, err := filepath.Glob(filePath)
 	result := make([]string, 0)
+	if matches == nil || len(matches) == 0 {
+		res, err := filepath.Abs(filePath)
+		if err == nil {
+			log.Infof("No files were found for %s", res)
+			return result
+		}
+		log.Infof("No files were found for %s", filePath)
+		return result
+	}
 	if err == nil {
 		for _, match := range matches {
 			fileAbsPath, err := filepath.Abs(match)
@@ -140,7 +149,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 		return result
 	}
 	addFilesInMap(filePath, fileMap)
-	for k, _ := range fileMap {
+	for k := range fileMap {
 		result = append(result, k)
 	}
 

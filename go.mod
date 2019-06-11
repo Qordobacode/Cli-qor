@@ -3,6 +3,7 @@ module github.com/qordobacode/cli-v2
 go 1.12
 
 require (
+	github.com/imdario/mergo v0.3.7
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mitchellh/mapstructure v1.1.2

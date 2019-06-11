@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"github.com/imdario/mergo"
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -37,7 +38,6 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 		return nil, errors.New("config file is incorrect")
 	}
 
-	log.Infof("config was read from: %s", path)
 	return &config, nil
 }
 
@@ -47,11 +47,22 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 // If you find  set directory with this file as a root to the plugin operations. .qordoba.yaml
 // Read content of the  overrides whatever is in  .qordoba.yaml ~/.qordoba/config-v4.yaml
 func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
-	config, err := c.loadConfigFromViper()
-	if err != nil {
-		return c.loadConfigFromHome()
+	homeDirectoryConfig, homeConfigErr := c.readHomeDirectoryConfig()
+	viperConfig, viperErr := c.loadConfigFromViper()
+	if homeConfigErr != nil || homeDirectoryConfig == nil {
+		log.Infof("conig was taken from %v", viper.ConfigFileUsed())
+		return viperConfig, viperErr
 	}
-	return config, nil
+	if viperErr != nil || viperConfig == nil {
+		log.Infof("conig was taken from home directory", viper.ConfigFileUsed())
+		return homeDirectoryConfig, nil
+	}
+	err := mergo.Merge(viperConfig, *homeDirectoryConfig)
+	if err != nil {
+		return viperConfig, nil
+	}
+	log.Infof("merge of configs between '%s' and home directory was used", viper.ConfigFileUsed())
+	return viperConfig, nil
 }
 
 func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
@@ -76,8 +87,8 @@ func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
 	}
 	err = viper.ReadInConfig() // Find and read the config file
 	if err != nil {
-		log.Infof("%v", err.Error())
-		return c.readHomeDirectoryConfig()
+		log.Debugf("%v", err.Error())
+		return nil, err
 	}
 
 	var config types.Config
@@ -85,7 +96,6 @@ func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
 	if err != nil {
 		log.Errorf("error occurred on unmarshalling properties: %v", err)
 	}
-	log.Infof("conig was taken from %v", viper.ConfigFileUsed())
 	return &config, err
 }
 
@@ -153,8 +163,4 @@ func (c *ConfigurationService) GetConfigPath() (string, error) {
 		return "", err
 	}
 	return home + string(os.PathSeparator) + newConfigName, nil
-}
-
-func (c *ConfigurationService) loadConfigFromHome() (*types.Config, error) {
-	return &types.Config{}, nil
 }

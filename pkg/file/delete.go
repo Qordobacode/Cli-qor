@@ -19,7 +19,7 @@ func (f *FileService) DeleteFile(fileName, version string) {
 // deleteFoundFile func delete file from parameters
 func (f *FileService) deleteFoundFile(file *types.File) {
 	base := f.Config.GetAPIBase()
-	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, file.FileID)
+	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, file.FileID)
 	bytes, err := f.QordobaClient.DeleteFromServer(deleteFileURL)
 	if err != nil {
 		return

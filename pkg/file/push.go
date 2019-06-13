@@ -69,7 +69,7 @@ fileSearch:
 
 func (f *FileService) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
 	base := f.Config.GetAPIBase()
-	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID)
+	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
 		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version)
 		results <- struct{}{}

@@ -26,7 +26,7 @@ type WorkspaceService struct {
 func (w *WorkspaceService) LoadWorkspace() (*types.WorkspaceData, error) {
 	start := time.Now()
 	defer func() {
-		log.TimeTrack(start, "LoadWorkspace "+strconv.Itoa(int(w.Config.Qordoba.ProjectID)))
+		log.TimeTrack(start, "LoadWorkspace "+strconv.Itoa(int(w.Config.Qordoba.WorkspaceID)))
 	}()
 	workspaceResponse, err := w.cachedWorkspace()
 	if err != nil || workspaceResponse == nil {
@@ -36,11 +36,11 @@ func (w *WorkspaceService) LoadWorkspace() (*types.WorkspaceData, error) {
 		return nil, err
 	}
 	for _, workspaceData := range workspaceResponse.Workspaces {
-		if workspaceData.Workspace.ID == int(w.Config.Qordoba.ProjectID) {
+		if workspaceData.Workspace.ID == int(w.Config.Qordoba.WorkspaceID) {
 			return &workspaceData, nil
 		}
 	}
-	return nil, errors.New("workspace with id=" + string(w.Config.Qordoba.ProjectID) + " was not found")
+	return nil, errors.New("workspace with id=" + string(w.Config.Qordoba.WorkspaceID) + " was not found")
 }
 
 // cachedWorkspace function returns cached workspace if it present AND still valid (invalidation period for

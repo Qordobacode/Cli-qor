@@ -14,7 +14,7 @@ func (f *FileService) DownloadFile(personaID int, fileName string, file *types.F
 		log.TimeTrack(start, "DownloadFile")
 	}()
 	base := f.Config.GetAPIBase()
-	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, personaID, file.FileID)
+	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, personaID, file.FileID)
 	f.handleDownloadedFile(getFileContentURL, fileName)
 }
 
@@ -31,6 +31,6 @@ func (f *FileService) handleDownloadedFile(fileRemoteURL, fileName string) {
 // DownloadSourceFile function retrieves all source files in workspace
 func (f *FileService) DownloadSourceFile(fileName string, file *types.File, withUpdates bool) {
 	base := f.Config.GetAPIBase()
-	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, file.FileID, withUpdates)
+	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, file.FileID, withUpdates)
 	f.handleDownloadedFile(getFileContentURL, fileName)
 }

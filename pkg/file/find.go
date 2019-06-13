@@ -33,7 +33,7 @@ func (f *FileService) WorkspaceFiles(personaID int, withProgressStatus bool) (*t
 		log.TimeTrack(start, "WorkspaceFiles "+strconv.Itoa(personaID))
 	}()
 	base := f.Config.GetAPIBase()
-	fileListURL := fmt.Sprintf(fileListURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, personaID, withProgressStatus)
+	fileListURL := fmt.Sprintf(fileListURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, personaID, withProgressStatus)
 	return f.callFileRequestAndHandle(fileListURL)
 }
 
@@ -43,7 +43,7 @@ func (f *FileService) WorkspaceFilesWithLimit(personaID int, withProgressStatus 
 		log.TimeTrack(start, "WorkspaceFilesWithLimit "+strconv.Itoa(personaID))
 	}()
 	base := f.Config.GetAPIBase()
-	fileListURL := fmt.Sprintf(fileListURLTemplateWithLimit, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, personaID, withProgressStatus, limit)
+	fileListURL := fmt.Sprintf(fileListURLTemplateWithLimit, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, personaID, withProgressStatus, limit)
 	return f.callFileRequestAndHandle(fileListURL)
 }
 
@@ -74,7 +74,7 @@ func (f *FileService) FindFile(fileName, version string, withProgressStatus bool
 	}
 	base := f.Config.GetAPIBase()
 	for _, persona := range workspace.Workspace.TargetPersonas {
-		fileListURL := fmt.Sprintf(fileSearchURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.ProjectID, persona.ID, withProgressStatus, fileName, version)
+		fileListURL := fmt.Sprintf(fileSearchURLTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, persona.ID, withProgressStatus, fileName, version)
 		fileSearchResponse, err := f.callFileRequestAndHandle(fileListURL)
 		if err != nil {
 			continue

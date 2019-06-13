@@ -29,7 +29,7 @@ func (s *SegmentService) AddKey(fileName, version string, keyAddRequest *types.K
 		return
 	}
 	base := s.Config.GetAPIBase()
-	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID)
+	addKeyRequestURL := fmt.Sprintf(keyAddTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID)
 	log.Debugf("call %v to add key", addKeyRequestURL)
 	resp, err := s.QordobaClient.PostToServer(addKeyRequestURL, keyAddRequest)
 	if err != nil {
@@ -65,7 +65,7 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 	}
 	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
-		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, file.FileID, segment.SegmentID)
+		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
 		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, keyAddRequest)
 		handleUpdateKeyResult(resp, err)
 	} else {
@@ -84,7 +84,7 @@ func (s *SegmentService) FindSegment(base, segmentName string, personaID int, fi
 		return nil
 	}
 	for _, workflow := range workspaceData.Workflow {
-		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.ProjectID, personaID, file.FileID, workflow.ID, segmentName)
+		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, personaID, file.FileID, workflow.ID, segmentName)
 		fmt.Printf("segment = %v\n", getSegmentRequest)
 		resp, err := s.QordobaClient.GetFromServer(getSegmentRequest)
 		if err != nil {

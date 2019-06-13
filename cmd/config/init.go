@@ -19,7 +19,7 @@ var (
 	}
 )
 
-func NewInitCmd() *cobra.Command{
+func NewInitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:         "init",
 		Short:       "Init configuration for.ConfigConfig CLI from STDIN or file",
@@ -61,7 +61,7 @@ func buildConfigFromStdin() *types.Config {
 	return &types.Config{
 		Qordoba: types.QordobaConfig{
 			AccessToken:    accessToken,
-			ProjectID:      projectID,
+			WorkspaceID:    projectID,
 			OrganizationID: organizationID,
 		},
 	}

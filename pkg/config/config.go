@@ -34,10 +34,6 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 		log.Errorf("error occurred on config file unmarshaling: %v", err)
 		return nil, err
 	}
-	if !isConfigFileCorrect(&config) {
-		return nil, errors.New("config file is incorrect")
-	}
-
 	return &config, nil
 }
 
@@ -54,13 +50,14 @@ func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
 		return viperConfig, viperErr
 	}
 	if viperErr != nil || viperConfig == nil {
-		log.Infof("conig was taken from home directory", viper.ConfigFileUsed())
+		log.Infof("config was taken from home directory", viper.ConfigFileUsed())
 		return homeDirectoryConfig, nil
 	}
 	err := mergo.Merge(viperConfig, *homeDirectoryConfig)
 	if err != nil {
 		return viperConfig, nil
 	}
+	validateConfigCorrect(viperConfig)
 	log.Infof("merge of configs between '%s' and home directory was used", viper.ConfigFileUsed())
 	return viperConfig, nil
 }
@@ -128,8 +125,8 @@ func (c *ConfigurationService) readConfig(home, filename string) (*types.Config,
 	return nil, nil
 }
 
-// isConfigFileCorrect validates config file is correct
-func isConfigFileCorrect(config *types.Config) bool {
+// validateConfigCorrect validates config file is correct
+func validateConfigCorrect(config *types.Config) bool {
 	isConfigCorrect := true
 	if config.Qordoba.AccessToken == "" {
 		log.Errorf("access_token is not set")
@@ -139,8 +136,8 @@ func isConfigFileCorrect(config *types.Config) bool {
 		log.Errorf("organization_id is not set")
 		isConfigCorrect = false
 	}
-	if config.Qordoba.ProjectID == 0 {
-		log.Errorf("product_id is not set")
+	if config.Qordoba.WorkspaceID == 0 {
+		log.Errorf("workspace_id is not set")
 		isConfigCorrect = false
 	}
 	return isConfigCorrect

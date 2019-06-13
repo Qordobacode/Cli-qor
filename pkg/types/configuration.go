@@ -18,8 +18,8 @@ type Config struct {
 // QordobaConfig is a part of configuration with qordoba-related information
 type QordobaConfig struct {
 	AccessToken    string            `yaml:"access_token" mapstructure:"access_token"`
-	OrganizationID int64             `yaml:"organization_id" mapstructure:"organisation_id"`
-	ProjectID      int64             `yaml:"workspace_id" mapstructure:"workspace_id"`
+	OrganizationID int64             `yaml:"organization_id" mapstructure:"organization_id"`
+	WorkspaceID    int64             `yaml:"workspace_id" mapstructure:"workspace_id"`
 	AudienceMap    map[string]string `yaml:"audiences_map" mapstructure:"audiences_map"`
 }
 

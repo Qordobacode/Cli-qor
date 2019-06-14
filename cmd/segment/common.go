@@ -10,6 +10,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/qordobacode/cli-v2/pkg/workspace"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var (
@@ -28,7 +29,7 @@ func StartLocalServices(cmd *cobra.Command, args []string) {
 	var err error
 	Config, err = ConfigurationService.LoadConfig()
 	if err != nil {
-		return
+		os.Exit(1)
 	}
 	QordobaClient = rest.NewRestClient(Config)
 	WorkspaceService = &workspace.WorkspaceService{

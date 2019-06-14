@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	hiddenConfigName   = ".qordoba"
-	newConfigName      = "config.yaml"
-	configSearchRegexp = ""
+	hiddenConfigName = ".qordoba"
+	newConfigName    = "config.yaml"
 )
 
 type ConfigurationService struct {
@@ -92,6 +91,10 @@ func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
 	err = viper.Unmarshal(&config)
 	if err != nil {
 		log.Errorf("error occurred on unmarshalling properties: %v", err)
+	}
+	if config.Qordoba.WorkspaceID == 0. && config.Qordoba.ProjectID != 0. {
+		log.Infof("field 'project_id' in qordoba configuration was deprecated. Please use 'workspace_id' instead")
+		config.Qordoba.WorkspaceID = config.Qordoba.ProjectID
 	}
 	return &config, err
 }

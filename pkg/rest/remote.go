@@ -35,7 +35,7 @@ func NewRestClient(qordobaConfig *types.Config) *RestClient {
 	}
 	return &RestClient{
 		HTTPClient: http.Client{
-			Timeout: time.Minute * 1,
+			Timeout:   time.Minute * 1,
 			Transport: transport,
 		},
 		Config: qordobaConfig,
@@ -52,7 +52,7 @@ func (r *RestClient) GetFromServer(getURL string) ([]byte, error) {
 	request.Header.Add("x-auth-token", r.Config.Qordoba.AccessToken)
 	response, err := r.HTTPClient.Do(request)
 	if err != nil {
-		log.Errorf("error occurred on workspace get request: %v", err)
+		log.Errorf("error occurred on GetFromServer request: %v", err)
 		return nil, err
 	}
 	bodyBytes, err := ioutil.ReadAll(response.Body)
@@ -122,7 +122,7 @@ func (r *RestClient) DeleteFromServer(deleteURL string) ([]byte, error) {
 	request.Header.Add("x-auth-token", r.Config.Qordoba.AccessToken)
 	response, err := r.HTTPClient.Do(request)
 	if err != nil {
-		log.Errorf("error occurred on workspace get request: %v", err)
+		log.Errorf("error occurred on DeleteFromServer request: %v", err)
 		return nil, err
 	}
 	bodyBytes, err := ioutil.ReadAll(response.Body)

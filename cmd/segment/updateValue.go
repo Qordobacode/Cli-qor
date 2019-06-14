@@ -59,7 +59,6 @@ func preValidateUpdateKeyParameters(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-
 func updateValue(cmd *cobra.Command, args []string) {
 	if Config == nil {
 		log.Errorf("error occurred on configuration load: ")
@@ -70,6 +69,5 @@ func updateValue(cmd *cobra.Command, args []string) {
 		Source:    updateKeyValue,
 		Reference: updateKeyRef,
 	}
-	log.Infof("keyAddRequest = %+v", keyAddRequest)
 	SegmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

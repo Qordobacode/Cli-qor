@@ -5,7 +5,7 @@
 # * 'ptr' and 'ptrp' create a POST request with a simple or parameter-like body;
 # * 'mptr' and 'fptr' create a POST request to submit a form with a text or file field (multipart/form-data);
 
-GET https://app.qordobadev.com/v3/organizations/9/workspaces/365/personas/94/files?withProgressStatus=false&limit=50
+GET https://app.qordobadev.com/v3/organizations/9/workspaces/365/personas/94/files/7615/workflow/682/segments?search=/this-is-new
 Accept: application/json
 x-auth-token: eyJhbGciOiJIUzI1NiJ9.eyJjaWQiOiIxMTAzIiwidXNyIjoieWFyYWQ4NjEzQGdtYWlsLmNvbSIsInR0cCI6InByaXZhdGUiLCJyc2h0cyI6MTU2MDQyNDM2Nywib3JpZ2lzcyI6MTU2MDQyMzc2NywiZXhwIjoxNTkxNTI3NzY3LCJuYmYiOjE1NjA0MjM3NjcsImlhdCI6MTU2MDQyMzc2N30.46xYHQ9J2NDFBVG3AgB42OijM5js5G7o6j7-OnIZIQA
 

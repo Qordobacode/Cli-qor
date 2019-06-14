@@ -7,22 +7,22 @@ type KeyAddRequest struct {
 	Reference string `json:"reference"`
 }
 
+// ValueKeyUpdateRequest struct for request to add provided key into file
+type ValueKeyUpdateRequest struct {
+	Segment         string `json:"segment"`
+	MoveToFirstStep bool   `json:"moveToFirstStep"`
+}
+
 type SegmentSearchResponse struct {
 	Meta     Meta      `json:"meta"`
 	Segments []Segment `json:"segments"`
 }
 
 type Segment struct {
-	LastSaved  int    `json:"lastSaved"`
-	Order      int    `json:"order"`
-	PluralRule string `json:"pluralRule"`
-	Plurals    string `json:"plurals"`
-	Reference  string `json:"reference"`
-	Segment    string `json:"segment"`
-	SegmentID  int    `json:"segmentId"`
-	SsMatch    int    `json:"ssMatch"`
-	SsText     string `json:"ssText"`
-	StringKey  string `json:"stringKey"`
-	Target     string `json:"target"`
-	TargetID   int    `json:"targetId"`
+	LastSaved int    `json:"lastSaved"`
+	SegmentID int    `json:"segmentId"`
+	Reference string `json:"reference"`
+	Segment   string `json:"segment"`
+	SsText    string `json:"ssText"`
+	StringKey string `json:"stringKey"`
 }

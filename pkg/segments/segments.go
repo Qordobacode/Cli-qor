@@ -14,6 +14,7 @@ var (
 	keyAddTemplate     = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
 	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments?search=%s"
 	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/sourceUpdate"
+	keyDeleteTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyDelete"
 )
 
 type SegmentService struct {
@@ -44,6 +45,8 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+		} else if resp.StatusCode == http.StatusNotAcceptable {
+			log.Errorf("Problem to add key '%s'. Key %s already exist", keyAddRequest.Key)
 		} else {
 			log.Errorf("Problem to add key '%s'. Status: %v\nResponse : %v", keyAddRequest.Key, resp.Status, string(body))
 		}
@@ -66,7 +69,11 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
 	if segment != nil {
 		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
-		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, keyAddRequest)
+		valueUpdateRequest := &types.ValueKeyUpdateRequest{
+			Segment:         keyAddRequest.Source,
+			MoveToFirstStep: false,
+		}
+		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, valueUpdateRequest)
 		handleUpdateKeyResult(resp, err)
 	} else {
 		if version != "" {
@@ -118,7 +125,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Errorf("Segment update status: %v. Response : %v", resp.Status, string(body))
+			log.Errorf("Segment update status: %v. Response: %v", resp.Status, string(body))
 		}
 	} else {
 		log.Info("Segment was successfully updated")
@@ -126,5 +133,27 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 }
 
 func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
-
+	base := s.Config.GetAPIBase()
+	file, personaID := s.FileService.FindFile(fileName, version, false)
+	if file == nil {
+		return
+	}
+	segment := s.FindSegment(base, segmentKey, personaID, file)
+	if segment != nil {
+		updateKeyRequestURL := fmt.Sprintf(keyDeleteTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
+		_, err := s.QordobaClient.DeleteFromServer(updateKeyRequestURL)
+		if err == nil {
+			if version != "" {
+				log.Infof("Segment with key %v was successfully deleted from %s - %s", segmentKey, fileName, version)
+			} else {
+				log.Infof("Segment with key %v was successfully deleted from %s", segmentKey, fileName)
+			}
+		}
+	} else {
+		if version != "" {
+			log.Errorf("Segment %s in %s %s was not found", segmentKey, fileName, version)
+			return
+		}
+		log.Errorf("Segment %s in %s was not found", segmentKey, fileName)
+	}
 }

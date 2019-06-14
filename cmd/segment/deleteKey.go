@@ -13,7 +13,7 @@ var (
 func NewDeleteSegmentCommand() *cobra.Command {
 	deleteKeyCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
-		Use:         "deleteKey",
+		Use:         "delete-key",
 		Short:       "Delete segment",
 		PreRun:      StartLocalServices,
 		Run:         deleteSegment,

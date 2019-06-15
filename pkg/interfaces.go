@@ -42,6 +42,7 @@ type FileService interface {
 	PushFolder(folder, version string)
 	PushFiles(fileList []string, version string)
 	DeleteFile(fileName, version string)
+	FileScore(filename, version string) *types.ScoreResponseBody
 }
 
 type SegmentService interface {

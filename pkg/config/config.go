@@ -45,7 +45,7 @@ func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
 	homeDirectoryConfig, homeConfigErr := c.readHomeDirectoryConfig()
 	viperConfig, viperErr := c.loadConfigFromViper()
 	if homeConfigErr != nil || homeDirectoryConfig == nil {
-		log.Infof("conig was taken from %v", viper.ConfigFileUsed())
+		log.Infof("config was taken from %v", viper.ConfigFileUsed())
 		return viperConfig, viperErr
 	}
 	if viperErr != nil || viperConfig == nil {

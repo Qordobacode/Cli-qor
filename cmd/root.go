@@ -61,5 +61,6 @@ func init() {
 		info.NewCmdVersion(),
 		info.NewLsCommand(),
 		info.NewStatusCommand(),
+		info.NewScoreCommand(),
 	)
 }

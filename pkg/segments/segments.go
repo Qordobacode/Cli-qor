@@ -46,7 +46,7 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else if resp.StatusCode == http.StatusNotAcceptable {
-			log.Errorf("Problem to add key '%s'. Key %s already exist", keyAddRequest.Key)
+			log.Errorf("Problem to add key '%s'. Key already exist", keyAddRequest.Key)
 		} else {
 			log.Errorf("Problem to add key '%s'. Status: %v\nResponse : %v", keyAddRequest.Key, resp.Status, string(body))
 		}
@@ -144,9 +144,9 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 		_, err := s.QordobaClient.DeleteFromServer(updateKeyRequestURL)
 		if err == nil {
 			if version != "" {
-				log.Infof("Segment with key %v was successfully deleted from %s - %s", segmentKey, fileName, version)
+				log.Infof("Segment %v was successfully deleted from %s - %s", segmentKey, fileName, version)
 			} else {
-				log.Infof("Segment with key %v was successfully deleted from %s", segmentKey, fileName)
+				log.Infof("Segment %v was successfully deleted from %s", segmentKey, fileName)
 			}
 		}
 	} else {

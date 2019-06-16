@@ -49,7 +49,7 @@ func pullValueByKey(cmd *cobra.Command, args []string) {
 		return
 	}
 	resultArray := make([]*valueInfo, 0)
-	formattedTimestamp := date.GetDateFromTimestamp(int64(segment.LastSaved / 1000))
+	formattedTimestamp := date.GetDateFromTimestamp(int64(segment.LastSaved))
 	resultArray = append(resultArray, &valueInfo{
 		Filename:    args[0],
 		FileVersion: valueKeyVersion,

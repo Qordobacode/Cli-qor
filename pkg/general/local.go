@@ -178,7 +178,10 @@ func addFilesInMap(path string, fileMap map[string]bool) {
 			fileMap[fileName] = true
 		}
 	} else {
-		fileMap[path] = true
+		path, err = filepath.Abs(path)
+		if err == nil {
+			fileMap[path] = true
+		}
 	}
 }
 

@@ -175,7 +175,10 @@ func addFilesInMap(path string, fileMap map[string]bool) {
 		}
 		for _, info := range infos {
 			fileName := filepath.Join(path, info.Name())
-			fileMap[fileName] = true
+			fileName, err = filepath.Abs(fileName)
+			if err == nil {
+				fileMap[fileName] = true
+			}
 		}
 	} else {
 		path, err = filepath.Abs(path)

@@ -14,9 +14,6 @@ import (
 	"time"
 )
 
-type Local struct {
-}
-
 const (
 	defaultFilePerm os.FileMode = 0666
 )
@@ -26,6 +23,11 @@ var (
 	invalidationPeriod            = time.Hour * 4
 )
 
+// Local implements pkg.Local
+type Local struct {
+}
+
+// Read function reads file locally with specified path
 func (l *Local) Read(path string) ([]byte, error) {
 	if path == "" {
 		log.Errorf("Path for config shouldn't be empty")
@@ -44,6 +46,7 @@ func (l *Local) Read(path string) ([]byte, error) {
 	return bytes, err
 }
 
+// Write function store body parameter as a file locally
 func (*Local) Write(fileName string, body []byte) {
 	err := ioutil.WriteFile(fileName, body, defaultFilePerm)
 	if err != nil {
@@ -78,7 +81,8 @@ func (*Local) FileExists(path string) bool {
 	return err == nil && !stat.IsDir()
 }
 
-func (c *Local) QordobaHome() (string, error) {
+// QordobaHome returns path to qordoba's home folder
+func (l *Local) QordobaHome() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		log.Errorf("error occurred on home dir retrieval: %v", err)
@@ -87,6 +91,7 @@ func (c *Local) QordobaHome() (string, error) {
 	return home + string(os.PathSeparator) + ".qordoba", nil
 }
 
+// PutInHome put file in qordoba's home directory. Used for response caching
 func (l *Local) PutInHome(fileName string, body []byte) {
 	qordobaHome, err := l.QordobaHome()
 	if err != nil {
@@ -103,6 +108,7 @@ func (l *Local) PutInHome(fileName string, body []byte) {
 	}
 }
 
+// LoadCached load stored in home directory file. If `invalidationPeriod` hasn't passed -> file is returned, else - return nil
 func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 	qordobaHome, err := l.QordobaHome()
 	if err != nil {
@@ -125,6 +131,7 @@ func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 	return l.Read(workspaceFilePath)
 }
 
+// FilesInFolder returns all files with specified file path
 func (l *Local) FilesInFolder(filePath string) []string {
 	fileMap := make(map[string]bool)
 	matches, err := filepath.Glob(filePath)
@@ -185,6 +192,7 @@ func addIfFiles(path string, fileMap map[string]bool) {
 	}
 }
 
+// RenderTable2Stdin takes header and data together and print out in STDOUT as a table
 func (*Local) RenderTable2Stdin(header []string, data [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetHeader(header)

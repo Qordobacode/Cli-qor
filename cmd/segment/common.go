@@ -14,39 +14,39 @@ import (
 )
 
 var (
-	Config               *types.Config
-	Local                *general.Local
-	ConfigurationService = config.ConfigurationService{
-		Local: Local,
+	appConfig            *types.Config
+	local                *general.Local
+	configurationService = config.ConfigurationService{
+		Local: local,
 	}
-	QordobaClient    pkg.QordobaClient
-	WorkspaceService pkg.WorkspaceService
-	FileService      pkg.FileService
-	SegmentService   pkg.SegmentService
+	qordobaClient    pkg.QordobaClient
+	workspaceService pkg.WorkspaceService
+	fileService      pkg.FileService
+	segmentService   pkg.SegmentService
 )
 
-func StartLocalServices(cmd *cobra.Command, args []string) {
+func startLocalServices(cmd *cobra.Command, args []string) {
 	var err error
-	Config, err = ConfigurationService.LoadConfig()
+	appConfig, err = configurationService.LoadConfig()
 	if err != nil {
 		os.Exit(1)
 	}
-	QordobaClient = rest.NewRestClient(Config)
-	WorkspaceService = &workspace.WorkspaceService{
-		Config:        Config,
-		QordobaClient: QordobaClient,
-		Local:         Local,
+	qordobaClient = rest.NewRestClient(appConfig)
+	workspaceService = &workspace.Service{
+		Config:        appConfig,
+		QordobaClient: qordobaClient,
+		Local:         local,
 	}
-	FileService = &file.FileService{
-		Config:           Config,
-		WorkspaceService: WorkspaceService,
-		Local:            Local,
-		QordobaClient:    QordobaClient,
+	fileService = &file.Service{
+		Config:           appConfig,
+		WorkspaceService: workspaceService,
+		Local:            local,
+		QordobaClient:    qordobaClient,
 	}
-	SegmentService = &segments.SegmentService{
-		QordobaClient:    QordobaClient,
-		WorkspaceService: WorkspaceService,
-		Config:           Config,
-		FileService:      FileService,
+	segmentService = &segments.SegmentService{
+		QordobaClient:    qordobaClient,
+		WorkspaceService: workspaceService,
+		Config:           appConfig,
+		FileService:      fileService,
 	}
 }

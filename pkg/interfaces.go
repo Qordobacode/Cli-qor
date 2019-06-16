@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// QordobaClient interface collect all web-request related logic
 type QordobaClient interface {
 	GetFromServer(getURL string) ([]byte, error)
 	PostToServer(postURL string, requestBody interface{}) (*http.Response, error)
@@ -12,6 +13,7 @@ type QordobaClient interface {
 	DeleteFromServer(deleteURL string) ([]byte, error)
 }
 
+// Local interface collect all os and stdin-related logic
 type Local interface {
 	Read(path string) ([]byte, error)
 	Write(fileName string, fileBytesResponse []byte)
@@ -24,16 +26,19 @@ type Local interface {
 	RenderTable2Stdin(header []string, data [][]string)
 }
 
+// ConfigurationService contains all methods about app configuration
 type ConfigurationService interface {
 	ReadConfigInPath(path string) (*types.Config, error)
 	LoadConfig() (*types.Config, error)
 	SaveMainConfig(config *types.Config)
 }
 
+// WorkspaceService contain workspace-related functionality
 type WorkspaceService interface {
 	LoadWorkspace() (*types.WorkspaceData, error)
 }
 
+// FileService contains all logic related to Qordoba's file
 type FileService interface {
 	WorkspaceFiles(personaID int, withProgressStatus bool) (*types.FileSearchResponse, error)
 	WorkspaceFilesWithLimit(personaID int, withProgressStatus bool, limit int) (*types.FileSearchResponse, error)
@@ -46,6 +51,7 @@ type FileService interface {
 	FileScore(filename, version string) *types.ScoreResponseBody
 }
 
+// SegmentService contains all logic about Qordoba's segments
 type SegmentService interface {
 	FindSegment(fileName, fileVersion, key string) (*types.Segment, *types.File)
 	AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest)

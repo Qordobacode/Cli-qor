@@ -23,13 +23,14 @@ var (
 	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
 )
 
+// NewLsCommand function create `ls` command
 func NewLsCommand() *cobra.Command {
 	lsCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
 		Use:         "ls",
 		Short:       "Ls files (show 50 only)",
 		Example:     `"qor ls", "qor ls --json"`,
-		PreRun:      StartLocalServices,
+		PreRun:      startLocalServices,
 		Run:         printLs,
 	}
 	lsCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
@@ -37,7 +38,7 @@ func NewLsCommand() *cobra.Command {
 }
 
 func printLs(cmd *cobra.Command, args []string) {
-	workspace, err := WorkspaceService.LoadWorkspace()
+	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil {
 		return
 	}
@@ -61,7 +62,7 @@ func printLs(cmd *cobra.Command, args []string) {
 func printFile2Stdin(response []*responseRow) {
 	if !IsJSON {
 		data := formatResponse2Array(response)
-		Local.RenderTable2Stdin(lsHeaders, data)
+		local.RenderTable2Stdin(lsHeaders, data)
 	} else {
 		bytes, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
@@ -73,12 +74,12 @@ func printFile2Stdin(response []*responseRow) {
 }
 
 func handlePersonResult(persona *types.Person) []*responseRow {
-	files, e := FileService.WorkspaceFilesWithLimit(persona.ID, false, lineLimit)
+	files, e := fileService.WorkspaceFilesWithLimit(persona.ID, false, lineLimit)
 	data := make([]*responseRow, 0)
 	if e != nil {
 		return data
 	}
-	audiences := Config.Audiences()
+	audiences := appConfig.Audiences()
 	for _, file := range files.Files {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue

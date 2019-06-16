@@ -6,7 +6,7 @@ const (
 	prodAPIEndpoint = "https://app.qordoba.com/"
 )
 
-// Config structs holds workspace's specific information
+// Config struct holds workspace's specific information
 type Config struct {
 	Qordoba   QordobaConfig   `yaml:"qordoba" mapstructure:"qordoba"`
 	Push      PushConfig      `yaml:"push" mapstructure:"push"`

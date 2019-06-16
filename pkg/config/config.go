@@ -17,6 +17,7 @@ const (
 	newConfigName    = "config.yaml"
 )
 
+// ConfigurationService is an implementation of pkg.ConfigurationService
 type ConfigurationService struct {
 	Local pkg.Local
 }

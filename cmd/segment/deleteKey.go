@@ -10,13 +10,14 @@ var (
 	deleteKeyKey     string
 )
 
+// NewDeleteSegmentCommand function add `delete-key` command
 func NewDeleteSegmentCommand() *cobra.Command {
 	deleteKeyCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
 		Use:         "delete-key",
 		Short:       "Delete segment",
 		Example:     `qor delete-key file_name.doc --version v1 --key "/go_nav_menu"`,
-		PreRun:      StartLocalServices,
+		PreRun:      startLocalServices,
 		Run:         deleteSegment,
 	}
 
@@ -26,5 +27,5 @@ func NewDeleteSegmentCommand() *cobra.Command {
 }
 
 func deleteSegment(cmd *cobra.Command, args []string) {
-	SegmentService.DeleteKey(args[0], deleteKeyVersion, deleteKeyKey)
+	segmentService.DeleteKey(args[0], deleteKeyVersion, deleteKeyKey)
 }

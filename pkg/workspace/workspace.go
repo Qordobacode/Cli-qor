@@ -16,14 +16,15 @@ const (
 	workspaceFileName      = "workspace.json"
 )
 
-type WorkspaceService struct {
+// Service implements pkg.Service
+type Service struct {
 	Config        *types.Config
 	QordobaClient pkg.QordobaClient
 	Local         pkg.Local
 }
 
 // LoadWorkspace function retrieves a workspace
-func (w *WorkspaceService) LoadWorkspace() (*types.WorkspaceData, error) {
+func (w *Service) LoadWorkspace() (*types.WorkspaceData, error) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "LoadWorkspace "+strconv.Itoa(int(w.Config.Qordoba.WorkspaceID)))
@@ -45,7 +46,7 @@ func (w *WorkspaceService) LoadWorkspace() (*types.WorkspaceData, error) {
 
 // cachedWorkspace function returns cached workspace if it present AND still valid (invalidation period for
 // cache is `invalidationPeriod`
-func (w *WorkspaceService) cachedWorkspace() (*types.WorkspaceResponse, error) {
+func (w *Service) cachedWorkspace() (*types.WorkspaceResponse, error) {
 	bodyBytes, err := w.Local.LoadCached(workspaceFileName)
 	if err != nil {
 		return nil, err
@@ -60,7 +61,7 @@ func (w *WorkspaceService) cachedWorkspace() (*types.WorkspaceResponse, error) {
 }
 
 // workspacesFromServer function retrieve list of all workspaces
-func (w *WorkspaceService) workspacesFromServer() (*types.WorkspaceResponse, error) {
+func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
 	base := w.Config.GetAPIBase()
 	// retrieve from server list of workspaces
 	workspaceRequestURL := fmt.Sprintf(getWorkspacesTemnplate, base, w.Config.Qordoba.OrganizationID)

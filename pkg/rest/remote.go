@@ -19,12 +19,14 @@ const (
 	ApplicationJSONType = "application/json"
 )
 
-type RestClient struct {
+// Client implements pkg.Client
+type Client struct {
 	Config     *types.Config
 	HTTPClient http.Client
 }
 
-func NewRestClient(qordobaConfig *types.Config) *RestClient {
+// NewRestClient create new instance of RestClient
+func NewRestClient(qordobaConfig *types.Config) *Client {
 	transport := &http.Transport{
 		DialContext: (&net.Dialer{
 			Timeout:   10 * time.Second,
@@ -33,7 +35,7 @@ func NewRestClient(qordobaConfig *types.Config) *RestClient {
 		TLSHandshakeTimeout: 10 * time.Second,
 		DisableKeepAlives:   true,
 	}
-	return &RestClient{
+	return &Client{
 		HTTPClient: http.Client{
 			Timeout:   time.Minute * 1,
 			Transport: transport,
@@ -43,7 +45,7 @@ func NewRestClient(qordobaConfig *types.Config) *RestClient {
 }
 
 // GetFromServer - util function for general request to server. Adds x-auth-token from config, validate response
-func (r *RestClient) GetFromServer(getURL string) ([]byte, error) {
+func (r *Client) GetFromServer(getURL string) ([]byte, error) {
 	request, err := http.NewRequest("GET", getURL, nil)
 	if err != nil {
 		log.Errorf("error occurred on request build: %v", err)
@@ -71,7 +73,7 @@ func (r *RestClient) GetFromServer(getURL string) ([]byte, error) {
 }
 
 // PostToServer send POST request to server with specified body
-func (r *RestClient) PostToServer(postURL string, requestBody interface{}) (*http.Response, error) {
+func (r *Client) PostToServer(postURL string, requestBody interface{}) (*http.Response, error) {
 	reader, err := wrapRequest2Reader(requestBody)
 	if err != nil {
 		return nil, err
@@ -87,7 +89,7 @@ func (r *RestClient) PostToServer(postURL string, requestBody interface{}) (*htt
 }
 
 // PutToServer send PUT request to server with specified body
-func (r *RestClient) PutToServer(postURL string, requestBody interface{}) (*http.Response, error) {
+func (r *Client) PutToServer(postURL string, requestBody interface{}) (*http.Response, error) {
 	reader, err := wrapRequest2Reader(requestBody)
 	if err != nil {
 		return nil, err
@@ -113,7 +115,7 @@ func wrapRequest2Reader(requestBody interface{}) (io.Reader, error) {
 }
 
 // DeleteFromServer - send DELETE request to server
-func (r *RestClient) DeleteFromServer(deleteURL string) ([]byte, error) {
+func (r *Client) DeleteFromServer(deleteURL string) ([]byte, error) {
 	request, err := http.NewRequest("DELETE", deleteURL, nil)
 	if err != nil {
 		log.Errorf("error occurred on request build: %v", err)

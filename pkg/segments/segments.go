@@ -17,6 +17,7 @@ var (
 	keyDeleteTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyDelete"
 )
 
+// SegmentService struct is an implementation of pkg.SegmentService
 type SegmentService struct {
 	Config           *types.Config
 	FileService      pkg.FileService
@@ -24,6 +25,7 @@ type SegmentService struct {
 	WorkspaceService pkg.WorkspaceService
 }
 
+// AddKey function add new key into file
 func (s *SegmentService) AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
 	file, _ := s.FileService.FindFile(fileName, version, false)
 	if file == nil {
@@ -91,6 +93,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 	}
 }
 
+// DeleteKey deletes segment from file by key
 func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 	segment, file := s.FindSegment(fileName, version, segmentKey)
 	if segment != nil {
@@ -107,6 +110,7 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 	}
 }
 
+// FindSegment returns segment and file where it is placed by file name/version and segment key
 func (s *SegmentService) FindSegment(fileName, fileVersion, key string) (*types.Segment, *types.File) {
 	base := s.Config.GetAPIBase()
 	file, personaID := s.FileService.FindFile(fileName, fileVersion, false)

@@ -20,6 +20,7 @@ var (
 	statusFileVersion string
 )
 
+// NewStatusCommand creates `status` command
 func NewStatusCommand() *cobra.Command {
 	statusCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
@@ -27,7 +28,7 @@ func NewStatusCommand() *cobra.Command {
 		Short:       "Status per project or file (Support file versions)",
 		Example:     `"qor status", "qor status --json", "qor status filename.docx --version 0.2"`,
 		Run:         runStatus,
-		PreRun:      StartLocalServices,
+		PreRun:      startLocalServices,
 	}
 	statusCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
 	statusCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
@@ -36,11 +37,11 @@ func NewStatusCommand() *cobra.Command {
 }
 
 func runStatus(cmd *cobra.Command, args []string) {
-	if Config == nil {
+	if appConfig == nil {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	workspace, err := WorkspaceService.LoadWorkspace()
+	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil || workspace == nil {
 		return
 	}
@@ -63,16 +64,16 @@ func buildProjectStatus(workspace *types.WorkspaceData) {
 	}
 	progress := fileSearchResponse.ByPersonaProgress[0].ByWorkflowProgress
 	header := buildTableHeader(progress, basicHeaders)
-	dataRow, dataJson := buildTableData(fileSearchResponse.ByPersonaProgress, header)
-	printProjectStatus2Stdin(header, dataRow, dataJson)
+	dataRow, dataJSON := buildTableData(fileSearchResponse.ByPersonaProgress, header)
+	printProjectStatus2Stdin(header, dataRow, dataJSON)
 }
 
-func printProjectStatus2Stdin(header []string, tableData [][]string, dataJson []map[string]string) {
+func printProjectStatus2Stdin(header []string, tableData [][]string, dataJSON []map[string]string) {
 	if !IsJSON {
-		Local.RenderTable2Stdin(header, tableData)
+		local.RenderTable2Stdin(header, tableData)
 		return
 	}
-	bytes, err := json.MarshalIndent(dataJson, "", "  ")
+	bytes, err := json.MarshalIndent(dataJSON, "", "  ")
 	if err != nil {
 		log.Errorf("error occurred on marshalling with JSON: %v", err)
 		return
@@ -82,7 +83,7 @@ func printProjectStatus2Stdin(header []string, tableData [][]string, dataJson []
 
 func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse {
 	for _, person := range response.TargetPersonas {
-		fileSearchResponse, err := FileService.WorkspaceFiles(person.ID, true)
+		fileSearchResponse, err := fileService.WorkspaceFiles(person.ID, true)
 		if err != nil {
 			continue
 		}
@@ -145,7 +146,7 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 }
 
 func runFileStatusFile(fileName string, workspace *types.WorkspaceData) {
-	fileSearchResponse, _ := FileService.FindFile(fileName, statusFileVersion, true)
+	fileSearchResponse, _ := fileService.FindFile(fileName, statusFileVersion, true)
 	if fileSearchResponse == nil {
 		log.Debugf("file %s('%s') was not found", fileName, statusFileVersion)
 		return

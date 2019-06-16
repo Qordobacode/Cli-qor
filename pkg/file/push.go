@@ -17,12 +17,14 @@ const (
 	concurrencyLevel = 1
 )
 
-func (f *FileService) PushFolder(folder, version string) {
+// PushFolder function push folder to server
+func (f *Service) PushFolder(folder, version string) {
 	fileList := f.Local.FilesInFolder(folder)
 	f.PushFiles(fileList, version)
 }
 
-func (f *FileService) PushFiles(fileList []string, version string) {
+// PushFiles function push array of files to server with secified version
+func (f *Service) PushFiles(fileList []string, version string) {
 	jobs := make(chan *pushFileTask, 1000)
 	results := make(chan struct{}, 1000)
 	filteredFileList := f.filterFiles(fileList)
@@ -43,7 +45,7 @@ func (f *FileService) PushFiles(fileList []string, version string) {
 	}
 }
 
-func (f *FileService) filterFiles(files []string) []string {
+func (f *Service) filterFiles(files []string) []string {
 	filteredFiles := make([]string, 0, 0)
 	blacklistRegexp := make([]*regexp.Regexp, 0, len(f.Config.Blacklist.Sources))
 	for _, blackList := range f.Config.Blacklist.Sources {
@@ -67,7 +69,7 @@ fileSearch:
 	return filteredFiles
 }
 
-func (f *FileService) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
+func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
 	base := f.Config.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
@@ -76,7 +78,7 @@ func (f *FileService) startPushWorker(jobs chan *pushFileTask, results chan stru
 	}
 }
 
-func (f *FileService) pushFile(filePath string, jobs chan *pushFileTask) int {
+func (f *Service) pushFile(filePath string, jobs chan *pushFileTask) int {
 	fileInfo, e := os.Stat(filePath)
 	if e != nil {
 		log.Errorf("error occurred in file read: %v", e)
@@ -92,7 +94,7 @@ func (f *FileService) pushFile(filePath string, jobs chan *pushFileTask) int {
 	return 1
 }
 
-func (f *FileService) handleDirectory2Push(filePath string, jobs chan *pushFileTask) int {
+func (f *Service) handleDirectory2Push(filePath string, jobs chan *pushFileTask) int {
 	file2Push := 0
 	err := filepath.Walk(filePath, func(path string, childFileInfo os.FileInfo, err error) error {
 		if !childFileInfo.IsDir() {
@@ -115,7 +117,7 @@ type pushFileTask struct {
 	fileInfo os.FileInfo
 }
 
-func (f *FileService) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string) {
+func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string) {
 	if fileInfo.IsDir() {
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
@@ -145,7 +147,7 @@ func (f *FileService) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileU
 	}
 }
 
-func (f *FileService) buildPushRequest(fileInfo os.FileInfo, filePath, version string) (*types.PushRequest, error) {
+func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string) (*types.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)

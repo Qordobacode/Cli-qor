@@ -7,8 +7,8 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 )
 
-// deleteFoundFile function retrieve file and delete it remotedly
-func (f *FileService) DeleteFile(fileName, version string) {
+// DeleteFile function retrieve file and delete it
+func (f *Service) DeleteFile(fileName, version string) {
 	log.Debugf("deleteFoundFile was called for file '%v'('%v')", fileName, version)
 	file, _ := f.FindFile(fileName, version, false)
 	if file != nil {
@@ -17,7 +17,7 @@ func (f *FileService) DeleteFile(fileName, version string) {
 }
 
 // deleteFoundFile func delete file from parameters
-func (f *FileService) deleteFoundFile(file *types.File) {
+func (f *Service) deleteFoundFile(file *types.File) {
 	base := f.Config.GetAPIBase()
 	deleteFileURL := fmt.Sprintf(fileDeleteTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, file.FileID)
 	bytes, err := f.QordobaClient.DeleteFromServer(deleteFileURL)

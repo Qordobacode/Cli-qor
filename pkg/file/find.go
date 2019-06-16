@@ -19,7 +19,8 @@ const (
 	fileDeleteTemplate           = "%s/v3/organizations/%d/workspaces/%d/files/%d"
 )
 
-type FileService struct {
+// Service implements pkg.Service
+type Service struct {
 	Config           *types.Config
 	QordobaClient    pkg.QordobaClient
 	WorkspaceService pkg.WorkspaceService
@@ -27,7 +28,7 @@ type FileService struct {
 }
 
 // WorkspaceFiles function retrieves all files in workspace
-func (f *FileService) WorkspaceFiles(personaID int, withProgressStatus bool) (*types.FileSearchResponse, error) {
+func (f *Service) WorkspaceFiles(personaID int, withProgressStatus bool) (*types.FileSearchResponse, error) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "WorkspaceFiles "+strconv.Itoa(personaID))
@@ -37,7 +38,8 @@ func (f *FileService) WorkspaceFiles(personaID int, withProgressStatus bool) (*t
 	return f.callFileRequestAndHandle(fileListURL)
 }
 
-func (f *FileService) WorkspaceFilesWithLimit(personaID int, withProgressStatus bool, limit int) (*types.FileSearchResponse, error) {
+// WorkspaceFilesWithLimit function retrieves limited number of files from workspace
+func (f *Service) WorkspaceFilesWithLimit(personaID int, withProgressStatus bool, limit int) (*types.FileSearchResponse, error) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "WorkspaceFilesWithLimit "+strconv.Itoa(personaID))
@@ -47,7 +49,7 @@ func (f *FileService) WorkspaceFilesWithLimit(personaID int, withProgressStatus 
 	return f.callFileRequestAndHandle(fileListURL)
 }
 
-func (f *FileService) callFileRequestAndHandle(getUserFiles string) (*types.FileSearchResponse, error) {
+func (f *Service) callFileRequestAndHandle(getUserFiles string) (*types.FileSearchResponse, error) {
 	fileBytesResponse, err := f.QordobaClient.GetFromServer(getUserFiles)
 	if err != nil {
 		return nil, err
@@ -61,8 +63,8 @@ func (f *FileService) callFileRequestAndHandle(getUserFiles string) (*types.File
 	return &response, nil
 }
 
-// FindFile function
-func (f *FileService) FindFile(fileName, version string, withProgressStatus bool) (*types.File, int) {
+// FindFile function search for file by its name and version
+func (f *Service) FindFile(fileName, version string, withProgressStatus bool) (*types.File, int) {
 	if version != "" {
 		log.Debugf("FindFile was called for file '%v %v')", fileName, version)
 	} else {

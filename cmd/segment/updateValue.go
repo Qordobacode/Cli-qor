@@ -29,6 +29,7 @@ var (
 	updateKeyRef     string
 )
 
+// NewUpdateSegmentCommand function add `update-value` command
 func NewUpdateSegmentCommand() *cobra.Command {
 	updateValueCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
@@ -56,12 +57,12 @@ func preValidateUpdateKeyParameters(cmd *cobra.Command, args []string) error {
 	if addKeyValue == "" {
 		return fmt.Errorf("flag 'value' is mandatory")
 	}
-	StartLocalServices(cmd, args)
+	startLocalServices(cmd, args)
 	return nil
 }
 
 func updateValue(cmd *cobra.Command, args []string) {
-	if Config == nil {
+	if appConfig == nil {
 		log.Errorf("error occurred on configuration load: ")
 		return
 	}
@@ -70,5 +71,5 @@ func updateValue(cmd *cobra.Command, args []string) {
 		Source:    updateKeyValue,
 		Reference: updateKeyRef,
 	}
-	SegmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
+	segmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

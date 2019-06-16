@@ -13,12 +13,13 @@ import (
 )
 
 var (
-	Local                *general.Local
-	ConfigurationService = config.ConfigurationService{
-		Local: Local,
+	local                *general.Local
+	configurationService = config.ConfigurationService{
+		Local: local,
 	}
 )
 
+// NewInitCmd function create `init` command
 func NewInitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:         "init",
@@ -40,7 +41,7 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 	var newConfig *types.Config
 	var err error
 	if fileName != "" {
-		newConfig, err = ConfigurationService.ReadConfigInPath(fileName)
+		newConfig, err = configurationService.ReadConfigInPath(fileName)
 		if err != nil {
 			return err
 		}
@@ -49,7 +50,7 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 		newConfig = buildConfigFromStdin()
 	}
 
-	ConfigurationService.SaveMainConfig(newConfig)
+	configurationService.SaveMainConfig(newConfig)
 	return nil
 }
 

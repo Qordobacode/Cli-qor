@@ -13,11 +13,13 @@ type ValueKeyUpdateRequest struct {
 	MoveToFirstStep bool   `json:"moveToFirstStep"`
 }
 
+// SegmentSearchResponse struct
 type SegmentSearchResponse struct {
 	Meta     Meta      `json:"meta"`
 	Segments []Segment `json:"segments"`
 }
 
+// Segment struct
 type Segment struct {
 	LastSaved int    `json:"lastSaved"`
 	SegmentID int    `json:"segmentId"`

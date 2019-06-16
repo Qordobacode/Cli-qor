@@ -40,6 +40,7 @@ var (
 	isPullSkip         = false
 )
 
+// NewDownloadCommand command create `download` command
 func NewDownloadCommand() *cobra.Command {
 	downloadCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "file"},
@@ -47,7 +48,7 @@ func NewDownloadCommand() *cobra.Command {
 		Short:       "Downloads selected files",
 		Long:        "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
 		Example:     `qor download -a en-us,de-de`,
-		PreRun:      StartLocalServices,
+		PreRun:      startLocalServices,
 		Run:         downloadCommand,
 	}
 
@@ -60,16 +61,16 @@ func NewDownloadCommand() *cobra.Command {
 }
 
 func downloadCommand(cmd *cobra.Command, args []string) {
-	if Config == nil {
+	if appConfig == nil {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	workspace, err := WorkspaceService.LoadWorkspace()
+	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil || workspace == nil {
 		return
 	}
 	files2Download := files2Download(&workspace.Workspace)
-	jobs := make(chan *File2Download, 1000)
+	jobs := make(chan *file2Download, 1000)
 	results := make(chan struct{}, 1000)
 
 	for i := 0; i < 3; i++ {
@@ -92,20 +93,21 @@ func downloadCommand(cmd *cobra.Command, args []string) {
 	}
 }
 
-func worker(jobs chan *File2Download, results chan struct{}) {
+func worker(jobs chan *file2Download, results chan struct{}) {
 	for j := range jobs {
 		handleFile(j.PersonaID, j.File)
 		results <- struct{}{}
 	}
 }
 
-type File2Download struct {
+// file2Download struct describe chunk of download work
+type file2Download struct {
 	File      *types.File
 	PersonaID int
 }
 
-func files2Download(workspace *types.Workspace) []*File2Download {
-	audiences := Config.Audiences()
+func files2Download(workspace *types.Workspace) []*file2Download {
+	audiences := appConfig.Audiences()
 	if downloadAudience != "" {
 		audienceList := strings.Split(downloadAudience, ",")
 		audiences = make(map[string]bool)
@@ -113,18 +115,18 @@ func files2Download(workspace *types.Workspace) []*File2Download {
 			audiences[lang] = true
 		}
 	}
-	files2Download := make([]*File2Download, 0)
+	files2Download := make([]*file2Download, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}
-		response, err := FileService.WorkspaceFiles(persona.ID, false)
+		response, err := fileService.WorkspaceFiles(persona.ID, false)
 		if err != nil {
 			continue
 		}
 		files := response.Files
 		for i := range files {
-			files2Download = append(files2Download, &File2Download{
+			files2Download = append(files2Download, &file2Download{
 				File:      &files[i],
 				PersonaID: persona.ID,
 			})
@@ -175,16 +177,16 @@ func handleInvalidFile(file *types.File) {
 }
 
 func downloadFile(file *types.File, personaID int) {
-	fileName := Local.BuildFileName(file, "")
-	if !isPullSkip || !Local.FileExists(fileName) {
-		FileService.DownloadFile(personaID, fileName, file)
+	fileName := local.BuildFileName(file, "")
+	if !isPullSkip || !local.FileExists(fileName) {
+		fileService.DownloadFile(personaID, fileName, file)
 		atomic.AddUint64(&ops, 1)
 	}
 }
 
 func downloadSourceFile(file *types.File) {
-	fileName := Local.BuildFileName(file, "")
-	FileService.DownloadSourceFile(fileName, file, true)
+	fileName := local.BuildFileName(file, "")
+	fileService.DownloadSourceFile(fileName, file, true)
 	atomic.AddUint64(&ops, 1)
 }
 
@@ -194,7 +196,7 @@ func downloadOriginalFile(file *types.File) {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	fileName := Local.BuildFileName(file, suffix)
-	FileService.DownloadSourceFile(fileName, file, false)
+	fileName := local.BuildFileName(file, suffix)
+	fileService.DownloadSourceFile(fileName, file, false)
 	atomic.AddUint64(&ops, 1)
 }

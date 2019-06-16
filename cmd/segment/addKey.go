@@ -15,6 +15,7 @@ var (
 	addKeyRef     string
 )
 
+// NewAddKeyCommand function
 func NewAddKeyCommand() *cobra.Command {
 	addKeyCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
@@ -42,13 +43,13 @@ func preValidateAddKeyParameters(cmd *cobra.Command, args []string) error {
 	if addKeyValue == "" {
 		return fmt.Errorf("flag 'value' is mandatory")
 	}
-	StartLocalServices(cmd, args)
+	startLocalServices(cmd, args)
 	return nil
 }
 
 func addKey(cmd *cobra.Command, args []string) {
 	log.Debugf("addKey called")
-	if Config == nil {
+	if appConfig == nil {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
@@ -57,5 +58,5 @@ func addKey(cmd *cobra.Command, args []string) {
 		Source:    addKeyValue,
 		Reference: addKeyRef,
 	}
-	SegmentService.AddKey(args[0], addKeyVersion, keyAddRequest)
+	segmentService.AddKey(args[0], addKeyVersion, keyAddRequest)
 }

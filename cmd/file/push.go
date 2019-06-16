@@ -20,7 +20,7 @@ func NewPushCmd() *cobra.Command {
 		Use:         "push",
 		Short:       "Push files or folders",
 		Example:     `qor push --files testing.json --version 1.1 --verbose`,
-		PreRun:      StartLocalServices,
+		PreRun:      startLocalServices,
 		Run:         pushCommand,
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
@@ -30,17 +30,17 @@ func NewPushCmd() *cobra.Command {
 }
 
 func pushCommand(cmd *cobra.Command, args []string) {
-	if Config == nil {
+	if appConfig == nil {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
 	if folderPath == "" && files == "" && len(args) == 0 {
-		pushSources := Config.Push.Sources
+		pushSources := appConfig.Push.Sources
 
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
-		FileService.PushFiles(pushSources.Files, pushVersion)
+		fileService.PushFiles(pushSources.Files, pushVersion)
 		for _, folder := range pushSources.Folders {
-			FileService.PushFolder(folder, pushVersion)
+			fileService.PushFolder(folder, pushVersion)
 		}
 		return
 	}
@@ -52,10 +52,10 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		}
 		log.Infof("Result list of files from line is: %v", fileList)
 		for _, file := range fileList {
-			FileService.PushFolder(file, pushVersion)
+			fileService.PushFolder(file, pushVersion)
 		}
 	} else if folderPath != "" {
 		log.Infof("Push folder %v", folderPath)
-		FileService.PushFolder(folderPath, pushVersion)
+		fileService.PushFolder(folderPath, pushVersion)
 	}
 }

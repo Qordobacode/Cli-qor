@@ -8,7 +8,7 @@ import (
 )
 
 // DownloadFile function retrieves file in workspace
-func (f *FileService) DownloadFile(personaID int, fileName string, file *types.File) {
+func (f *Service) DownloadFile(personaID int, fileName string, file *types.File) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "DownloadFile")
@@ -18,7 +18,7 @@ func (f *FileService) DownloadFile(personaID int, fileName string, file *types.F
 	f.handleDownloadedFile(getFileContentURL, fileName)
 }
 
-func (f *FileService) handleDownloadedFile(fileRemoteURL, fileName string) {
+func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 	fileBytesResponse, err := f.QordobaClient.GetFromServer(fileRemoteURL)
 	if err != nil {
 		log.Errorf("error occurred on file s download (url = %s)\n%v", fileRemoteURL, fileName, err)
@@ -29,7 +29,7 @@ func (f *FileService) handleDownloadedFile(fileRemoteURL, fileName string) {
 }
 
 // DownloadSourceFile function retrieves all source files in workspace
-func (f *FileService) DownloadSourceFile(fileName string, file *types.File, withUpdates bool) {
+func (f *Service) DownloadSourceFile(fileName string, file *types.File, withUpdates bool) {
 	base := f.Config.GetAPIBase()
 	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, file.FileID, withUpdates)
 	f.handleDownloadedFile(getFileContentURL, fileName)

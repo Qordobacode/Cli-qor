@@ -10,13 +10,14 @@ var (
 	scoreFileVersion string
 )
 
+// NewScoreCommand creates `score` command
 func NewScoreCommand() *cobra.Command {
 	scoreCommand := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
 		Use:         "score",
 		Short:       "Score per file",
 
-		PreRun: StartLocalServices,
+		PreRun: startLocalServices,
 		Run:    scoreFile,
 	}
 	scoreCommand.Flags().StringVarP(&scoreFileName, "files", "f", "", "File to score")
@@ -28,7 +29,7 @@ func scoreFile(cmd *cobra.Command, args []string) {
 	if scoreFileName == "" && len(args) > 0 {
 		scoreFileName = args[0]
 	}
-	score := FileService.FileScore(scoreFileName, scoreFileVersion)
+	score := fileService.FileScore(scoreFileName, scoreFileVersion)
 	if score != nil {
 		log.Infof("%v", score.DocumentScore)
 	}

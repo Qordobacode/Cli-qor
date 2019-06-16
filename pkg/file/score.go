@@ -11,7 +11,8 @@ var (
 	scoreGetTemplate = "%s/v3/contentscore/organizations/%d/workspaces/%d/documents/%v/personas/%d/score?documentLength=%d"
 )
 
-func (f *FileService) FileScore(filename, version string) *types.ScoreResponseBody {
+// FileScore function returns file score
+func (f *Service) FileScore(filename, version string) *types.ScoreResponseBody {
 	file, personaID := f.FindFile(filename, version, false)
 	if file == nil {
 		return nil

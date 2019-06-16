@@ -3,9 +3,9 @@ package segment
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/qordobacode/cli-v2/pkg/general/date"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 // updateValueCmd represents the updateValue command
@@ -16,6 +16,7 @@ var (
 	header          = []string{"FILE NAME", "#VERSION", "KEY", "#VALUE", "#REF", "#TIMESTAMP"}
 )
 
+// NewValueKeyCommand function add `value-key` command
 func NewValueKeyCommand() *cobra.Command {
 	valueKeyCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "segment"},
@@ -39,24 +40,23 @@ func preValidateValueKeyParameters(cmd *cobra.Command, args []string) error {
 	if valueKeyKey == "" {
 		return fmt.Errorf("flag 'key' is mandatory")
 	}
-	StartLocalServices(cmd, args)
+	startLocalServices(cmd, args)
 	return nil
 }
 func pullValueByKey(cmd *cobra.Command, args []string) {
-	segment, _ := SegmentService.FindSegment(args[0], valueKeyVersion, valueKeyKey)
+	segment, _ := segmentService.FindSegment(args[0], valueKeyVersion, valueKeyKey)
 	if segment == nil {
 		return
 	}
 	resultArray := make([]*valueInfo, 0)
-	tm := time.Unix(int64(segment.LastSaved/1000), 0)
-	formatedTimestamp := tm.Format("02-01-2006 15:04:05-0700")
+	formattedTimestamp := date.GetDateFromTimestamp(int64(segment.LastSaved / 1000))
 	resultArray = append(resultArray, &valueInfo{
 		Filename:    args[0],
 		FileVersion: valueKeyVersion,
 		Key:         valueKeyKey,
 		Value:       segment.SsText,
 		Reference:   segment.Reference,
-		Timestamp:   formatedTimestamp,
+		Timestamp:   formattedTimestamp,
 	})
 	printProjectStatus2Stdin(resultArray)
 }
@@ -73,7 +73,7 @@ type valueInfo struct {
 func printProjectStatus2Stdin(valueInfo []*valueInfo) {
 	if !IsJSON {
 		data := formatResponse2Array(valueInfo)
-		Local.RenderTable2Stdin(header, data)
+		local.RenderTable2Stdin(header, data)
 		return
 	}
 	bytes, err := json.MarshalIndent(valueInfo, "", "  ")

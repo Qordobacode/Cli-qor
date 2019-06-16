@@ -20,7 +20,7 @@ const (
 // lsCmd represents the ls command
 var (
 	IsJSON    bool
-	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
+	lsHeaders = []string{"ID", "NAME", "version", "tag", "UPDATED_ON", "STATUS"}
 )
 
 // NewLsCommand function create `ls` command
@@ -118,9 +118,10 @@ func formatResponse2Array(rows []*responseRow) [][]string {
 		row[1] = responseRow.Name
 		row[2] = responseRow.Version
 		row[3] = strings.Join(responseRow.Tag, ", ")
-		row[4] = strconv.Itoa(responseRow.SegmentNums)
-		row[5] = responseRow.UpdatedOn
-		row[6] = responseRow.Status
+		// some issues with segments number response from server -> parameter was excluded
+		//row[4] = strconv.Itoa(responseRow.SegmentNums)
+		row[4] = responseRow.UpdatedOn
+		row[5] = responseRow.Status
 		data = append(data, row)
 	}
 	return data

@@ -47,10 +47,12 @@ func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
 	viperConfig, viperErr := c.loadConfigFromViper()
 	if homeConfigErr != nil || homeDirectoryConfig == nil {
 		log.Infof("config was taken from %v", viper.ConfigFileUsed())
+		validateConfigCorrect(viperConfig)
 		return viperConfig, viperErr
 	}
 	if viperErr != nil || viperConfig == nil {
 		log.Infof("config was taken from home directory", viper.ConfigFileUsed())
+		validateConfigCorrect(viperConfig)
 		return homeDirectoryConfig, nil
 	}
 	err := mergo.Merge(viperConfig, *homeDirectoryConfig)
@@ -94,7 +96,7 @@ func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
 		log.Errorf("error occurred on unmarshalling properties: %v", err)
 	}
 	if config.Qordoba.WorkspaceID == 0. && config.Qordoba.ProjectID != 0. {
-		log.Infof("field 'project_id' in qordoba configuration was deprecated. Please use 'workspace_id' instead")
+		log.Infof("field 'project_id' in qordoba configuration was deprecated. Please rename it to 'workspace_id' instead")
 		config.Qordoba.WorkspaceID = config.Qordoba.ProjectID
 	}
 	return &config, err
@@ -130,21 +132,19 @@ func (c *ConfigurationService) readConfig(home, filename string) (*types.Config,
 }
 
 // validateConfigCorrect validates config file is correct
-func validateConfigCorrect(config *types.Config) bool {
-	isConfigCorrect := true
+func validateConfigCorrect(config *types.Config) {
 	if config.Qordoba.AccessToken == "" {
-		log.Errorf("access_token is not set")
-		isConfigCorrect = false
+		log.Errorf("qordoba.access_token is not set")
+		os.Exit(1)
 	}
 	if config.Qordoba.OrganizationID == 0 {
-		log.Errorf("organization_id is not set")
-		isConfigCorrect = false
+		log.Errorf("qordoba.organization_id is not set")
+		os.Exit(1)
 	}
 	if config.Qordoba.WorkspaceID == 0 {
-		log.Errorf("workspace_id is not set")
-		isConfigCorrect = false
+		log.Errorf("qordoba.workspace_id is not set")
+		os.Exit(1)
 	}
-	return isConfigCorrect
 }
 
 // SaveMainConfig function update content of application's config

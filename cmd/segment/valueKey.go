@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
-	"strconv"
+	"time"
 )
 
 // updateValueCmd represents the updateValue command
@@ -44,14 +44,19 @@ func preValidateValueKeyParameters(cmd *cobra.Command, args []string) error {
 }
 func pullValueByKey(cmd *cobra.Command, args []string) {
 	segment, _ := SegmentService.FindSegment(args[0], valueKeyVersion, valueKeyKey)
+	if segment == nil {
+		return
+	}
 	resultArray := make([]*valueInfo, 0)
+	tm := time.Unix(int64(segment.LastSaved/1000), 0)
+	formatedTimestamp := tm.Format("02-01-2006 15:04:05-0700")
 	resultArray = append(resultArray, &valueInfo{
 		Filename:    args[0],
 		FileVersion: valueKeyVersion,
 		Key:         valueKeyKey,
 		Value:       segment.SsText,
 		Reference:   segment.Reference,
-		Timestamp:   strconv.Itoa(segment.LastSaved),
+		Timestamp:   formatedTimestamp,
 	})
 	printProjectStatus2Stdin(resultArray)
 }
@@ -90,6 +95,7 @@ func formatResponse2Array(response []*valueInfo) [][]string {
 		row[3] = valInfo.Value
 		row[4] = valInfo.Reference
 		row[5] = valInfo.Timestamp
+		data = append(data, row)
 	}
 	return data
 }

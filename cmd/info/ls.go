@@ -2,12 +2,10 @@ package info
 
 import (
 	"encoding/json"
-	"github.com/olekukonko/tablewriter"
 	"github.com/qordobacode/cli-v2/pkg/general/date"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -21,17 +19,18 @@ const (
 
 // lsCmd represents the ls command
 var (
-	IsJSON bool
+	IsJSON    bool
 	lsHeaders = []string{"ID", "NAME", "version", "tag", "#SEGMENTS", "UPDATED_ON", "STATUS"}
 )
 
-func NewLsCommand() *cobra.Command{
-	lsCmd  := &cobra.Command{
+func NewLsCommand() *cobra.Command {
+	lsCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
-		Use:    "ls",
-		Short:  "Ls files (show 50 only)",
-		PreRun: StartLocalServices,
-		Run:    printLs,
+		Use:         "ls",
+		Short:       "Ls files (show 50 only)",
+		Example:     `"qor ls", "qor ls --json"`,
+		PreRun:      StartLocalServices,
+		Run:         printLs,
 	}
 	lsCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
 	return lsCmd
@@ -62,7 +61,7 @@ func printLs(cmd *cobra.Command, args []string) {
 func printFile2Stdin(response []*responseRow) {
 	if !IsJSON {
 		data := formatResponse2Array(response)
-		renderTable2Stdin(lsHeaders, data)
+		Local.RenderTable2Stdin(lsHeaders, data)
 	} else {
 		bytes, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
@@ -108,13 +107,6 @@ func buildDataRowFromFile(file *types.File) *responseRow {
 		row.Status = enabled
 	}
 	return &row
-}
-
-func renderTable2Stdin(header []string, data [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader(header)
-	table.AppendBulk(data)
-	table.Render() // Send output
 }
 
 func formatResponse2Array(rows []*responseRow) [][]string {

@@ -15,8 +15,9 @@ func NewScoreCommand() *cobra.Command {
 		Annotations: map[string]string{"group": "info"},
 		Use:         "score",
 		Short:       "Score per file",
-		PreRun:      StartLocalServices,
-		Run:         scoreFile,
+
+		PreRun: StartLocalServices,
+		Run:    scoreFile,
 	}
 	scoreCommand.Flags().StringVarP(&scoreFileName, "files", "f", "", "File to score")
 	scoreCommand.Flags().StringVarP(&scoreFileVersion, "version", "v", "", "Version of file to score")

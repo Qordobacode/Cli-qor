@@ -57,6 +57,7 @@ func init() {
 		segment.NewAddKeyCommand(),
 		segment.NewUpdateSegmentCommand(),
 		segment.NewDeleteSegmentCommand(),
+		segment.NewValueKeyCommand(),
 
 		info.NewCmdVersion(),
 		info.NewLsCommand(),

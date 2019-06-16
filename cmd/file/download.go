@@ -40,14 +40,15 @@ var (
 	isPullSkip         = false
 )
 
-func NewDownloadCommand() *cobra.Command{
+func NewDownloadCommand() *cobra.Command {
 	downloadCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "file"},
-		Use:   "download",
-		Short: "Downloads selected files",
-		Long:  "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
-		PreRun: StartLocalServices,
-		Run:   downloadCommand,
+		Use:         "download",
+		Short:       "Downloads selected files",
+		Long:        "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
+		Example:     `qor download -a en-us,de-de`,
+		PreRun:      StartLocalServices,
+		Run:         downloadCommand,
 	}
 
 	downloadCmd.Flags().BoolVarP(&isDownloadCurrent, "current", "c", false, "Pull the current state of the files")

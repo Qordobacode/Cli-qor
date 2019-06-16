@@ -19,6 +19,7 @@ func NewPushCmd() *cobra.Command {
 		Annotations: map[string]string{"group": "file"},
 		Use:         "push",
 		Short:       "Push files or folders",
+		Example:     `qor push --files testing.json --version 1.1 --verbose`,
 		PreRun:      StartLocalServices,
 		Run:         pushCommand,
 	}

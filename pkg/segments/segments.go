@@ -61,13 +61,9 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 
 // UpdateKey function update key
 func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
-	base := s.Config.GetAPIBase()
-	file, personaID := s.FileService.FindFile(fileName, version, false)
-	if file == nil {
-		return
-	}
-	segment := s.FindSegment(base, keyAddRequest.Key, personaID, file)
+	segment, file := s.FindSegment(fileName, version, keyAddRequest.Key)
 	if segment != nil {
+		base := s.Config.GetAPIBase()
 		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
 		valueUpdateRequest := &types.ValueKeyUpdateRequest{
 			Segment:         keyAddRequest.Source,
@@ -75,44 +71,7 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 		}
 		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, valueUpdateRequest)
 		handleUpdateKeyResult(resp, err)
-	} else {
-		if version != "" {
-			log.Errorf("Segment %s in %s %s was not found", keyAddRequest.Key, fileName, version)
-			return
-		}
-		log.Errorf("Segment %s in %s was not found", keyAddRequest.Key, fileName)
 	}
-}
-
-func (s *SegmentService) FindSegment(base, segmentName string, personaID int, file *types.File) *types.Segment {
-	workspaceData, err := s.WorkspaceService.LoadWorkspace()
-	if err != nil {
-		log.Errorf("error occurred on retrieving workspace workspaceData ")
-		return nil
-	}
-	for _, workflow := range workspaceData.Workflow {
-		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, personaID, file.FileID, workflow.ID, segmentName)
-		fmt.Printf("segment = %v\n", getSegmentRequest)
-		resp, err := s.QordobaClient.GetFromServer(getSegmentRequest)
-		if err != nil {
-			log.Debugf("error occurred: %v", err)
-			continue
-		}
-		var segmentSearchResponse types.SegmentSearchResponse
-		err = json.Unmarshal(resp, &segmentSearchResponse)
-		if err != nil {
-			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)
-			continue
-		}
-		bytes, _ := json.Marshal(segmentSearchResponse)
-		log.Debugf("segmentSearch response = %s", string(bytes))
-		for _, segment := range segmentSearchResponse.Segments {
-			if segment.StringKey == segmentName {
-				return &segment
-			}
-		}
-	}
-	return nil
 }
 
 func handleUpdateKeyResult(resp *http.Response, err error) {
@@ -133,13 +92,9 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 }
 
 func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
-	base := s.Config.GetAPIBase()
-	file, personaID := s.FileService.FindFile(fileName, version, false)
-	if file == nil {
-		return
-	}
-	segment := s.FindSegment(base, segmentKey, personaID, file)
+	segment, file := s.FindSegment(fileName, version, segmentKey)
 	if segment != nil {
+		base := s.Config.GetAPIBase()
 		updateKeyRequestURL := fmt.Sprintf(keyDeleteTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
 		_, err := s.QordobaClient.DeleteFromServer(updateKeyRequestURL)
 		if err == nil {
@@ -149,11 +104,52 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 				log.Infof("Segment %v was successfully deleted from %s", segmentKey, fileName)
 			}
 		}
-	} else {
-		if version != "" {
-			log.Errorf("Segment %s in %s %s was not found", segmentKey, fileName, version)
-			return
-		}
-		log.Errorf("Segment %s in %s was not found", segmentKey, fileName)
 	}
+}
+
+func (s *SegmentService) FindSegment(fileName, fileVersion, key string) (*types.Segment, *types.File) {
+	base := s.Config.GetAPIBase()
+	file, personaID := s.FileService.FindFile(fileName, fileVersion, false)
+	if file == nil {
+		return nil, nil
+	}
+	segment := s.findFileSegment(base, key, personaID, file)
+	if segment == nil {
+		if fileVersion != "" {
+			log.Errorf("Segment %s in %s - %s was not found", key, fileName, fileVersion)
+		} else {
+			log.Errorf("Segment %s in %s was not found", key, fileName)
+		}
+	}
+	return segment, file
+}
+
+func (s *SegmentService) findFileSegment(base, segmentName string, personaID int, file *types.File) *types.Segment {
+	workspaceData, err := s.WorkspaceService.LoadWorkspace()
+	if err != nil {
+		log.Errorf("error occurred on retrieving workspace workspaceData ")
+		return nil
+	}
+	for _, workflow := range workspaceData.Workflow {
+		getSegmentRequest := fmt.Sprintf(getSegmentTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, personaID, file.FileID, workflow.ID, segmentName)
+		resp, err := s.QordobaClient.GetFromServer(getSegmentRequest)
+		if err != nil {
+			log.Debugf("error occurred: %v", err)
+			continue
+		}
+		var segmentSearchResponse types.SegmentSearchResponse
+		err = json.Unmarshal(resp, &segmentSearchResponse)
+		if err != nil {
+			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)
+			continue
+		}
+		bytes, _ := json.Marshal(segmentSearchResponse)
+		log.Debugf("segmentSearch response = %s", string(bytes))
+		for _, segment := range segmentSearchResponse.Segments {
+			if segment.StringKey == segmentName {
+				return &segment
+			}
+		}
+	}
+	return nil
 }

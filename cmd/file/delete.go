@@ -12,10 +12,11 @@ var (
 func NewDeleteFileCmd() *cobra.Command {
 	deleteCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "file"},
-		Use:   "delete",
-		Short: "Delete files from workspace",
-		PreRun: StartLocalServices,
-		Run:   deleteFile,
+		Use:         "delete",
+		Short:       "Delete files from workspace",
+		Example:     "qor delete file_name.doc --version 1",
+		PreRun:      StartLocalServices,
+		Run:         deleteFile,
 	}
 	deleteCmd.Flags().StringVar(&deleteFileVersion, "version", "", "version of file to delete")
 	return deleteCmd

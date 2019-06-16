@@ -34,7 +34,8 @@ func NewUpdateSegmentCommand() *cobra.Command {
 		Annotations: map[string]string{"group": "segment"},
 		Use:         "update-value",
 		Short:       "Update value by key",
-		PreRun:      StartLocalServices,
+		Example:     `qor update-value file_name.doc --version v1 --key "/go_nav_menu" --value "text text text" --ref "Main nav text"`,
+		PreRunE:     preValidateUpdateKeyParameters,
 		Run:         updateValue,
 	}
 

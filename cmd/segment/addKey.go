@@ -20,6 +20,7 @@ func NewAddKeyCommand() *cobra.Command {
 		Annotations: map[string]string{"group": "segment"},
 		Use:         "add-key",
 		Short:       "Add segments into file",
+		Example:     `qor add-key file_name.doc --version v1 --key "/go_nav_menu" --value "text text text" --ref "Main nav text"`,
 		PreRunE:     preValidateAddKeyParameters,
 		Run:         addKey,
 	}

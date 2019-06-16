@@ -20,13 +20,14 @@ var (
 	statusFileVersion string
 )
 
-func NewStatusCommand() *cobra.Command{
+func NewStatusCommand() *cobra.Command {
 	statusCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
-		Use:   "status",
-		Short: "Status per project or file (Support file versions)",
-		Run:   runStatus,
-		PreRun: StartLocalServices,
+		Use:         "status",
+		Short:       "Status per project or file (Support file versions)",
+		Example:     `"qor status", "qor status --json", "qor status filename.docx --version 0.2"`,
+		Run:         runStatus,
+		PreRun:      StartLocalServices,
 	}
 	statusCmd.Flags().StringVarP(&statusFileVersion, "version", "v", "", "--version")
 	statusCmd.PersistentFlags().BoolVar(&IsJSON, "json", false, "Print output in JSON format")
@@ -68,15 +69,15 @@ func buildProjectStatus(workspace *types.WorkspaceData) {
 
 func printProjectStatus2Stdin(header []string, tableData [][]string, dataJson []map[string]string) {
 	if !IsJSON {
-		renderTable2Stdin(header, tableData)
-	} else {
-		bytes, err := json.MarshalIndent(dataJson, "", "  ")
-		if err != nil {
-			log.Errorf("error occurred on marshalling with JSON: %v", err)
-			return
-		}
-		log.Infof("%v", string(bytes))
+		Local.RenderTable2Stdin(header, tableData)
+		return
 	}
+	bytes, err := json.MarshalIndent(dataJson, "", "  ")
+	if err != nil {
+		log.Errorf("error occurred on marshalling with JSON: %v", err)
+		return
+	}
+	log.Infof("%v", string(bytes))
 }
 
 func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse {

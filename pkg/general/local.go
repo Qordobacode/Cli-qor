@@ -3,6 +3,7 @@ package general
 import (
 	"errors"
 	"fmt"
+	"github.com/olekukonko/tablewriter"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"io/ioutil"
@@ -152,7 +153,6 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	for k := range fileMap {
 		result = append(result, k)
 	}
-
 	return result
 }
 
@@ -183,4 +183,11 @@ func addIfFiles(path string, fileMap map[string]bool) {
 	if !pathStat.IsDir() {
 		fileMap[path] = true
 	}
+}
+
+func (*Local) RenderTable2Stdin(header []string, data [][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(header)
+	table.AppendBulk(data)
+	table.Render() // Send output
 }

@@ -21,6 +21,7 @@ type Local interface {
 	PutInHome(fileName string, body []byte)
 	LoadCached(cachedFileName string) ([]byte, error)
 	FilesInFolder(folderPath string) []string
+	RenderTable2Stdin(header []string, data [][]string)
 }
 
 type ConfigurationService interface {
@@ -46,7 +47,7 @@ type FileService interface {
 }
 
 type SegmentService interface {
-	FindSegment(base, segmentName string, personaID int, file *types.File) *types.Segment
+	FindSegment(fileName, fileVersion, key string) (*types.Segment, *types.File)
 	AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest)
 	UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest)
 	DeleteKey(fileName, version, segmentKey string)

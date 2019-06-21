@@ -36,8 +36,8 @@ func (f *Service) PushFiles(fileList []string, version string) {
 	// let all error logs go before final messages
 	time.Sleep(time.Second)
 	totalFilesPushed := 0
-	for _, file := range filteredFileList {
-		totalFilesPushed += f.pushFile(file, jobs)
+	for i := range filteredFileList {
+		totalFilesPushed += f.pushFile(filteredFileList[i], jobs)
 	}
 	close(jobs)
 	for i := 0; i < totalFilesPushed; i++ {
@@ -85,7 +85,7 @@ func (f *Service) pushFile(filePath string, jobs chan *pushFileTask) int {
 		return 0
 	}
 	if fileInfo.IsDir() {
-		return f.handleDirectory2Push(filePath, jobs)
+		return 0
 	}
 	jobs <- &pushFileTask{
 		FilePath: filePath,
@@ -136,7 +136,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Errorf("File %s push status: %v. Response : %v", filePath, resp.Status, string(body))
+			log.Errorf("File %s push status: %v. Response: %v", filePath, resp.Status, string(body))
 		}
 	} else {
 		if version == "" {

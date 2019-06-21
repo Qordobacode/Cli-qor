@@ -25,7 +25,7 @@ func NewPushCmd() *cobra.Command {
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
-	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", " push entire (relative) file paths")
+	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", ".", "Push entire (relative) file paths")
 	return pushCmd
 }
 
@@ -50,7 +50,6 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			argFiles := filepath.SplitList(arg)
 			fileList = append(fileList, argFiles...)
 		}
-		log.Infof("Result list of files from line is: %v", fileList)
 		for _, file := range fileList {
 			fileService.PushFolder(file, pushVersion)
 		}

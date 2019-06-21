@@ -135,6 +135,9 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+		}
+		if resp.StatusCode == http.StatusRequestEntityTooLarge {
+			log.Errorf("File %v (%v bytes) is too large for server", fileInfo.Name(), fileInfo.Size())
 		} else {
 			log.Errorf("File %s push status: %v. Response: %v", filePath, resp.Status, string(body))
 		}

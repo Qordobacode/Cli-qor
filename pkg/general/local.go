@@ -56,21 +56,18 @@ func (*Local) Write(fileName string, body []byte) {
 
 // BuildFileName according to stored file name and version
 func (*Local) BuildFileName(file *types.File, suffix string) string {
-	fileNames := strings.SplitN(file.Filename, ".", 2)
 	if file.Version != "" {
 		if suffix != "" {
-			suffix = suffix + "_" + file.Version
+			suffix = file.Version + "_" + suffix
 		} else {
 			suffix = file.Version
 		}
 	}
-	resultName := file.Filename
-	if suffix != "" {
-		if len(fileNames) > 1 {
-			resultName = fileNames[0] + "_" + suffix + "." + fileNames[1]
-		}
-		resultName = file.Filename + "_" + suffix
+	fileNames := strings.Split(file.Filename, ".")
+	if len(fileNames) > 1 && suffix != "" {
+		fileNames[len(fileNames)-2] = fileNames[len(fileNames)-2] + "_" + suffix
 	}
+	resultName := strings.Join(fileNames, ".")
 	resultName = forbiddenInFileNameSymbols.ReplaceAllString(resultName, "")
 	return resultName
 }

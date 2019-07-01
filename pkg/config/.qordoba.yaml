@@ -1,0 +1,17 @@
+qordoba:
+  access_token: access_token
+  organization_id: 9
+  workspace_id: 365
+  audiences_map: {}
+push:
+  sources:
+    files:
+    - C:\data\golang-example\qordoba-example-formats\pot2\core.qordoba-pot2
+    - C:\data\golang-example\qordoba-example-formats\resx\exaple.resx
+    folders: []
+download:
+  targets: []
+blacklist:
+  sources:
+    - ".*.strings"
+base_url: "https://app.qordobadev.com/"

@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "fileId": 7637,
+      "enabled": false,
+      "completed": false,
+      "preparing": true,
+      "filename": "test.json",
+      "filepath": "test.json",
+      "version": "",
+      "tags": [],
+      "update": 1560524709000,
+      "createdAt": 1560524710000,
+      "deleted": false,
+      "byWorkflowProgress": []
+    }
+  ],
+  "byPersonaProgress": []
+}

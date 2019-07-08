@@ -64,11 +64,16 @@ func (f *Service) callFileRequestAndHandle(getUserFiles string) (*types.FileSear
 }
 
 // FindFile function search for file by its name and version
+// Returns file if it was found AND Persona_ID, for which that file was found
 func (f *Service) FindFile(fileName, version string, withProgressStatus bool) (*types.File, int) {
 	if version != "" {
 		log.Debugf("FindFile was called for file '%v %v')", fileName, version)
 	} else {
 		log.Debugf("FindFile was called for file '%v'", fileName)
+	}
+	if fileName == "" {
+		log.Errorf("file name can't be empty")
+		return nil, 0
 	}
 	workspace, err := f.WorkspaceService.LoadWorkspace()
 	if err != nil {

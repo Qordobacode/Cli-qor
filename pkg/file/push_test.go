@@ -1,13 +1,13 @@
 package file
 
 import (
-	"github.com/stretchr/testify/assert"
-	"path/filepath"
+	"github.com/golang/mock/gomock"
 	"testing"
 )
 
-func Test_Example(t *testing.T) {
-	matched, err := filepath.Match("*.strings", "C:\\data\\go\\src\\github.com\\qordobacode\\cli-v2\\test\\general\\rest.strings")
-	assert.Nil(t, err)
-	assert.True(t, matched)
+func TestService_PushFolder(t *testing.T) {
+	filesList := []string{"test.yaml"}
+	service := buildFileService(t)
+	local.EXPECT().FilesInFolder(gomock.Any()).Return(filesList)
+	service.PushFolder(".", "")
 }

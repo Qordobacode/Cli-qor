@@ -128,7 +128,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	}
 	resp, err := f.QordobaClient.PostToServer(pushFileURL, pushRequest)
 	if err != nil {
-		log.Errorf("error occurred on building file post request: %v", err)
+		log.Errorf("error occurred on post to server: %v", err)
 		return
 	}
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -137,7 +137,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		}
 		if resp.StatusCode == http.StatusRequestEntityTooLarge {
-			log.Errorf("File %v (%v bytes) is too large for server", fileInfo.Name(), fileInfo.Size())
+			log.Errorf("File %v (%v bytes) is too large for server. %v", fileInfo.Name(), fileInfo.Size(), string(body))
 		} else {
 			log.Errorf("File %s push status: %v. Response: %v", filePath, resp.Status, string(body))
 		}

@@ -54,7 +54,7 @@ func (w *Service) cachedWorkspace() (*types.WorkspaceResponse, error) {
 	var workspaceResponse types.WorkspaceResponse
 	err = json.Unmarshal(bodyBytes, &workspaceResponse)
 	if err != nil {
-		log.Errorf("error occurred on request for workspace: %v", err)
+		log.Errorf("error occurred on cached workspace read: %v", err)
 		return nil, err
 	}
 	return &workspaceResponse, nil

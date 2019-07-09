@@ -85,3 +85,9 @@ func Test_RenderTable2Stdin(t *testing.T) {
 	}
 	localService.RenderTable2Stdin(header, data)
 }
+
+func TestLocal_LoadCached(t *testing.T) {
+	bytes, err := localService.LoadCached("file.txt")
+	assert.Nil(t, bytes)
+	assert.NotNil(t, err)
+}

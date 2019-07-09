@@ -40,6 +40,7 @@ func NewLsCommand() *cobra.Command {
 func printLs(cmd *cobra.Command, args []string) {
 	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil {
+		log.Errorf("configuration error: %v", err)
 		return
 	}
 	data := make([]*responseRow, 0)
@@ -94,7 +95,6 @@ func buildDataRowFromFile(file *types.File) *responseRow {
 	for _, tag := range file.Tags {
 		tags = append(tags, tag.Name)
 	}
-	// strconv.Itoa
 	row := responseRow{
 		ID:          file.FileID,
 		Name:        file.Filename,

@@ -49,7 +49,7 @@ func NewDownloadCommand() *cobra.Command {
 		Long:        "Default file download command will give you two things  A)only the completed files B) will give you all the files (all locals and audiences without source file)",
 		Example:     `qor download -a en-us,de-de`,
 		PreRun:      startLocalServices,
-		Run:         downloadCommand,
+		Run:         downloadFiles,
 	}
 
 	downloadCmd.Flags().BoolVarP(&isDownloadCurrent, "current", "c", false, "Pull the current state of the files")
@@ -60,7 +60,7 @@ func NewDownloadCommand() *cobra.Command {
 	return downloadCmd
 }
 
-func downloadCommand(cmd *cobra.Command, args []string) {
+func downloadFiles(cmd *cobra.Command, args []string) {
 	if appConfig == nil {
 		log.Errorf("error occurred on configuration load")
 		return

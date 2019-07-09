@@ -82,7 +82,7 @@ func readVariable(header, errMessage string, scanner *bufio.Scanner) string {
 	}
 }
 
-func readIntVariable(header, errMesage string, scanner *bufio.Scanner) int64 {
+func readIntVariable(header, errMessage string, scanner *bufio.Scanner) int64 {
 	for {
 		fmt.Print(header)
 		scanner.Scan()
@@ -93,6 +93,6 @@ func readIntVariable(header, errMesage string, scanner *bufio.Scanner) int64 {
 				return num
 			}
 		}
-		fmt.Printf(errMesage)
+		fmt.Printf(errMessage)
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime/debug"
 	"time"
 )
 
@@ -73,8 +74,7 @@ func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}
 	base := f.Config.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
-		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version)
-		results <- struct{}{}
+		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results)
 	}
 }
 
@@ -117,7 +117,13 @@ type pushFileTask struct {
 	fileInfo os.FileInfo
 }
 
-func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string) {
+func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string, results chan struct{}) {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("Recovered in sendFileToServer: %v\n%s\n", err, debug.Stack())
+		}
+		results <- struct{}{}
+	}()
 	if fileInfo.IsDir() {
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return

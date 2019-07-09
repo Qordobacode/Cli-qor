@@ -65,9 +65,23 @@ func TestNewLsCommand(t *testing.T) {
 	printLs(lsCommand, []string{})
 }
 
+func TestNewLsCommandNilConfig(t *testing.T) {
+	lsCommand := NewLsCommand()
+	startConfig(t)
+	appConfig = nil
+	printLs(lsCommand, []string{})
+}
+
 func TestNewScoreCommand(t *testing.T) {
 	scoreCommand := NewScoreCommand()
 	startConfig(t)
+	scoreFile(scoreCommand, []string{"result.yaml"})
+}
+
+func TestNewScoreCommandNilConfig(t *testing.T) {
+	scoreCommand := NewScoreCommand()
+	startConfig(t)
+	appConfig = nil
 	scoreFile(scoreCommand, []string{"result.yaml"})
 }
 
@@ -75,4 +89,16 @@ func TestNewStatusCommand(t *testing.T) {
 	statusCommand := NewStatusCommand()
 	startConfig(t)
 	runStatus(statusCommand, []string{"result.yaml"})
+}
+
+func TestNewStatusCommandNilConfig(t *testing.T) {
+	statusCommand := NewStatusCommand()
+	startConfig(t)
+	appConfig = nil
+	runStatus(statusCommand, []string{"result.yaml"})
+}
+
+func TestNewCmdVersion(t *testing.T) {
+	version := NewCmdVersion()
+	version.Run(version, []string{})
 }

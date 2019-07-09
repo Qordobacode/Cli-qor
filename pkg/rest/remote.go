@@ -22,7 +22,7 @@ const (
 // Client implements pkg.Client
 type Client struct {
 	Config     *types.Config
-	HTTPClient http.Client
+	HTTPClient *http.Client
 }
 
 // NewRestClient create new instance of RestClient
@@ -36,7 +36,7 @@ func NewRestClient(qordobaConfig *types.Config) *Client {
 		DisableKeepAlives:   true,
 	}
 	return &Client{
-		HTTPClient: http.Client{
+		HTTPClient: &http.Client{
 			Timeout:   time.Minute * 1,
 			Transport: transport,
 		},

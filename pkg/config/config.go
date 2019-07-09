@@ -133,6 +133,10 @@ func (c *ConfigurationService) readConfig(home, filename string) (*types.Config,
 
 // validateConfigCorrect validates config file is correct
 func validateConfigCorrect(config *types.Config) {
+	if config == nil {
+		log.Errorf("qordoba config was not found")
+		os.Exit(1)
+	}
 	if config.Qordoba.AccessToken == "" {
 		log.Errorf("qordoba.access_token is not set")
 		os.Exit(1)

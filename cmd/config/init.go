@@ -3,6 +3,7 @@ package config
 import (
 	"bufio"
 	"fmt"
+	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/config"
 	"github.com/qordobacode/cli-v2/pkg/general"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -13,10 +14,7 @@ import (
 )
 
 var (
-	local                *general.Local
-	configurationService = config.ConfigurationService{
-		Local: local,
-	}
+	configurationService pkg.ConfigurationService
 )
 
 // NewInitCmd function create `init` command
@@ -27,6 +25,10 @@ func NewInitCmd() *cobra.Command {
 		RunE:        RunInitRoot,
 		Example:     `"qor init", "qor init qordobaconfig.yaml"`,
 		Annotations: map[string]string{"group": "init"},
+	}
+	var local *general.Local
+	configurationService = &config.ConfigurationService{
+		Local: local,
 	}
 	return initCmd
 }

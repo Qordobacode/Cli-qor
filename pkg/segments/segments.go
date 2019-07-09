@@ -86,7 +86,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
 		} else {
-			log.Errorf("Segment update status: %v. Response: %v", resp.Status, string(body))
+			log.Errorf("Error on update key: %v. Response: %v", resp.Status, string(body))
 		}
 	} else {
 		log.Info("Segment was successfully updated")
@@ -107,6 +107,8 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 				log.Infof("Segment %v was successfully deleted from %s", segmentKey, fileName)
 			}
 		}
+	} else {
+		log.Errorf("Segment %v in %v was not found", segmentKey, fileName)
 	}
 }
 

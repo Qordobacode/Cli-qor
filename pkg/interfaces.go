@@ -9,7 +9,7 @@ import (
 type QordobaClient interface {
 	GetFromServer(getURL string) ([]byte, error)
 	PostToServer(postURL string, requestBody interface{}) (*http.Response, error)
-	PutToServer(postURL string, requestBody interface{}) (*http.Response, error)
+	PutToServer(putURL string, requestBody interface{}) (*http.Response, error)
 	DeleteFromServer(deleteURL string) ([]byte, error)
 }
 

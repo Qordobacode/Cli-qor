@@ -58,9 +58,9 @@ func RunInitRoot(cmd *cobra.Command, args []string) error {
 
 func buildConfigFromStdin() *types.Config {
 	scanner := bufio.NewScanner(os.Stdin)
-	accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty\n", scanner)
-	organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty\n", scanner)
-	projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty\n", scanner)
+	accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty", scanner)
+	organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty", scanner)
+	projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty", scanner)
 	return &types.Config{
 		Qordoba: types.QordobaConfig{
 			AccessToken:    accessToken,
@@ -93,6 +93,6 @@ func readIntVariable(header, errMessage string, scanner *bufio.Scanner) int64 {
 				return num
 			}
 		}
-		fmt.Printf(errMessage)
+		log.Errorf(errMessage)
 	}
 }

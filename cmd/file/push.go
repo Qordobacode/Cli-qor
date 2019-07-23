@@ -25,7 +25,7 @@ func NewPushCmd() *cobra.Command {
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
-	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", ".", "Push entire (relative) file paths")
+	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "Push entire (relative) file paths")
 	return pushCmd
 }
 

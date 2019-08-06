@@ -1,7 +1,6 @@
 package file
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -25,7 +24,7 @@ func (f *Service) FileScore(filename, version string) *types.ScoreResponseBody {
 		return nil
 	}
 	var scoreResponseBody types.ScoreResponseBody
-	err = json.Unmarshal(sourceResponse, &scoreResponseBody)
+	err = scoreResponseBody.UnmarshalJSON(sourceResponse)
 	if err != nil {
 		log.Errorf("error occurred on file score response unmarshalling: %v", err)
 		return nil

@@ -24,7 +24,7 @@ func buildClient(t *testing.T) *Client {
 			byteResponse, err := ioutil.ReadAll(req.Body)
 			assert.Nil(t, err)
 			var keyAddRequest types.KeyAddRequest
-			err = json.Unmarshal(byteResponse, &keyAddRequest)
+			err = keyAddRequest.UnmarshalJSON(byteResponse)
 			assert.Nil(t, err)
 			assert.Equal(t, "some-key", keyAddRequest.Key)
 			rw.Write([]byte(`POST RESPONSE`))

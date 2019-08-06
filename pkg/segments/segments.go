@@ -1,7 +1,6 @@
 package segments
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -144,13 +143,11 @@ func (s *SegmentService) findFileSegment(base, segmentName string, personaID int
 			continue
 		}
 		var segmentSearchResponse types.SegmentSearchResponse
-		err = json.Unmarshal(resp, &segmentSearchResponse)
+		err = segmentSearchResponse.UnmarshalJSON(resp)
 		if err != nil {
 			log.Errorf("error occurred on server segmentSearchResponse unmarshalling: %v", err)
 			continue
 		}
-		bytes, _ := json.Marshal(segmentSearchResponse)
-		log.Debugf("segmentSearch response = %s", string(bytes))
 		for _, segment := range segmentSearchResponse.Segments {
 			if segment.StringKey == segmentName {
 				return &segment

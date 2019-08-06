@@ -1,7 +1,6 @@
 package file
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -25,7 +24,7 @@ func (f *Service) deleteFoundFile(file *types.File) {
 		return
 	}
 	var deleteResponse types.FileDeleteResponse
-	err = json.Unmarshal(bytes, &deleteResponse)
+	err = deleteResponse.UnmarshalJSON(bytes)
 	if err != nil {
 		log.Errorf("error occurred on delete response unmarshalling: %v", err)
 		return

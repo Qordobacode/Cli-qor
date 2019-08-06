@@ -27,7 +27,7 @@ type Workspace struct {
 		Name string `json:"name"`
 		Role string `json:"role"`
 	} `json:"createdBy"`
-	CreatedOn      int      `json:"createdOn"`
+	CreatedOn      int64    `json:"createdOn"`
 	ID             int      `json:"id"`
 	Name           string   `json:"name"`
 	OrganizationID int      `json:"organizationId"`

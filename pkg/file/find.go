@@ -1,7 +1,6 @@
 package file
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -55,7 +54,7 @@ func (f *Service) callFileRequestAndHandle(getUserFiles string) (*types.FileSear
 		return nil, err
 	}
 	var response types.FileSearchResponse
-	err = json.Unmarshal(fileBytesResponse, &response)
+	err = response.UnmarshalJSON(fileBytesResponse)
 	if err != nil {
 		log.Errorf("error occurred on server response unmarshalling: %v", err)
 		return nil, err

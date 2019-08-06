@@ -42,6 +42,12 @@ Application Commands:
     - add-key functionality
     
     - update-value functionality
+    
+    - delete-key functionality
+    
+    - value-key  pull value by key functionality
+    
+    - score score per file functionality
    
     Help Options:
       -h, --help            Show this help message    
@@ -60,15 +66,12 @@ bin/tf --version
 
 # Install using Homebrew
 
-Homebrew support is in progress
+```
+brew tap solorad/qor
 
-# Roadmap
-- Update value by key command
-- Create content command
-- Pull value by key command
-- Score per file command
+brew install solorad/qor/qor
+```
 
+**Note:** `Solorad` repository will be soon migrated to `Qordoba` 
 
-  
-  
   

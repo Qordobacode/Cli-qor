@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg"
@@ -52,7 +51,7 @@ func (w *Service) cachedWorkspace() (*types.WorkspaceResponse, error) {
 		return nil, err
 	}
 	var workspaceResponse types.WorkspaceResponse
-	err = json.Unmarshal(bodyBytes, &workspaceResponse)
+	err = workspaceResponse.UnmarshalJSON(bodyBytes)
 	if err != nil {
 		log.Errorf("error occurred on cached workspace read: %v", err)
 		return nil, err
@@ -70,7 +69,7 @@ func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
 		return nil, err
 	}
 	var workspaceResponse types.WorkspaceResponse
-	err = json.Unmarshal(bodyBytes, &workspaceResponse)
+	err = workspaceResponse.UnmarshalJSON(bodyBytes)
 	if err != nil {
 		log.Errorf("error occurred on request for workspace: %v", err)
 		return nil, err

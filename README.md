@@ -73,5 +73,3 @@ brew install solorad/qor/qor
 ```
 
 **Note:** `Solorad` repository will be soon migrated to `Qordoba` 
-
-  

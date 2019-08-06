@@ -60,7 +60,7 @@ func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
 		return viperConfig, nil
 	}
 	validateConfigCorrect(viperConfig)
-	log.Infof("merge of configs between '%s' and home directory was used", viper.ConfigFileUsed())
+	log.Infof("merge of configs between '%s' and home directory was used", viper.ConfigFileUsed()) //comment
 	return viperConfig, nil
 }
 

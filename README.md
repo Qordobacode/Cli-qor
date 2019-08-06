@@ -8,7 +8,7 @@ Usage:
   qor [COMMAND] [OPTIONS]
 
 Application Commands:
-    - init       Init configuration from stdin or from file if path to it would be provided as an argument
+    - init       Init configuration from stdin or from file if path to it would be provided as an argument.
     
     - push       Push all local  files to the Qordoba project.  source
         Supported flags:

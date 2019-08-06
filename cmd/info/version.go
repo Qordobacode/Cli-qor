@@ -8,7 +8,7 @@ import (
 
 // version-related constants
 const (
-	APIVersion = "Qordoba Cli v4.0"
+	APIVersion = "Qordoba Cli v4.0.64"
 )
 
 // NewCmdVersion function create `version` command

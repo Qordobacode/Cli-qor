@@ -8,9 +8,9 @@ Usage:
   qor [COMMAND] [OPTIONS]
 
 Application Commands:
-    - init       Init configuration from stdin or from file if path to it would be provided as an argument
+    - init       Init configuration from stdin or from file if path to it would be provided as an argument.
     
-    - push       Push all local  files to the Qordoba project.  source
+    - push       Push all local  files to the Qordoba project.  source <-
         Supported flags:
             -f, --files            Lists the file paths to upload (Optional)   
             -v, --version          Sets the version (Optional)
@@ -73,5 +73,3 @@ brew install solorad/qor/qor
 ```
 
 **Note:** `Solorad` repository will be soon migrated to `Qordoba` 
-
-  

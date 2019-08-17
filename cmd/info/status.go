@@ -5,17 +5,22 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
+	"sort"
 
 	"github.com/spf13/cobra"
 	"strconv"
 )
 
+const (
+	completed = "Complete"
+)
+
 var (
 	basicHeaders = []string{
-		"#AUDIENSES", "#WORDS", "#SEGMENTS",
+		"#AUDIENSES", "#SEGMENTS", "#WORDS",
 	}
 	fileHeaders = []string{
-		"FILE NAME", "#WORDS", "#SEGMENTS",
+		"FILE NAME", "#SEGMENTS", "#WORDS",
 	}
 	statusFileVersion string
 )
@@ -63,9 +68,19 @@ func buildProjectStatus(workspace *types.WorkspaceData) {
 		return
 	}
 	progress := fileSearchResponse.ByPersonaProgress[0].ByWorkflowProgress
+	reorderProgressStatuses(fileSearchResponse)
 	header := buildTableHeader(progress, basicHeaders)
 	dataRow, dataJSON := buildTableData(fileSearchResponse.ByPersonaProgress, header)
 	printProjectStatus2Stdin(header, dataRow, dataJSON)
+}
+
+func reorderProgressStatuses(fileSearchResponse *types.FileSearchResponse) {
+	progresses := fileSearchResponse.ByPersonaProgress
+	for k, _ := range progresses {
+		sort.Slice(progresses[k].ByWorkflowProgress, func(i, j int) bool {
+			return progresses[k].ByWorkflowProgress[i].Workflow.Order < progresses[k].ByWorkflowProgress[j].Workflow.Order
+		})
+	}
 }
 
 func printProjectStatus2Stdin(header []string, tableData [][]string, dataJSON []map[string]string) {
@@ -99,8 +114,16 @@ func getFileSearchResponse(response *types.Workspace) *types.FileSearchResponse 
 func buildTableHeader(workflowProgress []types.ByWorkflowProgress, headers []string) []string {
 	result := make([]string, 0, len(workflowProgress)+len(headers))
 	result = append(result, headers...)
+	completedVal := false
 	for _, workflowState := range workflowProgress {
-		result = append(result, workflowState.Workflow.Name)
+		if workflowState.Workflow.Complete {
+			completedVal = true
+		} else {
+			result = append(result, workflowState.Workflow.Name)
+		}
+	}
+	if completedVal {
+		result = append(result, completed)
 	}
 	return result
 }
@@ -130,17 +153,27 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 		totalWords += workflowProgress.Counts.WordCount
 		totalSegments += workflowProgress.Counts.SegmentCount
 	}
-	row[1] = strconv.Itoa(totalWords)
-	rowMap["words_total"] = row[1]
-	row[2] = strconv.Itoa(totalSegments)
-	rowMap["segments_total"] = row[2]
+	row[1] = strconv.Itoa(totalSegments)
+	rowMap["segments_total"] = row[1]
+	row[2] = strconv.Itoa(totalWords)
+	rowMap["words_total"] = row[2]
 	i := 0
+	completedVal := ""
 	// same order in iteration as it was on header filling step
 	for _, workflowProgress := range personProgress.ByWorkflowProgress {
 		percent := float64(workflowProgress.Counts.SegmentCount) / float64(totalSegments) * 100
-		row[i+3] = fmt.Sprintf(`%6.2f%%`, percent)
-		rowMap[workflowProgress.Workflow.Name] = row[i+3]
-		i++
+		val := fmt.Sprintf(`%6.2f%%`, percent)
+		if workflowProgress.Workflow.Complete {
+			rowMap[completed] = val
+			completedVal = val
+		} else {
+			row[i+3] = val
+			rowMap[workflowProgress.Workflow.Name] = row[i+3]
+			i++
+		}
+	}
+	if completedVal != "" {
+		row[i+3] = completedVal
 	}
 	return row, rowMap
 }
@@ -162,10 +195,10 @@ func buildFileTableData(file *types.File) ([][]string, []map[string]string) {
 	fileRow := make([]string, 0, 0)
 	JSONdocument := make(map[string]string)
 	fileRow[0] = file.Filename + " " + file.Version
-	fileRow[1] = strconv.Itoa(file.Counts.WordCount)
-	JSONdocument["words"] = fileRow[1]
-	fileRow[2] = strconv.Itoa(file.Counts.SegmentCount)
-	JSONdocument["segments"] = fileRow[2]
+	fileRow[1] = strconv.Itoa(file.Counts.SegmentCount)
+	JSONdocument["segments"] = fileRow[1]
+	fileRow[2] = strconv.Itoa(file.Counts.WordCount)
+	JSONdocument["words"] = fileRow[2]
 	JSONdocument["file_name"] = file.Filename
 	JSONdocument["version"] = file.Version
 	JSONdocument["file_id"] = strconv.Itoa(file.FileID)

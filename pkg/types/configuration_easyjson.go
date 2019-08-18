@@ -303,6 +303,8 @@ func easyjsonA0a30a08DecodeGithubComQordobacodeCliV2PkgTypes2(in *jlexer.Lexer, 
 		switch key {
 		case "Sources":
 			(out.Sources).UnmarshalEasyJSON(in)
+		case "LanguageCode":
+			out.LanguageCode = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -321,6 +323,11 @@ func easyjsonA0a30a08EncodeGithubComQordobacodeCliV2PkgTypes2(out *jwriter.Write
 		const prefix string = ",\"Sources\":"
 		out.RawString(prefix[1:])
 		(in.Sources).MarshalEasyJSON(out)
+	}
+	{
+		const prefix string = ",\"LanguageCode\":"
+		out.RawString(prefix)
+		out.String(string(in.LanguageCode))
 	}
 	out.RawByte('}')
 }

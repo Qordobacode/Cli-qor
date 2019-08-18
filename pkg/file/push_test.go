@@ -1,9 +1,12 @@
 package file
 
 import (
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -25,4 +28,10 @@ func TestService_PushFiles(t *testing.T) {
 	}
 	client.EXPECT().PostToServer(gomock.Any(), gomock.Any()).Return(&resp, nil)
 	service.PushFiles(filesList, "v1")
+}
+
+func Test_Test(t *testing.T) {
+	dir, _ := os.Getwd()
+	relativeFilePath, _ := filepath.Rel(dir, `C:\data\code\Cli-qor\test\csv\core.csv`)
+	fmt.Printf("path = %s", relativeFilePath)
 }

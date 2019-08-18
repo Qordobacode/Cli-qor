@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime/debug"
+	"strings"
 	"time"
 )
 
@@ -24,7 +25,7 @@ func (f *Service) PushFolder(folder, version string) {
 	f.PushFiles(fileList, version)
 }
 
-// PushFiles function push array of files to server with secified version
+// PushFiles function push array of files to server with specified version
 func (f *Service) PushFiles(fileList []string, version string) {
 	jobs := make(chan *pushFileTask, 1000)
 	results := make(chan struct{}, 1000)
@@ -48,15 +49,7 @@ func (f *Service) PushFiles(fileList []string, version string) {
 
 func (f *Service) filterFiles(files []string) []string {
 	filteredFiles := make([]string, 0, 0)
-	blacklistRegexp := make([]*regexp.Regexp, 0, len(f.Config.Blacklist.Sources))
-	for _, blackList := range f.Config.Blacklist.Sources {
-		compile, err := regexp.Compile(blackList)
-		if err != nil {
-			log.Errorf("invalid blacklist regexp '%s': %v\n", blackList, err)
-			os.Exit(1)
-		}
-		blacklistRegexp = append(blacklistRegexp, compile)
-	}
+	blacklistRegexp := f.buildBlacklistRegexps()
 fileSearch:
 	for _, file := range files {
 		for _, blackReg := range blacklistRegexp {
@@ -67,7 +60,31 @@ fileSearch:
 		}
 		filteredFiles = append(filteredFiles, file)
 	}
+	if f.Config.Push.LanguageCode != "" {
+		resultedFiles := make([]string, 0, 0)
+		for _, file := range filteredFiles {
+			if !strings.Contains(file, f.Config.Push.LanguageCode) {
+				log.Infof("file %s is not pushed due to doesn't contain %s langage code in path", file, f.Config.Push.LanguageCode)
+				continue
+			}
+			resultedFiles = append(resultedFiles, file)
+		}
+		filteredFiles = resultedFiles
+	}
 	return filteredFiles
+}
+
+func (f *Service) buildBlacklistRegexps() []*regexp.Regexp {
+	blacklistRegexp := make([]*regexp.Regexp, 0, len(f.Config.Blacklist.Sources))
+	for _, blackList := range f.Config.Blacklist.Sources {
+		compile, err := regexp.Compile(blackList)
+		if err != nil {
+			log.Errorf("invalid blacklist regexp '%s': %v\n", blackList, err)
+			os.Exit(1)
+		}
+		blacklistRegexp = append(blacklistRegexp, compile)
+	}
+	return blacklistRegexp
 }
 
 func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
@@ -92,24 +109,6 @@ func (f *Service) pushFile(filePath string, jobs chan *pushFileTask) int {
 		fileInfo: fileInfo,
 	}
 	return 1
-}
-
-func (f *Service) handleDirectory2Push(filePath string, jobs chan *pushFileTask) int {
-	file2Push := 0
-	err := filepath.Walk(filePath, func(path string, childFileInfo os.FileInfo, err error) error {
-		if !childFileInfo.IsDir() {
-			jobs <- &pushFileTask{
-				FilePath: filePath,
-				fileInfo: childFileInfo,
-			}
-			file2Push++
-		}
-		return nil
-	})
-	if err != nil {
-		log.Errorf("error occurred: %v", err)
-	}
-	return file2Push
 }
 
 type pushFileTask struct {
@@ -162,9 +161,13 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 		log.Errorf("can't handle file %s: %v", filePath, err)
 		return nil, err
 	}
+	dir, _ := os.Getwd()
+	relativeFilePath, _ := filepath.Rel(dir, filePath)
+	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  version,
 		Content:  string(fileContent),
+		Filepath: relativeFilePath,
 	}, nil
 }

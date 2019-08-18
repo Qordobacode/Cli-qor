@@ -164,7 +164,7 @@ func buildTableRow(personProgress *types.ByPersonaProgress, header []string) ([]
 		percent := float64(workflowProgress.Counts.SegmentCount) / float64(totalSegments) * 100
 		val := fmt.Sprintf(`%6.2f%%`, percent)
 		if workflowProgress.Workflow.Complete {
-			rowMap[completed] = val
+			///////rowMap[completed] = val*
 			completedVal = val
 		} else {
 			row[i+3] = val

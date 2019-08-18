@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/stretchr/testify/assert"
+	"path/filepath"
 	"testing"
 )
 
@@ -90,4 +91,9 @@ func TestLocal_LoadCached(t *testing.T) {
 	bytes, err := localService.LoadCached("file.txt")
 	assert.Nil(t, bytes)
 	assert.NotNil(t, err)
+}
+
+func Test_Test(t *testing.T) {
+	matches, _ := filepath.Glob("../rest")
+	fmt.Printf("%v\n", matches)
 }

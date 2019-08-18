@@ -5,6 +5,8 @@ type PushRequest struct {
 	FileName string `json:"filename"`
 	Version  string `json:"version"`
 	Content  string `json:"content"`
+	Filepath string `json:"filepath"`
+	Tag      string `json:"tag"`
 }
 
 // WorkspaceResponse is a qordoba general response from obtaining list of workspaces

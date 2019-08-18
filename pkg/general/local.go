@@ -134,6 +134,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	matches, err := filepath.Glob(filePath)
 	result := make([]string, 0)
 	if matches == nil || len(matches) == 0 {
+		// filePath is not regexp
 		res, err := filepath.Abs(filePath)
 		if err == nil {
 			log.Infof("No files were found for %s", res)
@@ -144,10 +145,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	}
 	if err == nil {
 		for _, match := range matches {
-			fileAbsPath, err := filepath.Abs(match)
-			if err == nil {
-				addIfFiles(fileAbsPath, fileMap)
-			}
+			addFilesInMap(match, fileMap)
 		}
 	} else {
 		log.Infof("err occurred on files add: %v", err)
@@ -160,6 +158,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	return result
 }
 
+// recursive function for finding all files in map
 func addFilesInMap(path string, fileMap map[string]bool) {
 	pathStat, err := os.Stat(path)
 	if err != nil {
@@ -172,26 +171,13 @@ func addFilesInMap(path string, fileMap map[string]bool) {
 		}
 		for _, info := range infos {
 			fileName := filepath.Join(path, info.Name())
-			fileName, err = filepath.Abs(fileName)
-			if err == nil {
-				fileMap[fileName] = true
-			}
+			addFilesInMap(fileName, fileMap)
 		}
 	} else {
 		path, err = filepath.Abs(path)
 		if err == nil {
 			fileMap[path] = true
 		}
-	}
-}
-
-func addIfFiles(path string, fileMap map[string]bool) {
-	pathStat, err := os.Stat(path)
-	if err != nil {
-		return
-	}
-	if !pathStat.IsDir() {
-		fileMap[path] = true
 	}
 }
 

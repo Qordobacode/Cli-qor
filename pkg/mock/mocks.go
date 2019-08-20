@@ -140,18 +140,18 @@ func (mr *MockLocalMockRecorder) Write(fileName, fileBytesResponse interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Write", reflect.TypeOf((*MockLocal)(nil).Write), fileName, fileBytesResponse)
 }
 
-// BuildFileName mocks base method
-func (m *MockLocal) BuildFileName(file *types.File, filePathPattern, suffix string) string {
+// BuildDirectoryFilePath mocks base method
+func (m *MockLocal) BuildDirectoryFilePath(file *types.File, filePathPattern, suffix string) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildFileName", file, filePathPattern, suffix)
+	ret := m.ctrl.Call(m, "BuildDirectoryFilePath", file, filePathPattern, suffix)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-// BuildFileName indicates an expected call of BuildFileName
+// BuildDirectoryFilePath indicates an expected call of BuildDirectoryFilePath
 func (mr *MockLocalMockRecorder) BuildFileName(file, suffix interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildFileName", reflect.TypeOf((*MockLocal)(nil).BuildFileName), file, suffix)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BuildDirectoryFilePath", reflect.TypeOf((*MockLocal)(nil).BuildDirectoryFilePath), file, suffix)
 }
 
 // FileExists mocks base method

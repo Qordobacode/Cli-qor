@@ -67,7 +67,7 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 			Filename: asset.FileName,
 			Version:  asset.Version,
 		}
-		fileName := localService.BuildFileName(&file, asset.FilePathParam, asset.Suffix)
+		fileName := localService.BuildDirectoryFilePath(&file, asset.FilePathParam, asset.Suffix)
 		assert.Equal(t, asset.ExpectedFileName, fileName, "asset %+v is incorrect", asset)
 	}
 }

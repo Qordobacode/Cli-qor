@@ -97,15 +97,16 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 
 func worker(jobs chan *file2Download, results chan struct{}) {
 	for j := range jobs {
-		handleFile(j.PersonaID, j.File)
+		handleFile(j)
 		results <- struct{}{}
 	}
 }
 
 // file2Download struct describe chunk of download work
 type file2Download struct {
-	File      *types.File
-	PersonaID int
+	File        *types.File
+	PersonaID   int
+	PersonaName string
 }
 
 func files2Download(workspace *types.Workspace) []*file2Download {
@@ -129,33 +130,34 @@ func files2Download(workspace *types.Workspace) []*file2Download {
 		files := response.Files
 		for i := range files {
 			files2Download = append(files2Download, &file2Download{
-				File:      &files[i],
-				PersonaID: persona.ID,
+				File:        &files[i],
+				PersonaID:   persona.ID,
+				PersonaName: persona.Name,
 			})
 		}
 	}
 	return files2Download
 }
 
-func handleFile(personaID int, file *types.File) {
-	if !file.Completed && !isDownloadCurrent && !isDownloadOriginal {
+func handleFile(j *file2Download) {
+	if !j.File.Completed && !isDownloadCurrent && !isDownloadOriginal {
 		// isDownloadCurrent - skip files with version
-		log.Infof("file %s is not completed. Use flag '-c' or '--current' to download even not completed files", file.Filename)
+		log.Infof("file %s is not completed. Use flag '-c' or '--current' to download even not completed files", j.File.Filename)
 		return
 	}
-	if file.ErrorID != 0 || !file.Enabled {
-		handleInvalidFile(file)
+	if j.File.ErrorID != 0 || !j.File.Enabled {
+		handleInvalidFile(j.File)
 		return
 	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
-			downloadSourceFile(file)
+			downloadSourceFile(j, filePathPattern)
 		}
 		if isDownloadOriginal {
-			downloadOriginalFile(file)
+			downloadOriginalFile(j, filePathPattern)
 		}
 	} else {
-		downloadFile(file, personaID)
+		downloadFile(j, filePathPattern)
 	}
 }
 
@@ -178,27 +180,36 @@ func handleInvalidFile(file *types.File) {
 	}
 }
 
-func downloadFile(file *types.File, personaID int) {
-	fileName := local.BuildFileName(file, filePathPattern, "")
+func downloadFile(j *file2Download, filePathPattern string) {
+	if filePathPattern == "" {
+		filePathPattern = j.PersonaName
+	}
+	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, "")
 	if !isPullSkip || !local.FileExists(fileName) {
-		fileService.DownloadFile(personaID, fileName, file)
+		fileService.DownloadFile(j.PersonaID, fileName, j.File)
 		atomic.AddUint64(&ops, 1)
 	}
 }
 
-func downloadSourceFile(file *types.File) {
-	fileName := local.BuildFileName(file, filePathPattern, "")
-	fileService.DownloadSourceFile(fileName, file, true)
+func downloadSourceFile(j *file2Download, filePathPattern string) {
+	if filePathPattern == "" {
+		filePathPattern = j.PersonaName
+	}
+	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, "")
+	fileService.DownloadSourceFile(fileName, j.File, true)
 	atomic.AddUint64(&ops, 1)
 }
 
-func downloadOriginalFile(file *types.File) {
+func downloadOriginalFile(j *file2Download, filePathPattern string) {
 	suffix := ""
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	fileName := local.BuildFileName(file, filePathPattern, suffix)
-	fileService.DownloadSourceFile(fileName, file, false)
+	if filePathPattern == "" {
+		filePathPattern = j.PersonaName
+	}
+	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, suffix)
+	fileService.DownloadSourceFile(fileName, j.File, false)
 	atomic.AddUint64(&ops, 1)
 }

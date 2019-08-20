@@ -54,8 +54,8 @@ func (l *Local) Write(fileName string, body []byte) {
 	}
 }
 
-// BuildFileName according to stored file name and version
-func (*Local) BuildFileName(file *types.File, filePathPattern, suffix string) string {
+// BuildDirectoryFilePath according to stored file name and version
+func (l *Local) BuildDirectoryFilePath(file *types.File, filePathPattern, suffix string) string {
 	if file.Version != "" {
 		if suffix != "" {
 			suffix = file.Version + "_" + suffix
@@ -63,19 +63,36 @@ func (*Local) BuildFileName(file *types.File, filePathPattern, suffix string) st
 			suffix = file.Version
 		}
 	}
+	resultName := l.buildFileName(file, suffix)
+	fileDir := l.buildDirName(file, filePathPattern)
+	resultName = filepath.Join(fileDir, resultName)
+	return resultName
+}
+
+func (l *Local) buildDirName(file *types.File, filePathPattern string) string {
+	fileDir := strings.ReplaceAll(file.Filepath, "/", string(filepath.Separator))
+	fileDir = filepath.Dir(fileDir)
+	if filePathPattern == "" {
+		return fileDir
+	}
+	splittedPath := filepath.SplitList(fileDir)
+	if len(splittedPath) > 0 {
+		splittedPath[0] = filePathPattern
+	} else {
+		splittedPath = []string{filePathPattern}
+	}
+	fileDir = filepath.Join(splittedPath...)
+	return fileDir
+}
+
+func (*Local) buildFileName(file *types.File, suffix string) string {
 	fileNames := strings.Split(file.Filename, ".")
 	if len(fileNames) > 1 && suffix != "" {
 		fileNames[len(fileNames)-2] = fileNames[len(fileNames)-2] + "_" + suffix
 	}
-	resultName := strings.Join(fileNames, ".")
-	resultName = forbiddenInFileNameSymbols.ReplaceAllString(resultName, "")
-	fileDir := strings.ReplaceAll(file.Filepath, "/", string(filepath.Separator))
-	fileDir = filepath.Dir(fileDir)
-	if filePathPattern != "" && !strings.Contains(fileDir, filePathPattern+string(filepath.Separator)) {
-		fileDir = filepath.Join(filePathPattern, fileDir)
-	}
-	resultName = filepath.Join(fileDir, resultName)
-	return resultName
+	fileName := strings.Join(fileNames, ".")
+	fileName = forbiddenInFileNameSymbols.ReplaceAllString(fileName, "")
+	return fileName
 }
 
 // FileExists checks for file existence

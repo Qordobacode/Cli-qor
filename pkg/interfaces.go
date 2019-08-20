@@ -17,7 +17,7 @@ type QordobaClient interface {
 type Local interface {
 	Read(path string) ([]byte, error)
 	Write(fileName string, fileBytesResponse []byte)
-	BuildFileName(file *types.File, filePathPattern, suffix string) string
+	BuildDirectoryFilePath(file *types.File, filePathPattern, suffix string) string
 	FileExists(path string) bool
 	QordobaHome() (string, error)
 	PutInHome(fileName string, body []byte)

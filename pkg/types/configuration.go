@@ -26,8 +26,8 @@ type QordobaConfig struct {
 
 // PushConfig is push-related part of config
 type PushConfig struct {
-	Sources      SourceConfig `yaml:"sources" mapstructure:"sources"`
-	LanguageCode string       `yaml:"language_code" mapstructure:"language_code"`
+	Folder  string       `yaml:"folder" mapstructure:"folder"`
+	Sources SourceConfig `yaml:"sources" mapstructure:"sources"`
 }
 
 // SourceConfig contains details about source configuration for push config

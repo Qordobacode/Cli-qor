@@ -834,6 +834,10 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes7(in *jlexer.Lexer, 
 			out.Version = string(in.String())
 		case "content":
 			out.Content = string(in.String())
+		case "filepath":
+			out.Filepath = string(in.String())
+		case "tag":
+			out.Tag = string(in.String())
 		default:
 			in.SkipRecursive()
 		}
@@ -862,6 +866,16 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes7(out *jwriter.Write
 		const prefix string = ",\"content\":"
 		out.RawString(prefix)
 		out.String(string(in.Content))
+	}
+	{
+		const prefix string = ",\"filepath\":"
+		out.RawString(prefix)
+		out.String(string(in.Filepath))
+	}
+	{
+		const prefix string = ",\"tag\":"
+		out.RawString(prefix)
+		out.String(string(in.Tag))
 	}
 	out.RawByte('}')
 }

@@ -1,6 +1,7 @@
 package file
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -125,6 +126,8 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 		return
 	}
 	resp, err := f.QordobaClient.PostToServer(pushFileURL, pushRequest)
+	bytes, _ := json.Marshal(pushRequest)
+	fmt.Printf("%s\n", string(bytes))
 	if err != nil {
 		log.Errorf("error occurred on post to server: %v", err)
 		return
@@ -155,7 +158,10 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 		return nil, err
 	}
 	dir, _ := os.Getwd()
-	relativeFilePath, _ := filepath.Rel(dir, filePath)
+	if f.Config.Push.Folder != "" {
+		dir = f.Config.Push.Folder
+	}
+	relativeFilePath, _ := filepath.Rel(dir, filepath.Dir(filePath))
 	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),

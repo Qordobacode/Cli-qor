@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
+	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -25,6 +27,13 @@ func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 		return
 	}
 	log.Infof("file '%s' was downloaded", fileName)
+	if len(f.Config.Push.Sources.Folders) > 0 {
+		fileName = filepath.Join(f.Config.Push.Sources.Folders[0], fileName)
+	}
+	err = os.MkdirAll(filepath.Dir(fileName), 0755)
+	if err != nil {
+		log.Errorf("error occurred on creating new directories")
+	}
 	f.Local.Write(fileName, fileBytesResponse)
 }
 

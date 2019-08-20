@@ -1,7 +1,6 @@
 package file
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -58,10 +57,6 @@ fileSearch:
 				log.Infof("file %s is not pushed due to black list", file)
 				continue fileSearch
 			}
-		}
-		if f.Config.Push.LanguageCode != "" && !strings.Contains(file, f.Config.Push.LanguageCode) {
-			log.Infof("file %s is not pushed due to doesn't contain %s langage code in path", file, f.Config.Push.LanguageCode)
-			continue
 		}
 		filteredFiles = append(filteredFiles, file)
 	}
@@ -126,8 +121,6 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 		return
 	}
 	resp, err := f.QordobaClient.PostToServer(pushFileURL, pushRequest)
-	bytes, _ := json.Marshal(pushRequest)
-	fmt.Printf("%s\n", string(bytes))
 	if err != nil {
 		log.Errorf("error occurred on post to server: %v", err)
 		return
@@ -158,8 +151,8 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 		return nil, err
 	}
 	dir, _ := os.Getwd()
-	if f.Config.Push.Folder != "" {
-		dir = f.Config.Push.Folder
+	if len(f.Config.Push.Sources.Folders) > 0 {
+		dir = f.Config.Push.Sources.Folders[0]
 	}
 	relativeFilePath, _ := filepath.Rel(dir, filepath.Dir(filePath))
 	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")

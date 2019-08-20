@@ -47,7 +47,7 @@ func (l *Local) Read(path string) ([]byte, error) {
 }
 
 // Write function store body parameter as a file locally
-func (*Local) Write(fileName string, body []byte) {
+func (l *Local) Write(fileName string, body []byte) {
 	err := ioutil.WriteFile(fileName, body, defaultFilePerm)
 	if err != nil {
 		log.Errorf("error occurred on writing file: %v", err)

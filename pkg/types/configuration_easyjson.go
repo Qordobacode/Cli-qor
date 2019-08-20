@@ -301,8 +301,6 @@ func easyjsonA0a30a08DecodeGithubComQordobacodeCliV2PkgTypes2(in *jlexer.Lexer, 
 			continue
 		}
 		switch key {
-		case "Folder":
-			out.Folder = string(in.String())
 		case "Sources":
 			(out.Sources).UnmarshalEasyJSON(in)
 		default:
@@ -320,13 +318,8 @@ func easyjsonA0a30a08EncodeGithubComQordobacodeCliV2PkgTypes2(out *jwriter.Write
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"Folder\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Folder))
-	}
-	{
 		const prefix string = ",\"Sources\":"
-		out.RawString(prefix)
+		out.RawString(prefix[1:])
 		(in.Sources).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')

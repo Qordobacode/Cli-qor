@@ -5,6 +5,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
@@ -31,6 +32,7 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 		Version          string
 		Suffix           string
 		ExpectedFileName string
+		FilePathParam    string
 	}{
 		{
 			FileName:         "wip-core.tmp.json",
@@ -52,13 +54,20 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 			Suffix:           "original",
 			ExpectedFileName: "wip-core.tmp_version2_original.json",
 		},
+		{
+			FileName:         "wip-core.tmp.json",
+			Version:          "version2",
+			Suffix:           "original",
+			FilePathParam:    "en-en",
+			ExpectedFileName: "en-en" + string(os.PathSeparator) + "wip-core.tmp_version2_original.json",
+		},
 	}
 	for _, asset := range res {
 		file := types.File{
 			Filename: asset.FileName,
 			Version:  asset.Version,
 		}
-		fileName := localService.BuildFileName(&file, asset.Suffix)
+		fileName := localService.BuildFileName(&file, asset.FilePathParam, asset.Suffix)
 		assert.Equal(t, asset.ExpectedFileName, fileName, "asset %+v is incorrect", asset)
 	}
 }

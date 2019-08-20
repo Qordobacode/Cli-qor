@@ -38,6 +38,7 @@ var (
 	isDownloadSource   = false
 	isDownloadOriginal = false
 	isPullSkip         = false
+	filePathPattern    = ""
 )
 
 // NewDownloadCommand command create `download` command
@@ -57,6 +58,7 @@ func NewDownloadCommand() *cobra.Command {
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
 	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, "Option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
+	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "", "Source code pattern")
 	return downloadCmd
 }
 
@@ -177,7 +179,7 @@ func handleInvalidFile(file *types.File) {
 }
 
 func downloadFile(file *types.File, personaID int) {
-	fileName := local.BuildFileName(file, "")
+	fileName := local.BuildFileName(file, filePathPattern, "")
 	if !isPullSkip || !local.FileExists(fileName) {
 		fileService.DownloadFile(personaID, fileName, file)
 		atomic.AddUint64(&ops, 1)
@@ -185,7 +187,7 @@ func downloadFile(file *types.File, personaID int) {
 }
 
 func downloadSourceFile(file *types.File) {
-	fileName := local.BuildFileName(file, "")
+	fileName := local.BuildFileName(file, filePathPattern, "")
 	fileService.DownloadSourceFile(fileName, file, true)
 	atomic.AddUint64(&ops, 1)
 }
@@ -196,7 +198,7 @@ func downloadOriginalFile(file *types.File) {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	fileName := local.BuildFileName(file, suffix)
+	fileName := local.BuildFileName(file, filePathPattern, suffix)
 	fileService.DownloadSourceFile(fileName, file, false)
 	atomic.AddUint64(&ops, 1)
 }

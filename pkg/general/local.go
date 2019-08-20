@@ -55,7 +55,7 @@ func (l *Local) Write(fileName string, body []byte) {
 }
 
 // BuildFileName according to stored file name and version
-func (*Local) BuildFileName(file *types.File, suffix string) string {
+func (*Local) BuildFileName(file *types.File, filePathPattern, suffix string) string {
 	if file.Version != "" {
 		if suffix != "" {
 			suffix = file.Version + "_" + suffix
@@ -70,7 +70,11 @@ func (*Local) BuildFileName(file *types.File, suffix string) string {
 	resultName := strings.Join(fileNames, ".")
 	resultName = forbiddenInFileNameSymbols.ReplaceAllString(resultName, "")
 	fileDir := strings.ReplaceAll(file.Filepath, "/", string(filepath.Separator))
-	resultName = filepath.Join(filepath.Dir(fileDir), resultName)
+	fileDir = filepath.Dir(fileDir)
+	if filePathPattern != "" && !strings.Contains(fileDir, filePathPattern+string(filepath.Separator)) {
+		fileDir = filepath.Join(filePathPattern, fileDir)
+	}
+	resultName = filepath.Join(fileDir, resultName)
 	return resultName
 }
 

@@ -21,10 +21,10 @@ func (f *Service) DownloadFile(personaID int, fileName string, file *types.File)
 func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 	fileBytesResponse, err := f.QordobaClient.GetFromServer(fileRemoteURL)
 	if err != nil {
-		log.Errorf("error occurred on file s download (url = %s)\n%v", fileRemoteURL, fileName, err)
+		log.Errorf("error occurred on file %s download (url = %s)\n%v", fileName, fileRemoteURL, err.Error())
 		return
 	}
-	log.Infof("file '%v' was downloaded", fileName)
+	log.Infof("file '%s' was downloaded", fileName)
 	f.Local.Write(fileName, fileBytesResponse)
 }
 

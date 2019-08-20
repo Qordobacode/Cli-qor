@@ -58,18 +58,11 @@ fileSearch:
 				continue fileSearch
 			}
 		}
-		filteredFiles = append(filteredFiles, file)
-	}
-	if f.Config.Push.LanguageCode != "" {
-		resultedFiles := make([]string, 0, 0)
-		for _, file := range filteredFiles {
-			if !strings.Contains(file, f.Config.Push.LanguageCode) {
-				log.Infof("file %s is not pushed due to doesn't contain %s langage code in path", file, f.Config.Push.LanguageCode)
-				continue
-			}
-			resultedFiles = append(resultedFiles, file)
+		if f.Config.Push.LanguageCode != "" && !strings.Contains(file, f.Config.Push.LanguageCode) {
+			log.Infof("file %s is not pushed due to doesn't contain %s langage code in path", file, f.Config.Push.LanguageCode)
+			continue
 		}
-		filteredFiles = resultedFiles
+		filteredFiles = append(filteredFiles, file)
 	}
 	return filteredFiles
 }

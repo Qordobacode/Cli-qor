@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
 	"path/filepath"
 	"testing"
 )
@@ -93,7 +94,15 @@ func TestLocal_LoadCached(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
-func Test_Test(t *testing.T) {
+func Test_Glob(t *testing.T) {
 	matches, _ := filepath.Glob("../rest")
 	fmt.Printf("%v\n", matches)
+}
+
+func TestPath(t *testing.T) {
+	path := `C:\data\code\Cli-qor\test\JSON\basic-does-cover-many-cases`
+	infos, err := ioutil.ReadDir(path)
+	assert.Nil(t, err)
+	assert.NotNil(t, infos)
+	fmt.Printf("%v\n", infos)
 }

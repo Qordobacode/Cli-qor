@@ -69,6 +69,8 @@ func (*Local) BuildFileName(file *types.File, suffix string) string {
 	}
 	resultName := strings.Join(fileNames, ".")
 	resultName = forbiddenInFileNameSymbols.ReplaceAllString(resultName, "")
+	fileDir := strings.ReplaceAll(file.Filepath, "/", string(filepath.Separator))
+	resultName = filepath.Join(filepath.Dir(fileDir), resultName)
 	return resultName
 }
 

@@ -54,7 +54,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			fileService.PushFolder(file, pushVersion)
 		}
 	} else if folderPath != "" {
-		log.Infof("Push folder %v", folderPath)
+		log.Infof("Push file path '%v'", folderPath)
 		fileService.PushFolder(folderPath, pushVersion)
 	}
 }

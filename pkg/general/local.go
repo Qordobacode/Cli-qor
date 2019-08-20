@@ -75,7 +75,7 @@ func (l *Local) buildDirName(file *types.File, filePathPattern string) string {
 	if filePathPattern == "" {
 		return fileDir
 	}
-	splittedPath := filepath.SplitList(fileDir)
+	splittedPath := strings.Split(fileDir, string(filepath.Separator))
 	if len(splittedPath) > 0 {
 		splittedPath[0] = filePathPattern
 	} else {

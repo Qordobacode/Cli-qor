@@ -26,7 +26,6 @@ func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 		log.Errorf("error occurred on file %s download (url = %s)\n%v", fileName, fileRemoteURL, err.Error())
 		return
 	}
-	log.Infof("file '%s' was downloaded", fileName)
 	if len(f.Config.Push.Sources.Folders) > 0 {
 		fileName = filepath.Join(f.Config.Push.Sources.Folders[0], fileName)
 	}
@@ -35,6 +34,7 @@ func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 		log.Errorf("error occurred on creating new directories")
 	}
 	f.Local.Write(fileName, fileBytesResponse)
+	log.Infof("file '%s' was downloaded", fileName)
 }
 
 // DownloadSourceFile function retrieves all source files in workspace

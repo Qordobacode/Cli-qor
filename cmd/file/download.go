@@ -132,7 +132,7 @@ func files2Download(workspace *types.Workspace) []*file2Download {
 			files2Download = append(files2Download, &file2Download{
 				File:        &files[i],
 				PersonaID:   persona.ID,
-				PersonaName: persona.Name,
+				PersonaName: persona.Code,
 			})
 		}
 	}

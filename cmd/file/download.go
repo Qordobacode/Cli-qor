@@ -58,7 +58,14 @@ func NewDownloadCommand() *cobra.Command {
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
 	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, "Option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
-	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "", "Source code pattern")
+	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "language_lang_code", `Source code pattern. Possible variants:
+- language_code 
+- language_lang_code
+- language_name
+- language_name_cap
+- language_name_allcap
+- local_capitalized
+`)
 	return downloadCmd
 }
 
@@ -71,15 +78,17 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	if err != nil || workspace == nil {
 		return
 	}
-	files2Download := files2Download(&workspace.Workspace)
-	jobs := make(chan *file2Download, 1000)
+	log.Infof("File Path Pattern used is `%s`", filePathPattern)
+	matchFilepathName := buildPatternPart(workspace.Workspace.SourcePersona, filePathPattern)
+	files2Download := files2Download(&workspace.Workspace, filePathPattern)
+	jobs := make(chan *types.File2Download, 1000)
 	results := make(chan struct{}, 1000)
 
 	for i := 0; i < 3; i++ {
-		go worker(jobs, results)
+		go worker(jobs, results, matchFilepathName)
 	}
-	for _, file2Download := range files2Download {
-		jobs <- file2Download
+	for _, files2Download := range files2Download {
+		jobs <- files2Download
 	}
 	close(jobs)
 	for i := 0; i < len(files2Download); i++ {
@@ -95,21 +104,38 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	}
 }
 
-func worker(jobs chan *file2Download, results chan struct{}) {
+func buildPatternPart(person types.Person, filePathPattern string) string {
+	codes := strings.Split(person.Code, "-")
+	names := strings.Split(person.Name, "-")
+	if len(codes) < 2 || len(names) < 2 {
+		return ""
+	}
+	switch filePathPattern {
+	case "language_code":
+		return person.Code
+	case "language_lang_code":
+		return strings.TrimSpace(codes[0])
+	case "language_name":
+		return strings.ToLower(strings.TrimSpace(names[0]))
+	case "language_name_cap":
+		return strings.Title(strings.TrimSpace(names[0]))
+	case "language_name_allcap":
+		return strings.ToUpper(strings.TrimSpace(names[0]))
+	case "local_capitalized":
+		return strings.ToUpper(strings.TrimSpace(codes[1]))
+	default:
+		return strings.TrimSpace(codes[0])
+	}
+}
+
+func worker(jobs chan *types.File2Download, results chan struct{}, matchFilepathName string) {
 	for j := range jobs {
-		handleFile(j)
+		handleFile(j, matchFilepathName)
 		results <- struct{}{}
 	}
 }
 
-// file2Download struct describe chunk of download work
-type file2Download struct {
-	File        *types.File
-	PersonaID   int
-	PersonaName string
-}
-
-func files2Download(workspace *types.Workspace) []*file2Download {
+func files2Download(workspace *types.Workspace, filePathTemplate string) []*types.File2Download {
 	audiences := appConfig.Audiences()
 	if downloadAudience != "" {
 		audienceList := strings.Split(downloadAudience, ",")
@@ -118,7 +144,7 @@ func files2Download(workspace *types.Workspace) []*file2Download {
 			audiences[lang] = true
 		}
 	}
-	files2Download := make([]*file2Download, 0)
+	files2Download := make([]*types.File2Download, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
@@ -129,17 +155,18 @@ func files2Download(workspace *types.Workspace) []*file2Download {
 		}
 		files := response.Files
 		for i := range files {
-			files2Download = append(files2Download, &file2Download{
-				File:        &files[i],
-				PersonaID:   persona.ID,
-				PersonaName: persona.Code,
+			replaceIn := buildPatternPart(persona, filePathTemplate)
+			files2Download = append(files2Download, &types.File2Download{
+				File:      &files[i],
+				PersonaID: persona.ID,
+				ReplaceIn: replaceIn,
 			})
 		}
 	}
 	return files2Download
 }
 
-func handleFile(j *file2Download) {
+func handleFile(j *types.File2Download, matchFilepathName string) {
 	if !j.File.Completed && !isDownloadCurrent && !isDownloadOriginal {
 		// isDownloadCurrent - skip files with version
 		log.Infof("file %s is not completed. Use flag '-c' or '--current' to download even not completed files", j.File.Filename)
@@ -151,13 +178,13 @@ func handleFile(j *file2Download) {
 	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
-			downloadSourceFile(j, filePathPattern)
+			downloadSourceFile(j, matchFilepathName)
 		}
 		if isDownloadOriginal {
-			downloadOriginalFile(j, filePathPattern)
+			downloadOriginalFile(j, matchFilepathName)
 		}
 	} else {
-		downloadFile(j, filePathPattern)
+		downloadFile(j, matchFilepathName)
 	}
 }
 
@@ -180,36 +207,27 @@ func handleInvalidFile(file *types.File) {
 	}
 }
 
-func downloadFile(j *file2Download, filePathPattern string) {
-	if filePathPattern == "" {
-		filePathPattern = j.PersonaName
-	}
-	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, "")
+func downloadFile(j *types.File2Download, matchFilepathName string) {
+	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, "")
 	if !isPullSkip || !local.FileExists(fileName) {
 		fileService.DownloadFile(j.PersonaID, fileName, j.File)
 		atomic.AddUint64(&ops, 1)
 	}
 }
 
-func downloadSourceFile(j *file2Download, filePathPattern string) {
-	if filePathPattern == "" {
-		filePathPattern = j.PersonaName
-	}
-	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, "")
+func downloadSourceFile(j *types.File2Download, matchFilepathName string) {
+	fileName := j.File.Filepath
 	fileService.DownloadSourceFile(fileName, j.File, true)
 	atomic.AddUint64(&ops, 1)
 }
 
-func downloadOriginalFile(j *file2Download, filePathPattern string) {
+func downloadOriginalFile(j *types.File2Download, matchFilepathName string) {
 	suffix := ""
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	if filePathPattern == "" {
-		filePathPattern = j.PersonaName
-	}
-	fileName := local.BuildDirectoryFilePath(j.File, filePathPattern, suffix)
+	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, suffix)
 	fileService.DownloadSourceFile(fileName, j.File, false)
 	atomic.AddUint64(&ops, 1)
 }

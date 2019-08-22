@@ -55,33 +55,33 @@ func (l *Local) Write(fileName string, body []byte) {
 }
 
 // BuildDirectoryFilePath according to stored file name and version
-func (l *Local) BuildDirectoryFilePath(file *types.File, filePathPattern, suffix string) string {
-	if file.Version != "" {
+func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName, suffix string) string {
+	if j.File.Version != "" {
 		if suffix != "" {
-			suffix = file.Version + "_" + suffix
+			suffix = j.File.Version + "_" + suffix
 		} else {
-			suffix = file.Version
+			suffix = j.File.Version
 		}
 	}
-	resultName := l.buildFileName(file, suffix)
-	fileDir := l.buildDirName(file, filePathPattern)
+	resultName := l.buildFileName(j.File, suffix)
+	fileDir := l.buildDirName(j, matchFilepathName)
 	resultName = filepath.Join(fileDir, resultName)
 	return resultName
 }
 
-func (l *Local) buildDirName(file *types.File, filePathPattern string) string {
-	fileDir := strings.ReplaceAll(file.Filepath, "/", string(filepath.Separator))
+func (l *Local) buildDirName(j *types.File2Download, matchFilepathName string) string {
+	fileDir := j.File.Filepath
+	if matchFilepathName != "" {
+		if strings.Contains(fileDir, "/"+matchFilepathName+"/") {
+			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"/", "/"+j.ReplaceIn+"/")
+		} else if strings.Contains(fileDir, "/"+matchFilepathName+"-") {
+			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"-", "/"+j.ReplaceIn+"-")
+		} else if strings.Contains(fileDir, "-"+matchFilepathName+"/") {
+			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+j.ReplaceIn+"/")
+		}
+	}
+	fileDir = strings.ReplaceAll(fileDir, "/", string(filepath.Separator))
 	fileDir = filepath.Dir(fileDir)
-	if filePathPattern == "" {
-		return fileDir
-	}
-	splittedPath := strings.Split(fileDir, string(filepath.Separator))
-	if len(splittedPath) > 0 {
-		splittedPath[0] = filePathPattern
-	} else {
-		splittedPath = []string{filePathPattern}
-	}
-	fileDir = filepath.Join(splittedPath...)
 	return fileDir
 }
 

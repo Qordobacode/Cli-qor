@@ -55,8 +55,8 @@ func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
 		return viperConfig, viperErr
 	}
 	if viperErr != nil || viperConfig == nil {
-		log.Infof("config was taken from home directory", viper.ConfigFileUsed())
-		validateConfigCorrect(viperConfig)
+		log.Infof("config was taken from home directory")
+		validateConfigCorrect(homeDirectoryConfig)
 		return homeDirectoryConfig, nil
 	}
 	err := mergo.Merge(viperConfig, *homeDirectoryConfig)

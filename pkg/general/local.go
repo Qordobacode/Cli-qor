@@ -55,7 +55,7 @@ func (l *Local) Write(fileName string, body []byte) {
 }
 
 // BuildDirectoryFilePath according to stored file name and version
-func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName, suffix string) string {
+func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName []string, suffix string) string {
 	if j.File.Version != "" {
 		if suffix != "" {
 			suffix = j.File.Version + "_" + suffix
@@ -69,16 +69,26 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 	return resultName
 }
 
-func (l *Local) buildDirName(j *types.File2Download, matchFilepathName string) string {
+func (l *Local) buildDirName(j *types.File2Download, matchFilepathNames []string) string {
 	fileDir := j.File.Filepath
-	if matchFilepathName != "" {
+	wasUpdated := false
+	for _, matchFilepathName := range matchFilepathNames {
 		if strings.Contains(fileDir, "/"+matchFilepathName+"/") {
 			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"/", "/"+j.ReplaceIn+"/")
+			wasUpdated = true
+			break
 		} else if strings.Contains(fileDir, "/"+matchFilepathName+"-") {
 			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"-", "/"+j.ReplaceIn+"-")
+			wasUpdated = true
+			break
 		} else if strings.Contains(fileDir, "-"+matchFilepathName+"/") {
 			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+j.ReplaceIn+"/")
+			wasUpdated = true
+			break
 		}
+	}
+	if !wasUpdated {
+		log.Infof("In fileDir %s source patterns '%s' was not found. Don't update it then.", fileDir, matchFilepathNames)
 	}
 	fileDir = strings.ReplaceAll(fileDir, "/", string(filepath.Separator))
 	fileDir = filepath.Dir(fileDir)

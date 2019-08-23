@@ -32,7 +32,7 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 		Version          string
 		Suffix           string
 		ExpectedFileName string
-		FilePathParam    string
+		FilePathParam    []string
 	}{
 		{
 			FileName:         "wip-core.tmp.json",
@@ -58,7 +58,7 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 			FileName:         "wip-core.tmp.json",
 			Version:          "version2",
 			Suffix:           "original",
-			FilePathParam:    "en-en",
+			FilePathParam:    []string{"en-en"},
 			ExpectedFileName: "en-en" + string(os.PathSeparator) + "wip-core.tmp_version2_original.json",
 		},
 	}
@@ -67,7 +67,12 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 			Filename: asset.FileName,
 			Version:  asset.Version,
 		}
-		fileName := localService.BuildDirectoryFilePath(&file, asset.FilePathParam, asset.Suffix)
+		j := types.File2Download{
+			File:      &file,
+			PersonaID: 0,
+			ReplaceIn: "kr",
+		}
+		fileName := localService.BuildDirectoryFilePath(&j, asset.FilePathParam, asset.Suffix)
 		assert.Equal(t, asset.ExpectedFileName, fileName, "asset %+v is incorrect", asset)
 	}
 }

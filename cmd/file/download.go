@@ -79,7 +79,7 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 		return
 	}
 	log.Infof("File Path Pattern used is `%s`", filePathPattern)
-	matchFilepathName := buildPatternPart(workspace.Workspace.SourcePersona, filePathPattern)
+	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)
 	files2Download := files2Download(&workspace.Workspace, filePathPattern)
 	jobs := make(chan *types.File2Download, 1000)
 	results := make(chan struct{}, 1000)
@@ -104,7 +104,26 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	}
 }
 
-func buildPatternPart(person types.Person, filePathPattern string) string {
+// buildPatternName builds
+func buildPatternName(person types.Person) []string {
+	results := make([]string, 0, 0)
+	results = updateByVariantSlice(person.Code, results)
+	results = updateByVariantSlice(person.Name, results)
+	return results
+}
+
+func updateByVariantSlice(variantString string, results []string) []string {
+	variants := strings.Split(variantString, "-")
+	for _, variant := range variants {
+		trimmedVariant := strings.TrimSpace(variant)
+		results = append(results, strings.ToLower(trimmedVariant))
+		results = append(results, trimmedVariant)
+		results = append(results, strings.ToUpper(trimmedVariant))
+	}
+	return results
+}
+
+func buildReplaceInString(person types.Person, filePathPattern string) string {
 	codes := strings.Split(person.Code, "-")
 	names := strings.Split(person.Name, "-")
 	if len(codes) < 2 || len(names) < 2 {
@@ -128,7 +147,7 @@ func buildPatternPart(person types.Person, filePathPattern string) string {
 	}
 }
 
-func worker(jobs chan *types.File2Download, results chan struct{}, matchFilepathName string) {
+func worker(jobs chan *types.File2Download, results chan struct{}, matchFilepathName []string) {
 	for j := range jobs {
 		handleFile(j, matchFilepathName)
 		results <- struct{}{}
@@ -155,7 +174,7 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 		}
 		files := response.Files
 		for i := range files {
-			replaceIn := buildPatternPart(persona, filePathTemplate)
+			replaceIn := buildReplaceInString(persona, filePathTemplate)
 			files2Download = append(files2Download, &types.File2Download{
 				File:      &files[i],
 				PersonaID: persona.ID,
@@ -166,7 +185,7 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 	return files2Download
 }
 
-func handleFile(j *types.File2Download, matchFilepathName string) {
+func handleFile(j *types.File2Download, matchFilepathName []string) {
 	if !j.File.Completed && !isDownloadCurrent && !isDownloadOriginal {
 		// isDownloadCurrent - skip files with version
 		log.Infof("file %s is not completed. Use flag '-c' or '--current' to download even not completed files", j.File.Filename)
@@ -178,7 +197,7 @@ func handleFile(j *types.File2Download, matchFilepathName string) {
 	}
 	if isDownloadSource || isDownloadOriginal {
 		if isDownloadSource {
-			downloadSourceFile(j, matchFilepathName)
+			downloadSourceFile(j)
 		}
 		if isDownloadOriginal {
 			downloadOriginalFile(j, matchFilepathName)
@@ -207,7 +226,7 @@ func handleInvalidFile(file *types.File) {
 	}
 }
 
-func downloadFile(j *types.File2Download, matchFilepathName string) {
+func downloadFile(j *types.File2Download, matchFilepathName []string) {
 	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, "")
 	if !isPullSkip || !local.FileExists(fileName) {
 		fileService.DownloadFile(j.PersonaID, fileName, j.File)
@@ -215,13 +234,13 @@ func downloadFile(j *types.File2Download, matchFilepathName string) {
 	}
 }
 
-func downloadSourceFile(j *types.File2Download, matchFilepathName string) {
+func downloadSourceFile(j *types.File2Download) {
 	fileName := j.File.Filepath
 	fileService.DownloadSourceFile(fileName, j.File, true)
 	atomic.AddUint64(&ops, 1)
 }
 
-func downloadOriginalFile(j *types.File2Download, matchFilepathName string) {
+func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
 	suffix := ""
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx

@@ -1,6 +1,7 @@
 package file
 
 import (
+	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -31,8 +32,13 @@ func (f *Service) PushFiles(fileList []string, version string) {
 	results := make(chan struct{}, 1000)
 	filteredFileList := f.filterFiles(fileList)
 
+	workspace, err := f.WorkspaceService.LoadWorkspace()
+	if err != nil {
+		log.Errorf("error occurred on workspace download before file push: %v", err)
+		os.Exit(1)
+	}
 	for i := 0; i < concurrencyLevel; i++ {
-		go f.startPushWorker(jobs, results, version)
+		go f.startPushWorker(jobs, results, version, workspace)
 	}
 
 	// let all error logs go before final messages
@@ -50,6 +56,7 @@ func (f *Service) PushFiles(fileList []string, version string) {
 func (f *Service) filterFiles(files []string) []string {
 	filteredFiles := make([]string, 0, 0)
 	blacklistRegexp := f.buildBlacklistRegexps()
+
 fileSearch:
 	for _, file := range files {
 		for _, blackReg := range blacklistRegexp {
@@ -76,18 +83,22 @@ func (f *Service) buildBlacklistRegexps() []*regexp.Regexp {
 	return blacklistRegexp
 }
 
-func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string) {
+func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string, workspace *types.WorkspaceData) {
 	base := f.Config.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
-		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results)
+		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results, workspace)
 	}
 }
 
 func (f *Service) pushFile(filePath string, jobs chan *pushFileTask) int {
-	fileInfo, e := os.Stat(filePath)
-	if e != nil {
-		log.Errorf("error occurred in file read: %v", e)
+	fileInfo, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		log.Errorf("file %s doesn't exist", filePath)
+		return 0
+	}
+	if err != nil {
+		log.Errorf("error occurred on file read: %v", err)
 		return 0
 	}
 	if fileInfo.IsDir() {
@@ -105,7 +116,8 @@ type pushFileTask struct {
 	fileInfo os.FileInfo
 }
 
-func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string, results chan struct{}) {
+func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string, results chan struct{},
+	workspace *types.WorkspaceData) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("Recovered in sendFileToServer: %v\n%s\n", err, debug.Stack())
@@ -116,7 +128,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
 	}
-	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version)
+	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version, workspace)
 	if err != nil {
 		return
 	}
@@ -144,7 +156,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	}
 }
 
-func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string) (*types.PushRequest, error) {
+func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string, workspace *types.WorkspaceData) (*types.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)
@@ -156,10 +168,40 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	}
 	relativeFilePath, _ := filepath.Rel(dir, filepath.Dir(filePath))
 	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
+	if !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
+		return nil, errors.New("file not pass source name")
+	}
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  version,
 		Content:  string(fileContent),
 		Filepath: relativeFilePath,
 	}, nil
+}
+
+func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.WorkspaceData) bool {
+	relativeFilePath = strings.ToLower(relativeFilePath)
+	code := workspace.Workspace.SourcePersona.Code
+	codeSplits := strings.Split(code, "-")
+	nameSplits := strings.Split(workspace.Workspace.SourcePersona.Name, "-")
+	for _, code := range codeSplits {
+		code = strings.ToLower(code)
+		if strings.Contains(relativeFilePath, "/"+code) || strings.Contains(relativeFilePath, code+"/") || strings.HasPrefix(relativeFilePath, code) {
+			return true
+		}
+	}
+	for _, name := range nameSplits {
+		name = strings.ToLower(name)
+		if strings.Contains(relativeFilePath, "/"+name) || strings.Contains(relativeFilePath, name+"/") {
+			return true
+		}
+	}
+
+	errMsg := ""
+	if len(codeSplits) > 1 {
+		errMsg = fmt.Sprintf(`/%s/, /%s-xxx/, /xxx-%s/, /%s/, /%s-xxx/, /xxx-%s/`,
+			codeSplits[0], codeSplits[0], codeSplits[0], code, code, code)
+	}
+	log.Infof("[SKIPPED] File path '%s' doesn't contain Source code or name of current workspace. For example: %s.", filePath, errMsg)
+	return false
 }

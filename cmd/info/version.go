@@ -8,7 +8,11 @@ import (
 
 // version-related constants
 const (
-	APIVersion = "Qordoba Cli v4.0.64"
+	APIVersion = "Qordoba Cli v4"
+)
+
+var (
+	VersionFlag = ""
 )
 
 // NewCmdVersion function create `version` command
@@ -25,5 +29,5 @@ func NewCmdVersion() *cobra.Command {
 
 // PrintVersion function print current version to stdout
 func PrintVersion() {
-	fmt.Println(APIVersion)
+	fmt.Printf("%s-%s\n", APIVersion, VersionFlag)
 }

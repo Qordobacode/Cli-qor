@@ -11,8 +11,7 @@ do
     if [[ $GOOS = "windows" ]]; then
         output_name+='.exe'
     fi
-
-    env GOOS=$GOOS GOARCH=$GOARCH go build -o $output_name
+    env GOOS=$GOOS GOARCH=$GOARCH go build -ldflags "-X 'github.com/qordobacode/cli-v2/cmd/info.VersionFlag=0.7.2'" -o $output_name
     if [[ $? -ne 0 ]]; then
         echo 'An error has occurred! Aborting the script execution...'
         exit 1

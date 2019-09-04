@@ -37,12 +37,12 @@ type SourceConfig struct {
 
 // DownloadConfig is download-related part of config
 type DownloadConfig struct {
-	Targets []string `yaml:"targets"`
+	Target string `yaml:"target" mapstructure:"target"`
 }
 
 // BlacklistConfig is blacklist-related part of config
 type BlacklistConfig struct {
-	Sources []string `yaml:"sources"`
+	Sources []string `yaml:"sources" mapstructure:"sources"`
 }
 
 // GetAPIBase get value of API endpoint from config OR prod as a default

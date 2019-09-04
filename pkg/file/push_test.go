@@ -15,7 +15,7 @@ func TestService_PushFolder(t *testing.T) {
 	filesList := []string{"test.yaml"}
 	service := buildFileService(t)
 	local.EXPECT().FilesInFolder(gomock.Any()).Return(filesList)
-	service.PushFolder(".", "")
+	service.PushFolder(".", "", false)
 }
 
 func TestService_PushFiles(t *testing.T) {

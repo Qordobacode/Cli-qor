@@ -89,7 +89,7 @@ func Test_QordobaHome(t *testing.T) {
 }
 
 func Test_FilesInFolder(t *testing.T) {
-	files := localService.FilesInFolder(".")
+	files := localService.FilesInFolder(".", false)
 	fmt.Printf("files = %v\n", files)
 }
 

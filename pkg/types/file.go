@@ -14,3 +14,11 @@ type Breakdown struct {
 	Score      float64 `json:"score"`
 	Enabled    bool    `json:"enabled"`
 }
+
+// file2Download struct describe chunk of download work
+type File2Download struct {
+	File       *File
+	PersonaID  int
+	ReplaceIn  string
+	ReplaceMap map[string]string
+}

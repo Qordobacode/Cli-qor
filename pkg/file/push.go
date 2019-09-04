@@ -21,8 +21,8 @@ const (
 )
 
 // PushFolder function push folder to server
-func (f *Service) PushFolder(folder, version string) {
-	fileList := f.Local.FilesInFolder(folder)
+func (f *Service) PushFolder(folder, version string, isRecursive bool) {
+	fileList := f.Local.FilesInFolder(folder, isRecursive)
 	f.PushFiles(fileList, version)
 }
 

@@ -211,9 +211,9 @@ func (mr *MockLocalMockRecorder) LoadCached(cachedFileName interface{}) *gomock.
 }
 
 // FilesInFolder mocks base method
-func (m *MockLocal) FilesInFolder(folderPath string) []string {
+func (m *MockLocal) FilesInFolder(folderPath string, isRecursive bool) []string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FilesInFolder", folderPath)
+	ret := m.ctrl.Call(m, "FilesInFolder", folderPath, isRecursive)
 	ret0, _ := ret[0].([]string)
 	return ret0
 }
@@ -432,9 +432,9 @@ func (mr *MockFileServiceMockRecorder) DownloadSourceFile(fileName, file, withUp
 }
 
 // PushFolder mocks base method
-func (m *MockFileService) PushFolder(folder, version string) {
+func (m *MockFileService) PushFolder(folder, version string, isRecursive bool) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PushFolder", folder, version)
+	m.ctrl.Call(m, "PushFolder", folder, version, isRecursive)
 }
 
 // PushFolder indicates an expected call of PushFolder

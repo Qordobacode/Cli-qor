@@ -17,12 +17,12 @@ type QordobaClient interface {
 type Local interface {
 	Read(path string) ([]byte, error)
 	Write(fileName string, fileBytesResponse []byte)
-	BuildDirectoryFilePath(j *types.File2Download, patterns []string, suffix string) string
+	BuildDirectoryFilePath(j *types.File2Download, matchFilepathName []string, suffix string) string
 	FileExists(path string) bool
 	QordobaHome() (string, error)
 	PutInHome(fileName string, body []byte)
 	LoadCached(cachedFileName string) ([]byte, error)
-	FilesInFolder(folderPath string) []string
+	FilesInFolder(folderPath string, isRecursive bool) []string
 	RenderTable2Stdin(header []string, data [][]string)
 }
 
@@ -45,7 +45,7 @@ type FileService interface {
 	FindFile(fileName, version string, withProgressStatus bool) (*types.File, int)
 	DownloadFile(personaID int, fileName string, file *types.File)
 	DownloadSourceFile(fileName string, file *types.File, withUpdates bool)
-	PushFolder(folder, version string)
+	PushFolder(folder, version string, isRecursive bool)
 	PushFiles(fileList []string, version string)
 	DeleteFile(fileName, version string)
 	FileScore(filename, version string) *types.ScoreResponseBody

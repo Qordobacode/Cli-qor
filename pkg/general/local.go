@@ -162,7 +162,7 @@ func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 }
 
 // FilesInFolder returns all files with specified file path
-func (l *Local) FilesInFolder(filePath string) []string {
+func (l *Local) FilesInFolder(filePath string, isRecursive bool) []string {
 	fileMap := make(map[string]bool)
 	matches, err := filepath.Glob(filePath)
 	result := make([]string, 0)
@@ -178,13 +178,13 @@ func (l *Local) FilesInFolder(filePath string) []string {
 	}
 	if err == nil {
 		for _, match := range matches {
-			addFilesInMap(match, fileMap)
+			addFilesInMap(match, fileMap, isRecursive)
 		}
 	} else {
 		log.Infof("err occurred on files add: %v", err)
 		return result
 	}
-	addFilesInMap(filePath, fileMap)
+	addFilesInMap(filePath, fileMap, isRecursive)
 	for k := range fileMap {
 		result = append(result, k)
 	}
@@ -192,7 +192,7 @@ func (l *Local) FilesInFolder(filePath string) []string {
 }
 
 // recursive function for finding all files in map
-func addFilesInMap(path string, fileMap map[string]bool) {
+func addFilesInMap(path string, fileMap map[string]bool, isRecursive bool) {
 	pathStat, err := os.Stat(path)
 	if err != nil {
 		return
@@ -204,7 +204,9 @@ func addFilesInMap(path string, fileMap map[string]bool) {
 		}
 		for _, info := range infos {
 			fileName := filepath.Join(path, info.Name())
-			addFilesInMap(fileName, fileMap)
+			if isRecursive {
+				addFilesInMap(fileName, fileMap, isRecursive)
+			}
 		}
 	} else {
 		path, err = filepath.Abs(path)

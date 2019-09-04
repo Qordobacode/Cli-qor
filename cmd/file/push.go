@@ -40,7 +40,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
 		fileService.PushFiles(pushSources.Files, pushVersion)
 		for _, folder := range pushSources.Folders {
-			fileService.PushFolder(folder, pushVersion)
+			fileService.PushFolder(folder, pushVersion, folderPath != "")
 		}
 		return
 	}
@@ -51,10 +51,10 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			fileList = append(fileList, argFiles...)
 		}
 		for _, file := range fileList {
-			fileService.PushFolder(file, pushVersion)
+			fileService.PushFolder(file, pushVersion, folderPath != "")
 		}
 	} else if folderPath != "" {
 		log.Infof("Push file path '%v'", folderPath)
-		fileService.PushFolder(folderPath, pushVersion)
+		fileService.PushFolder(folderPath, pushVersion, folderPath != "")
 	}
 }

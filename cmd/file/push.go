@@ -9,7 +9,7 @@ import (
 var (
 	pushVersion string
 	files       string
-	folderPath  string
+	filePath    string
 )
 
 // NewPushCmd creates `push` command
@@ -25,7 +25,7 @@ func NewPushCmd() *cobra.Command {
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
-	pushCmd.Flags().StringVarP(&folderPath, "file-path", "p", "", "Push entire (relative) file paths")
+	pushCmd.Flags().StringVarP(&filePath, "file-path", "p", "", "Push entire (relative) file paths")
 	return pushCmd
 }
 
@@ -34,13 +34,18 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	if folderPath == "" && files == "" && len(args) == 0 {
+	if filePath != "" && appConfig.Download.Target != "" {
+		log.Errorf("Please remove `download.target` from your configuration file; it is not supported with file paths.")
+		return
+	}
+
+	if filePath == "" && files == "" && len(args) == 0 {
 		pushSources := appConfig.Push.Sources
 
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
 		fileService.PushFiles(pushSources.Files, pushVersion)
 		for _, folder := range pushSources.Folders {
-			fileService.PushFolder(folder, pushVersion, folderPath != "")
+			fileService.PushFolder(folder, pushVersion, filePath != "")
 		}
 		return
 	}
@@ -51,10 +56,10 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			fileList = append(fileList, argFiles...)
 		}
 		for _, file := range fileList {
-			fileService.PushFolder(file, pushVersion, folderPath != "")
+			fileService.PushFolder(file, pushVersion, filePath != "")
 		}
-	} else if folderPath != "" {
-		log.Infof("Push file path '%v'", folderPath)
-		fileService.PushFolder(folderPath, pushVersion, folderPath != "")
+	} else if filePath != "" {
+		log.Infof("Push file path '%v'", filePath)
+		fileService.PushFolder(filePath, pushVersion, filePath != "")
 	}
 }

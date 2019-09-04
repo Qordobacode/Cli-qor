@@ -24,7 +24,13 @@ import (
 )
 
 const (
-	original = "original"
+	original           = "original"
+	languageCode       = "language_code"
+	languageLangCode   = "language_lang_code"
+	languageName       = "language_name"
+	languageNameCap    = "language_name_cap"
+	localCapitalized   = "local_capitalized"
+	languageNameAllcap = "language_name_allcap"
 )
 
 var (
@@ -58,7 +64,8 @@ func NewDownloadCommand() *cobra.Command {
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
 	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, "Option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
 	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
-	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "language_lang_code", `Source code pattern. Possible variants:
+	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "language_lang_code",
+		`Download all target languages, or use in combination with -a flag. Replaces language pattern in path using provided variant:
 - language_code 
 - language_lang_code
 - language_name
@@ -74,6 +81,21 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
+	if !isFilePathPatternValid() {
+		log.Errorf(`Invalid file-path-pattern "%s"; please provide one of:
+- language_code 
+- language_lang_code
+- language_name
+- language_name_cap
+- local_capitalized
+- language_name_allcap`)
+		return
+	}
+	if filePathPattern != "" && appConfig.Download.Target != "" {
+		log.Errorf("Please remove `download.target` from your configuration file; it is not supported with file paths.")
+		return
+	}
+
 	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil || workspace == nil {
 		return
@@ -104,6 +126,12 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	}
 }
 
+func isFilePathPatternValid() bool {
+	return filePathPattern == "" || filePathPattern == languageCode || filePathPattern == languageLangCode ||
+		filePathPattern == languageName || filePathPattern == languageNameCap ||
+		filePathPattern == languageNameAllcap || filePathPattern == localCapitalized
+}
+
 // buildPatternName builds
 func buildPatternName(person types.Person) []string {
 	results := make([]string, 0, 0)
@@ -123,28 +151,23 @@ func updateByVariantSlice(variantString string, results []string) []string {
 	return results
 }
 
-func buildReplaceInString(person types.Person, filePathPattern string) string {
+func buildReplaceInString(person types.Person, filePathPattern string) (string, map[string]string) {
+	replacementMap := make(map[string]string)
 	codes := strings.Split(person.Code, "-")
 	names := strings.Split(person.Name, "-")
 	if len(codes) < 2 || len(names) < 2 {
-		return ""
+		return "", replacementMap
 	}
-	switch filePathPattern {
-	case "language_code":
-		return person.Code
-	case "language_lang_code":
-		return strings.TrimSpace(codes[0])
-	case "language_name":
-		return strings.ToLower(strings.TrimSpace(names[0]))
-	case "language_name_cap":
-		return strings.Title(strings.TrimSpace(names[0]))
-	case "language_name_allcap":
-		return strings.ToUpper(strings.TrimSpace(names[0]))
-	case "local_capitalized":
-		return strings.ToUpper(strings.TrimSpace(codes[1]))
-	default:
-		return strings.TrimSpace(codes[0])
+	replacementMap["language_code"] = person.Code
+	replacementMap["language_lang_code"] = strings.TrimSpace(codes[0])
+	replacementMap["language_name"] = strings.ToLower(strings.TrimSpace(names[0]))
+	replacementMap["language_name_cap"] = strings.Title(strings.TrimSpace(names[0]))
+	replacementMap["language_name_allcap"] = strings.ToUpper(strings.TrimSpace(names[0]))
+	replacementMap["local_capitalized"] = strings.ToUpper(strings.TrimSpace(codes[1]))
+	if replacementMap[filePathPattern] == "" {
+		return replacementMap["language_lang_code"], replacementMap
 	}
+	return replacementMap[filePathPattern], replacementMap
 }
 
 func worker(jobs chan *types.File2Download, results chan struct{}, matchFilepathName []string) {
@@ -174,11 +197,12 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 		}
 		files := response.Files
 		for i := range files {
-			replaceIn := buildReplaceInString(persona, filePathTemplate)
+			replaceIn, replaceMap := buildReplaceInString(persona, filePathTemplate)
 			files2Download = append(files2Download, &types.File2Download{
-				File:      &files[i],
-				PersonaID: persona.ID,
-				ReplaceIn: replaceIn,
+				File:       &files[i],
+				PersonaID:  persona.ID,
+				ReplaceIn:  replaceIn,
+				ReplaceMap: replaceMap,
 			})
 		}
 	}

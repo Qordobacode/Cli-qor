@@ -65,7 +65,7 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 		}
 	}
 	resultName := ""
-	if isFilePathPattern || l.Config.Download.Target == "" {
+	if isFilePathPattern {
 		// handle via file path pattern
 		resultName = l.buildFileName(j.File, suffix)
 		fileDir := l.buildDirName(j, matchFilepathName)
@@ -250,6 +250,9 @@ func (l *Local) buildTargetFileName(file2Download *types.File2Download, s string
 		filename = strings.Join(fileNames[0:len(fileNames)-1], ".")
 	}
 	resultName := l.Config.Download.Target
+	if resultName == "" {
+		return file2Download.File.Filename
+	}
 	resultName = strings.ReplaceAll(resultName, "<extension>", mimeType)
 	resultName = strings.ReplaceAll(resultName, "<filename>", filename)
 

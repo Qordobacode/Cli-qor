@@ -101,7 +101,14 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	if err != nil || workspace == nil {
 		return
 	}
-	log.Infof("File Path Pattern used is `%s`", filePathPattern)
+	if filePathPattern != "" {
+		log.Infof("File Path Pattern used is `%s`", filePathPattern)
+	} else {
+		log.Infof("Used plain download logic")
+		if appConfig.Download.Target == "" {
+			log.Infof("No `download.target` param present in config. Add something like `./language_code/<filename>.<extension>`. Filename was used")
+		}
+	}
 	isFilePathPattern = filePathPattern != ""
 	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)
 	files2Download := files2Download(&workspace.Workspace, filePathPattern)

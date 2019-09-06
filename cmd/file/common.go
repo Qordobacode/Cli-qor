@@ -42,4 +42,7 @@ func startLocalServices(cmd *cobra.Command, args []string) {
 		Local:            local,
 		QordobaClient:    qordobaClient,
 	}
+	local = &general.Local{
+		Config: appConfig,
+	}
 }

@@ -25,6 +25,7 @@ var (
 
 // Local implements pkg.Local
 type Local struct {
+	Config *types.Config
 }
 
 // Read function reads file locally with specified path
@@ -55,7 +56,7 @@ func (l *Local) Write(fileName string, body []byte) {
 }
 
 // BuildDirectoryFilePath according to stored file name and version
-func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName []string, suffix string) string {
+func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName []string, suffix string, isFilePathPattern bool) string {
 	if j.File.Version != "" {
 		if suffix != "" {
 			suffix = j.File.Version + "_" + suffix
@@ -63,9 +64,18 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 			suffix = j.File.Version
 		}
 	}
-	resultName := l.buildFileName(j.File, suffix)
-	fileDir := l.buildDirName(j, matchFilepathName)
-	resultName = filepath.Join(fileDir, resultName)
+	resultName := ""
+	if isFilePathPattern || l.Config.Download.Target == "" {
+		// handle via file path pattern
+		resultName = l.buildFileName(j.File, suffix)
+		fileDir := l.buildDirName(j, matchFilepathName)
+		resultName = filepath.Join(fileDir, resultName)
+	} else {
+		// handle via `download.target
+		resultName = l.buildTargetFileName(j, suffix)
+		fileDir := ""
+		resultName = filepath.Join(fileDir, resultName)
+	}
 	return resultName
 }
 
@@ -222,4 +232,29 @@ func (*Local) RenderTable2Stdin(header []string, data [][]string) {
 	table.SetHeader(header)
 	table.AppendBulk(data)
 	table.Render() // Send output
+}
+
+func (l *Local) buildTargetFileName(file2Download *types.File2Download, s string) string {
+	//i18n/<language_code>/translations.json  ->  i18n/zh-cn/translations.json
+	//folder1/values-<language_lang_code>/strings.xml  ->  folder1/values-en/strings.xml
+	//config/locales/server.<language_code>.yml  ->  config/locales/server.fr-fr.yml
+	//folder2/<language_name>/strings.xml  ->  folder2/Chinese/strings.xml
+	//folder3/strings.<language_name_cap>  ->  folder3/strings.French
+	//<language_name_allcap>.locale  ->  FRENCH.locale
+	//./language_code/<filename>.<extension> -> downloads to current location of CLI  zh-cn/translations.json
+	filename := file2Download.File.Filename
+	fileNames := strings.Split(filename, ".")
+	mimeType := ""
+	if len(fileNames) > 1 {
+		mimeType = fileNames[len(fileNames)-1]
+		filename = strings.Join(fileNames[0:len(fileNames)-1], ".")
+	}
+	resultName := l.Config.Download.Target
+	resultName = strings.ReplaceAll(resultName, "<extension>", mimeType)
+	resultName = strings.ReplaceAll(resultName, "<filename>", filename)
+
+	for k, v := range file2Download.ReplaceMap {
+		resultName = strings.ReplaceAll(resultName, k, v)
+	}
+	return resultName
 }

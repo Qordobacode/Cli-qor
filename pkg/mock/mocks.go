@@ -141,9 +141,9 @@ func (mr *MockLocalMockRecorder) Write(fileName, fileBytesResponse interface{}) 
 }
 
 // BuildDirectoryFilePath mocks base method
-func (m *MockLocal) BuildDirectoryFilePath(j *types.File2Download, patterns []string, suffix string) string {
+func (m *MockLocal) BuildDirectoryFilePath(j *types.File2Download, patterns []string, suffix string, isFilePathPattern bool) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BuildDirectoryFilePath", j, patterns, suffix)
+	ret := m.ctrl.Call(m, "BuildDirectoryFilePath", j, patterns, suffix, isFilePathPattern)
 	ret0, _ := ret[0].(string)
 	return ret0
 }

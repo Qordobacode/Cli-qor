@@ -241,7 +241,7 @@ func (l *Local) buildTargetFileName(file2Download *types.File2Download, s string
 	//folder2/<language_name>/strings.xml  ->  folder2/Chinese/strings.xml
 	//folder3/strings.<language_name_cap>  ->  folder3/strings.French
 	//<language_name_allcap>.locale  ->  FRENCH.locale
-	//./language_code/<filename>.<extension> -> downloads to current location of CLI  zh-cn/translations.json
+	//./<language_code>/<filename>.<extension> -> downloads to current location of CLI  zh-cn/translations.json
 	filename := file2Download.File.Filename
 	fileNames := strings.Split(filename, ".")
 	mimeType := ""

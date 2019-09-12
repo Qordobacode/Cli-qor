@@ -201,6 +201,6 @@ func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.W
 		errMsg = fmt.Sprintf(`/%s/, /%s-xxx/, /xxx-%s/, /%s/, /%s-xxx/, /xxx-%s/`,
 			codeSplits[0], codeSplits[0], codeSplits[0], code, code, code)
 	}
-	log.Infof("[SKIPPED] File path '%s' doesn't contain Source code or name of current workspace. For example: %s.", filePath, errMsg)
+	log.Infof("[SKIPPED] File path '%s' doesn't contain Source code. For example: %s.", filePath, errMsg)
 	return false
 }

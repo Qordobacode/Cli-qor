@@ -444,9 +444,9 @@ func (mr *MockFileServiceMockRecorder) PushFolder(folder, version interface{}) *
 }
 
 // PushFiles mocks base method
-func (m *MockFileService) PushFiles(fileList []string, version string) {
+func (m *MockFileService) PushFiles(fileList []string, version string, isRecursive bool) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "PushFiles", fileList, version)
+	m.ctrl.Call(m, "PushFiles", fileList, version, isRecursive)
 }
 
 // PushFiles indicates an expected call of PushFiles

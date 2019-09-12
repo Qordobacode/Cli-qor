@@ -46,7 +46,7 @@ type FileService interface {
 	DownloadFile(personaID int, fileName string, file *types.File)
 	DownloadSourceFile(fileName string, file *types.File, withUpdates bool)
 	PushFolder(folder, version string, isRecursive bool)
-	PushFiles(fileList []string, version string)
+	PushFiles(fileList []string, version string, isRecursive bool)
 	DeleteFile(fileName, version string)
 	FileScore(filename, version string) *types.ScoreResponseBody
 }

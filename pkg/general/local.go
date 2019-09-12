@@ -216,6 +216,11 @@ func addFilesInMap(path string, fileMap map[string]bool, isRecursive bool) {
 			fileName := filepath.Join(path, info.Name())
 			if isRecursive {
 				addFilesInMap(fileName, fileMap, isRecursive)
+			} else if !info.IsDir() {
+				thisFilePath, err := filepath.Abs(fileName)
+				if err == nil {
+					fileMap[thisFilePath] = true
+				}
 			}
 		}
 	} else {

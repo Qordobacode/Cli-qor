@@ -23,11 +23,11 @@ const (
 // PushFolder function push folder to server
 func (f *Service) PushFolder(folder, version string, isRecursive bool) {
 	fileList := f.Local.FilesInFolder(folder, isRecursive)
-	f.PushFiles(fileList, version)
+	f.PushFiles(fileList, version, isRecursive)
 }
 
 // PushFiles function push array of files to server with specified version
-func (f *Service) PushFiles(fileList []string, version string) {
+func (f *Service) PushFiles(fileList []string, version string, isFilepath bool) {
 	jobs := make(chan *pushFileTask, 1000)
 	results := make(chan struct{}, 1000)
 	filteredFileList := f.filterFiles(fileList)
@@ -38,7 +38,7 @@ func (f *Service) PushFiles(fileList []string, version string) {
 		os.Exit(1)
 	}
 	for i := 0; i < concurrencyLevel; i++ {
-		go f.startPushWorker(jobs, results, version, workspace)
+		go f.startPushWorker(jobs, results, version, workspace, isFilepath)
 	}
 
 	// let all error logs go before final messages
@@ -83,11 +83,11 @@ func (f *Service) buildBlacklistRegexps() []*regexp.Regexp {
 	return blacklistRegexp
 }
 
-func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string, workspace *types.WorkspaceData) {
+func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string, workspace *types.WorkspaceData, isFilepath bool) {
 	base := f.Config.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
-		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results, workspace)
+		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results, workspace, isFilepath)
 	}
 }
 
@@ -117,7 +117,7 @@ type pushFileTask struct {
 }
 
 func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string, results chan struct{},
-	workspace *types.WorkspaceData) {
+	workspace *types.WorkspaceData, isFilepath bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("Recovered in sendFileToServer: %v\n%s\n", err, debug.Stack())
@@ -125,10 +125,9 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 		results <- struct{}{}
 	}()
 	if fileInfo.IsDir() {
-		// this is possible in case of folder presence in folder. Currently we don't support recursion, so just ignore
 		return
 	}
-	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version, workspace)
+	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version, workspace, isFilepath)
 	if err != nil {
 		return
 	}
@@ -156,7 +155,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	}
 }
 
-func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string, workspace *types.WorkspaceData) (*types.PushRequest, error) {
+func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string, workspace *types.WorkspaceData, isFilepath bool) (*types.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)
@@ -168,7 +167,7 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	}
 	relativeFilePath, _ := filepath.Rel(dir, filepath.Dir(filePath))
 	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
-	if !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
+	if isFilepath && !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
 		return nil, errors.New("file not pass source name")
 	}
 	return &types.PushRequest{

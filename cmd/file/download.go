@@ -213,6 +213,9 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 				ReplaceIn:  replaceIn,
 				ReplaceMap: replaceMap,
 			})
+			if isDownloadOriginal || isDownloadSource {
+				break
+			}
 		}
 	}
 	return files2Download

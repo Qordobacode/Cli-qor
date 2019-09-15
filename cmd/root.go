@@ -18,7 +18,7 @@ var (
 		Use:     "qor",
 		Short:   "Qordoba CLI",
 		Long:    `This CLI is used for simplified access to Qordoba API`,
-		Version: info.APIVersion,
+		Version: info.APIVersion + "-" + info.VersionFlag,
 		Run: func(cmd *cobra.Command, args []string) {
 			if Version {
 				info.PrintVersion()
@@ -44,7 +44,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
-	rootCmd.PersistentFlags().BoolVarP(&Version, "version", "v", false, "Get version of CLI")
+	rootCmd.Flags().BoolVarP(&Version, "version", "v", false, "GET version of CLI")
 	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "Print verbose output")
 
 	rootCmd.AddCommand(

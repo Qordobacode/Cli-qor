@@ -92,10 +92,6 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 - language_name_allcap`, filePathPattern)
 		return
 	}
-	if filePathPattern != "" && appConfig.Download.Target != "" {
-		log.Errorf("Please remove `download.target` from your configuration file; it is not supported with file paths.")
-		return
-	}
 
 	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil || workspace == nil {
@@ -105,9 +101,6 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 		log.Infof("File Path Pattern used is `%s`", filePathPattern)
 	} else {
 		log.Infof("Used plain download logic")
-		if appConfig.Download.Target == "" {
-			log.Infof("No `download.target` param present in config. Add something like `./language_code/<filename>.<extension>`. Filename was used")
-		}
 	}
 	isFilePathPattern = filePathPattern != ""
 	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)
@@ -213,9 +206,9 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 				ReplaceIn:  replaceIn,
 				ReplaceMap: replaceMap,
 			})
-			if isDownloadOriginal || isDownloadSource {
-				break
-			}
+		}
+		if isDownloadOriginal || isDownloadSource {
+			break
 		}
 	}
 	return files2Download
@@ -231,16 +224,13 @@ func handleFile(j *types.File2Download, matchFilepathName []string) {
 		handleInvalidFile(j.File)
 		return
 	}
-	if isDownloadSource || isDownloadOriginal {
-		if isDownloadSource {
-			downloadSourceFile(j)
-		}
-		if isDownloadOriginal {
-			downloadOriginalFile(j, matchFilepathName)
-		}
-	} else {
-		downloadFile(j, matchFilepathName)
+	if isDownloadSource {
+		downloadSourceFile(j)
 	}
+	if isDownloadOriginal {
+		downloadOriginalFile(j, matchFilepathName)
+	}
+	downloadFile(j, matchFilepathName)
 }
 
 func handleInvalidFile(file *types.File) {

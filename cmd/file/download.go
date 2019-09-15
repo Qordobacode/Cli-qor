@@ -97,6 +97,9 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	if err != nil || workspace == nil {
 		return
 	}
+	if !validateWorkspace(workspace) {
+		return
+	}
 	if filePathPattern != "" {
 		log.Infof("File Path Pattern used is `%s`", filePathPattern)
 	} else {
@@ -126,6 +129,31 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	} else {
 		log.Infof("downloaded %v completed files", ops)
 	}
+}
+
+func validateWorkspace(workspace *types.WorkspaceData) bool {
+	if downloadAudience != "" {
+		// allow audiences like `qor download -a ja-jp,ko-kr`
+		audienceList := strings.Split(downloadAudience, ",")
+	A:
+		for _, audience := range audienceList {
+			if workspace.Workspace.SourcePersona.Code == audience {
+				log.Errorf("'%s' is a source language. Please use the -o and -s parameters to download source files.", audience)
+				return false
+			}
+			audienceLanguages := make([]string, 0)
+			for _, t := range workspace.Workspace.TargetPersonas {
+				if t.Code == audience {
+					continue A
+				}
+				audienceLanguages = append(audienceLanguages, "`"+t.Code+"`")
+			}
+			targetLanguages := strings.Join(audienceLanguages, ", ")
+			log.Errorf("`%s` does not match one of available project target languages: %s", audience, targetLanguages)
+			return false
+		}
+	}
+	return true
 }
 
 func isFilePathPatternValid() bool {
@@ -191,6 +219,7 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 	files2Download := make([]*types.File2Download, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
+			log.Infof("skip workspace '%s' due to audience used '%v'", persona.Code, downloadAudience)
 			continue
 		}
 		response, err := fileService.WorkspaceFiles(persona.ID, false)

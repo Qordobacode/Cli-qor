@@ -59,7 +59,7 @@ func (l *Local) Write(fileName string, body []byte) {
 func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName []string, suffix string, isFilePathPattern bool) string {
 	if j.File.Version != "" {
 		if suffix != "" {
-			suffix = j.File.Version + "_" + suffix
+			suffix = j.File.Version + "-" + suffix
 		} else {
 			suffix = j.File.Version
 		}
@@ -81,24 +81,17 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 
 func (l *Local) buildDirName(j *types.File2Download, matchFilepathNames []string) string {
 	fileDir := j.File.Filepath
-	wasUpdated := false
 	for _, matchFilepathName := range matchFilepathNames {
 		if strings.Contains(fileDir, "/"+matchFilepathName+"/") {
 			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"/", "/"+j.ReplaceIn+"/")
-			wasUpdated = true
 			break
 		} else if strings.Contains(fileDir, "/"+matchFilepathName+"-") {
 			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"-", "/"+j.ReplaceIn+"-")
-			wasUpdated = true
 			break
 		} else if strings.Contains(fileDir, "-"+matchFilepathName+"/") {
 			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+j.ReplaceIn+"/")
-			wasUpdated = true
 			break
 		}
-	}
-	if !wasUpdated {
-		log.Infof("In fileDir %s source patterns '%s' was not found. Don't update it then.", fileDir, matchFilepathNames)
 	}
 	fileDir = strings.ReplaceAll(fileDir, "/", string(filepath.Separator))
 	fileDir = filepath.Dir(fileDir)
@@ -108,7 +101,7 @@ func (l *Local) buildDirName(j *types.File2Download, matchFilepathNames []string
 func (*Local) buildFileName(file *types.File, suffix string) string {
 	fileNames := strings.Split(file.Filename, ".")
 	if len(fileNames) > 1 && suffix != "" {
-		fileNames[len(fileNames)-2] = fileNames[len(fileNames)-2] + "_" + suffix
+		fileNames[len(fileNames)-2] = fileNames[len(fileNames)-2] + "-" + suffix
 	}
 	fileName := strings.Join(fileNames, ".")
 	fileName = forbiddenInFileNameSymbols.ReplaceAllString(fileName, "")

@@ -18,6 +18,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
+	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -259,7 +260,9 @@ func handleFile(j *types.File2Download, matchFilepathName []string) {
 	if isDownloadOriginal {
 		downloadOriginalFile(j, matchFilepathName)
 	}
-	downloadFile(j, matchFilepathName)
+	if !isDownloadOriginal && !isDownloadSource {
+		downloadFile(j, matchFilepathName)
+	}
 }
 
 func handleInvalidFile(file *types.File) {
@@ -282,6 +285,11 @@ func handleInvalidFile(file *types.File) {
 }
 
 func downloadFile(j *types.File2Download, matchFilepathName []string) {
+	dir := filepath.Dir(j.File.Filepath)
+	if appConfig.Download.Target != "" && dir != "" && dir != "." {
+		log.Infof("[TARGET] file '%s' has file path. File path is not supported with config`download.target`. Skip.", j.File.Filepath)
+		return
+	}
 	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, "", isFilePathPattern)
 	if !isPullSkip || !local.FileExists(fileName) {
 		fileService.DownloadFile(j.PersonaID, fileName, j.File)
@@ -290,7 +298,12 @@ func downloadFile(j *types.File2Download, matchFilepathName []string) {
 }
 
 func downloadSourceFile(j *types.File2Download) {
-	fileName := j.File.Filepath
+	dir := filepath.Dir(j.File.Filepath)
+	if appConfig.Download.Target != "" && dir != "" && dir != "." {
+		log.Infof("[SOURCE] file '%s' has file path. File path is not supported with config `download.target`. Skip.", j.File.Filepath)
+		return
+	}
+	fileName := local.BuildDirectoryFilePath(j, []string{}, "", true)
 	fileService.DownloadSourceFile(fileName, j.File, isFilePathPattern)
 	atomic.AddUint64(&ops, 1)
 }
@@ -301,7 +314,12 @@ func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
 	}
-	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, suffix, isFilePathPattern)
+	dir := filepath.Dir(j.File.Filepath)
+	if appConfig.Download.Target != "" && dir != "" && dir != "." {
+		log.Infof("[ORIGINAL] file '%s' has file path. File path is not supported with config `download.target`. Skip.", j.File.Filepath)
+		return
+	}
+	fileName := local.BuildDirectoryFilePath(j, []string{}, suffix, true)
 	fileService.DownloadSourceFile(fileName, j.File, false)
 	atomic.AddUint64(&ops, 1)
 }

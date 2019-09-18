@@ -9,7 +9,7 @@ import (
 var (
 	pushVersion string
 	files       string
-	filePath    string
+	isFilePath  bool
 )
 
 // NewPushCmd creates `push` command
@@ -25,7 +25,7 @@ func NewPushCmd() *cobra.Command {
 	}
 	pushCmd.Flags().StringVarP(&pushVersion, "version", "v", "", "Set version to pushed file")
 	pushCmd.Flags().StringVarP(&files, "files", "f", "", "Lists the file paths to upload")
-	pushCmd.Flags().StringVarP(&filePath, "file-path", "p", "", "Push entire (relative) file paths")
+	pushCmd.Flags().BoolVarP(&isFilePath, "file-path", "p", false, "Reads push.sources.folders from config file and push its content to server")
 	return pushCmd
 }
 
@@ -34,18 +34,18 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		log.Errorf("error occurred on configuration load")
 		return
 	}
-	if filePath != "" && appConfig.Download.Target != "" {
+	if isFilePath && appConfig.Download.Target != "" {
 		log.Errorf("Please remove `download.target` from your configuration file; it is not supported with file paths.")
 		return
 	}
 
-	if filePath == "" && files == "" && len(args) == 0 {
+	if !isFilePath && files == "" && len(args) == 0 {
 		pushSources := appConfig.Push.Sources
 
 		log.Infof("no '--files' or '--file-path' params in command. 'source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
 		fileService.PushFiles(pushSources.Files, pushVersion, false)
 		for _, folder := range pushSources.Folders {
-			fileService.PushFolder(folder, pushVersion, filePath != "")
+			fileService.PushFolder(folder, pushVersion, isFilePath)
 		}
 		return
 	}
@@ -56,10 +56,13 @@ func pushCommand(cmd *cobra.Command, args []string) {
 			fileList = append(fileList, argFiles...)
 		}
 		for _, file := range fileList {
-			fileService.PushFolder(file, pushVersion, filePath != "")
+			fileService.PushFolder(file, pushVersion, isFilePath)
 		}
-	} else if filePath != "" {
-		log.Infof("Push file path '%v'", filePath)
-		fileService.PushFolder(filePath, pushVersion, filePath != "")
+	} else if isFilePath {
+		if len(appConfig.Push.Sources.Folders) > 0 {
+			fileService.PushFolder(appConfig.Push.Sources.Folders[0], pushVersion, isFilePath)
+		} else {
+			log.Errorf("--file-path variants uses push.sources.folders from config and push it on server")
+		}
 	}
 }

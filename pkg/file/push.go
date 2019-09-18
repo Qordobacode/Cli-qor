@@ -170,6 +170,9 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	if isFilepath && !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
 		return nil, errors.New("file not pass source name")
 	}
+	if !isFilepath {
+		relativeFilePath = ""
+	}
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  version,

@@ -34,7 +34,6 @@ func (f *Service) PushFiles(fileList []string, version string, isFilepath bool) 
 
 	workspace, err := f.WorkspaceService.LoadWorkspace()
 	if err != nil {
-		log.Errorf("error occurred on workspace download before file push: %v", err)
 		os.Exit(1)
 	}
 	for i := 0; i < concurrencyLevel; i++ {

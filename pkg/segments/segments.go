@@ -132,7 +132,6 @@ func (s *SegmentService) FindSegment(fileName, fileVersion, key string) (*types.
 func (s *SegmentService) findFileSegment(base, segmentName string, personaID int, file *types.File) *types.Segment {
 	workspaceData, err := s.WorkspaceService.LoadWorkspace()
 	if err != nil {
-		log.Errorf("error occurred on retrieving workspace workspaceData ")
 		return nil
 	}
 	for _, workflow := range workspaceData.Workflow {

@@ -1,7 +1,6 @@
 package workspace
 
 import (
-	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -40,7 +39,9 @@ func (w *Service) LoadWorkspace() (*types.WorkspaceData, error) {
 			return &workspaceData, nil
 		}
 	}
-	return nil, errors.New("workspace with id=" + string(w.Config.Qordoba.WorkspaceID) + " was not found")
+	err = fmt.Errorf("workspace with id=%v was not found", string(w.Config.Qordoba.WorkspaceID))
+	log.Errorf(err.Error())
+	return nil, err
 }
 
 // cachedWorkspace function returns cached workspace if it present AND still valid (invalidation period for

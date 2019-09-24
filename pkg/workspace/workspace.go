@@ -39,7 +39,7 @@ func (w *Service) LoadWorkspace() (*types.WorkspaceData, error) {
 			}
 		}
 	}
-	err = fmt.Errorf("workspace with id=%v was not found", string(w.Config.Qordoba.WorkspaceID))
+	err = fmt.Errorf("workspace with id=%v was not found", w.Config.Qordoba.WorkspaceID)
 	log.Errorf(err.Error())
 	return nil, err
 }
@@ -62,7 +62,7 @@ func (w *Service) cachedWorkspace() (*types.WorkspaceResponse, error) {
 
 // workspacesFromServer function retrieve list of all workspaces
 func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
-	log.Infof("start to download %v organization's workspace structure...", w.Config.Qordoba.WorkspaceID)
+	log.Infof("start to download organization's workspace structure...")
 	start := time.Now()
 	base := w.Config.GetAPIBase()
 	result := &types.WorkspaceResponse{
@@ -98,14 +98,13 @@ func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
 		result.Meta.Paging.TotalEnabled = workspaceResponse.Meta.Paging.TotalEnabled
 		result.Workspaces = append(result.Workspaces, workspaceResponse.Workspaces...)
 		errNum = 0
-		log.Infof("request %d/%d...", offset/limit+1, (result.Meta.Paging.TotalResults+limit-1)/limit)
+		elapsed := time.Since(start)
+		log.Infof("%v. Downloaded %d/%d organization's workspaces", elapsed, len(result.Workspaces), result.Meta.Paging.TotalResults)
 	}
 
 	bytes, err := result.MarshalJSON()
 	if err == nil {
 		w.Local.PutInHome(workspaceFileName, bytes)
 	}
-	elapsed := time.Since(start)
-	log.Infof("Organization %d workspace structure is downloaded in %v. %d workspaces were downloaded", w.Config.Qordoba.WorkspaceID, elapsed, len(result.Workspaces))
 	return result, nil
 }

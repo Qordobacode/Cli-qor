@@ -60,7 +60,7 @@ func buildConfigFromStdin() *types.Config {
 	scanner := bufio.NewScanner(os.Stdin)
 	accessToken := readVariable("ACCESS TOKEN: ", "Access token can't be empty", scanner)
 	organizationID := readIntVariable("ORGANIZATION ID: ", "Organization ID can't be empty", scanner)
-	projectID := readIntVariable("PROJECT ID: ", "Project ID can't be empty", scanner)
+	projectID := readIntVariable("WORKSPACE ID: ", "Project ID can't be empty", scanner)
 	return &types.Config{
 		Qordoba: types.QordobaConfig{
 			AccessToken:    accessToken,

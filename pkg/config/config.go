@@ -97,11 +97,11 @@ func (c *ConfigurationService) loadConfigFromViper() (*types.Config, error) {
 	var config types.Config
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		log.Errorf("error occurred on unmarshalling properties: %v", err)
+		log.Errorf("error occurred on parsing .qordoba.yaml: %v", err)
 	}
-	if config.Qordoba.WorkspaceID == 0. && config.Qordoba.ProjectID != 0. {
+	if config.Qordoba.WorkspaceID == 0. && config.Qordoba.ProjectID != nil {
 		log.Infof("field 'project_id' in qordoba configuration was deprecated. Please rename it to 'workspace_id' instead")
-		config.Qordoba.WorkspaceID = config.Qordoba.ProjectID
+		config.Qordoba.WorkspaceID = *config.Qordoba.ProjectID
 	}
 	return &config, err
 }

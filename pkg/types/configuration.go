@@ -20,7 +20,7 @@ type QordobaConfig struct {
 	AccessToken    string            `yaml:"access_token" mapstructure:"access_token"`
 	OrganizationID int64             `yaml:"organization_id" mapstructure:"organization_id"`
 	WorkspaceID    int64             `yaml:"workspace_id" mapstructure:"workspace_id"`
-	ProjectID      int64             `yaml:"project_id" mapstructure:"project_id"`
+	ProjectID      *int64            `yaml:"project_id,omitempty" mapstructure:"project_id,omitempty"`
 	AudienceMap    map[string]string `yaml:"audiences_map" mapstructure:"audiences_map"`
 }
 

@@ -44,7 +44,7 @@ var (
 	downloadAudience   = ""
 	isDownloadSource   = false
 	isDownloadOriginal = false
-	isPullSkip         = false
+	isDownloadSkip     = false
 	filePathPattern    = ""
 	isFilePathPattern  = false
 )
@@ -65,7 +65,7 @@ func NewDownloadCommand() *cobra.Command {
 	downloadCmd.Flags().StringVarP(&downloadAudience, "audience", "a", "", "Option to work only on specific (comma-separated) languages. example: `qor pull -a en-us,de-de`")
 	downloadCmd.Flags().BoolVarP(&isDownloadSource, "source", "s", false, "File option to download the update source file")
 	downloadCmd.Flags().BoolVarP(&isDownloadOriginal, "original", "o", false, "Option to download the original file (note if the customer using -s and -o in the same command rename the file original to; filename-original.xxx) ")
-	downloadCmd.Flags().BoolVar(&isPullSkip, "skip", false, "File option to download the update source file")
+	downloadCmd.Flags().BoolVar(&isDownloadSkip, "skip", false, "File option to download the update source file")
 	downloadCmd.Flags().StringVar(&filePathPattern, "file-path-pattern", "",
 		`Download all target languages, or use in combination with -a flag. Replaces language pattern in path using provided variant:
 - language_code 
@@ -100,11 +100,6 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	}
 	if !validateWorkspace(workspace) {
 		return
-	}
-	if filePathPattern != "" {
-		log.Infof("File Path Pattern used is `%s`", filePathPattern)
-	} else {
-		log.Infof("Used plain download logic")
 	}
 	isFilePathPattern = filePathPattern != ""
 	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)
@@ -291,7 +286,7 @@ func downloadFile(j *types.File2Download, matchFilepathName []string) {
 		return
 	}
 	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, "", isFilePathPattern)
-	if !isPullSkip || !local.FileExists(fileName) {
+	if !isDownloadSkip || !local.FileExists(fileName) {
 		fileService.DownloadFile(j.PersonaID, fileName, j.File)
 		atomic.AddUint64(&ops, 1)
 	}
@@ -304,8 +299,10 @@ func downloadSourceFile(j *types.File2Download) {
 		return
 	}
 	fileName := local.BuildDirectoryFilePath(j, []string{}, "", true)
-	fileService.DownloadSourceFile(fileName, j.File, isFilePathPattern)
-	atomic.AddUint64(&ops, 1)
+	if !isDownloadSkip || !local.FileExists(fileName) {
+		fileService.DownloadSourceFile(fileName, j.File, true)
+		atomic.AddUint64(&ops, 1)
+	}
 }
 
 func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
@@ -320,6 +317,9 @@ func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
 		return
 	}
 	fileName := local.BuildDirectoryFilePath(j, []string{}, suffix, true)
-	fileService.DownloadSourceFile(fileName, j.File, false)
+	if !isDownloadSkip || !local.FileExists(fileName) {
+		fileService.DownloadSourceFile(fileName, j.File, false)
+		atomic.AddUint64(&ops, 1)
+	}
 	atomic.AddUint64(&ops, 1)
 }

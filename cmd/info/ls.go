@@ -40,7 +40,6 @@ func NewLsCommand() *cobra.Command {
 func printLs(cmd *cobra.Command, args []string) {
 	workspace, err := workspaceService.LoadWorkspace()
 	if err != nil {
-		log.Errorf("configuration error: %v", err)
 		return
 	}
 	data := make([]*responseRow, 0)

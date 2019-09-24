@@ -36,6 +36,7 @@ type ConfigurationService interface {
 // WorkspaceService contain workspace-related functionality
 type WorkspaceService interface {
 	LoadWorkspace() (*types.WorkspaceData, error)
+	WorkspaceFromServer() (*types.WorkspaceData, error)
 }
 
 // FileService contains all logic related to Qordoba's file

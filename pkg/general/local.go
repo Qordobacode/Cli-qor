@@ -167,7 +167,18 @@ func (l *Local) LoadCached(cachedFileName string) ([]byte, error) {
 // FilesInFolder returns all files with specified file path
 func (l *Local) FilesInFolder(filePath string, isRecursive bool) []string {
 	fileMap := make(map[string]bool)
+	// search by regexp
 	matches, err := filepath.Glob(filePath)
+	isFound := false
+	for _, m := range matches {
+		if m == filePath {
+			isFound = true
+			break
+		}
+	}
+	if !isFound {
+		matches = append(matches, filePath)
+	}
 	result := make([]string, 0)
 	if matches == nil || len(matches) == 0 {
 		// filePath is not regexp
@@ -187,7 +198,6 @@ func (l *Local) FilesInFolder(filePath string, isRecursive bool) []string {
 		log.Infof("err occurred on files add: %v", err)
 		return result
 	}
-	addFilesInMap(filePath, fileMap, isRecursive)
 	for k := range fileMap {
 		result = append(result, k)
 	}
@@ -206,6 +216,10 @@ func addFilesInMap(path string, fileMap map[string]bool, isRecursive bool) {
 			return
 		}
 		for _, info := range infos {
+			if strings.HasPrefix(info.Name(), ".") {
+				log.Infof("file %s is hidden. Skip", info.Name())
+				continue
+			}
 			fileName := filepath.Join(path, info.Name())
 			if isRecursive {
 				addFilesInMap(fileName, fileMap, isRecursive)

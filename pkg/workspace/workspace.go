@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"errors"
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
@@ -12,6 +13,10 @@ const (
 	getWorkspacesTemplate = "%s/v3/organizations/%d/workspaces?limit=%d&offset=%d"
 	limit                 = 500
 	workspaceFileName     = "workspace.json"
+)
+
+var (
+	workspaceCacheWasUpdated = false
 )
 
 // Service implements pkg.Service
@@ -31,13 +36,22 @@ func (w *Service) LoadWorkspace() (*types.WorkspaceData, error) {
 			}
 		}
 	}
-	workspaceResponse, err = w.workspacesFromServer()
+	return w.WorkspaceFromServer()
+}
+
+func (w *Service) WorkspaceFromServer() (*types.WorkspaceData, error) {
+	if workspaceCacheWasUpdated {
+		return nil, errors.New("workspace has been already updated")
+	}
+	workspaceResponse, err := w.loadServerWorkspaceResponse()
 	if err == nil && workspaceResponse != nil {
 		for _, workspaceData := range workspaceResponse.Workspaces {
 			if workspaceData.Workspace.ID == int(w.Config.Qordoba.WorkspaceID) {
 				return &workspaceData, nil
 			}
 		}
+	} else {
+		return nil, err
 	}
 	err = fmt.Errorf("workspace with id=%v was not found", w.Config.Qordoba.WorkspaceID)
 	log.Errorf(err.Error())
@@ -60,8 +74,8 @@ func (w *Service) cachedWorkspace() (*types.WorkspaceResponse, error) {
 	return &workspaceResponse, nil
 }
 
-// workspacesFromServer function retrieve list of all workspaces
-func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
+// loadServerWorkspaceResponse function retrieve list of all workspaces
+func (w *Service) loadServerWorkspaceResponse() (*types.WorkspaceResponse, error) {
 	log.Infof("start to download organization's workspace structure...")
 	start := time.Now()
 	base := w.Config.GetAPIBase()
@@ -106,5 +120,6 @@ func (w *Service) workspacesFromServer() (*types.WorkspaceResponse, error) {
 	if err == nil {
 		w.Local.PutInHome(workspaceFileName, bytes)
 	}
+	workspaceCacheWasUpdated = true
 	return result, nil
 }

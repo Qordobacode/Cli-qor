@@ -98,8 +98,20 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	if err != nil || workspace == nil {
 		return
 	}
-	if !validateWorkspace(workspace) {
+	isSourceCode, wasFound := validateWorkspace(workspace)
+	if isSourceCode {
 		return
+	}
+	// there might be a chance that in cached workspace we missed new language. Reload workspace from server then.
+	if !wasFound {
+		workspace, err := workspaceService.WorkspaceFromServer()
+		if err != nil || workspace == nil {
+			return
+		}
+		_, wasFound := validateWorkspace(workspace)
+		if !wasFound {
+			return
+		}
 	}
 	isFilePathPattern = filePathPattern != ""
 	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)
@@ -127,29 +139,30 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 	}
 }
 
-func validateWorkspace(workspace *types.WorkspaceData) bool {
+func validateWorkspace(workspace *types.WorkspaceData) (isSourceCode bool, wasFound bool) {
 	if downloadAudience != "" {
 		// allow audiences like `qor download -a ja-jp,ko-kr`
 		audienceList := strings.Split(downloadAudience, ",")
 	A:
 		for _, audience := range audienceList {
-			if workspace.Workspace.SourcePersona.Code == audience {
-				log.Errorf("'%s' is a source language. Please use the -o and -s parameters to download source files.", audience)
-				return false
-			}
-			audienceLanguages := make([]string, 0)
+			targetCodesSlice := make([]string, 0)
 			for _, t := range workspace.Workspace.TargetPersonas {
 				if t.Code == audience {
 					continue A
 				}
-				audienceLanguages = append(audienceLanguages, "`"+t.Code+"`")
+				targetCodesSlice = append(targetCodesSlice, "`"+t.Code+"`")
 			}
-			targetLanguages := strings.Join(audienceLanguages, ", ")
+			targetLanguages := strings.Join(targetCodesSlice, ", ")
+			if workspace.Workspace.SourcePersona.Code == audience {
+				log.Errorf("`%s` is a source language. Please use the -o and -s parameters to download source files.", audience)
+				return true, false
+			}
+
 			log.Errorf("`%s` does not match one of available project target languages: %s", audience, targetLanguages)
-			return false
+			return false, false
 		}
 	}
-	return true
+	return false, true
 }
 
 func isFilePathPatternValid() bool {

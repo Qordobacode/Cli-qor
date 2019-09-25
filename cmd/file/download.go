@@ -334,5 +334,4 @@ func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
 		fileService.DownloadSourceFile(fileName, j.File, false)
 		atomic.AddUint64(&ops, 1)
 	}
-	atomic.AddUint64(&ops, 1)
 }

@@ -109,8 +109,6 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 				log.Infof("Segment %v was successfully deleted from %s", segmentKey, fileName)
 			}
 		}
-	} else {
-		log.Errorf("Segment %v in %v was not found", segmentKey, fileName)
 	}
 }
 

@@ -18,6 +18,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/spf13/cobra"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
@@ -112,6 +113,13 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 		if !wasFound {
 			return
 		}
+	}
+	if filePathPattern == "" && appConfig.Download.Target == "" {
+		log.Infof("Please update configuration and set the `download.target` field")
+		os.Exit(1)
+	}
+	if isDownloadCurrent && isDownloadOriginal {
+		log.Infof("-c parameter has no effect when used with -o, proceeding with downloading the original version of file.")
 	}
 	isFilePathPattern = filePathPattern != ""
 	matchFilepathName := buildPatternName(workspace.Workspace.SourcePersona)

@@ -20,7 +20,7 @@ const (
 
 var (
 	forbiddenInFileNameSymbols, _ = regexp.Compile(`[:?!\\*/|<>]`)
-	invalidationPeriod            = time.Hour * 4
+	invalidationPeriod            = time.Hour * 48
 )
 
 // Local implements pkg.Local

@@ -34,7 +34,7 @@ func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 		log.Errorf("error occurred on creating new directories")
 	}
 	f.Local.Write(fileName, fileBytesResponse)
-	log.Infof("file %s was downloaded", fileName)
+	log.Infof("file %s was downloaded ", fileName)
 }
 
 // DownloadSourceFile function retrieves all source files in workspace

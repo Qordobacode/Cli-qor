@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -64,6 +65,7 @@ func (r *Client) GetFromServer(getURL string) ([]byte, error) {
 	if response.StatusCode/100 != 2 {
 		if response.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+			os.Exit(1)
 		} else {
 			log.Errorf("Error occurred on get %s request. Status: %v, Response : %v", getURL, response.Status, string(bodyBytes))
 		}
@@ -135,6 +137,7 @@ func (r *Client) DeleteFromServer(deleteURL string) ([]byte, error) {
 	if response.StatusCode/100 != 2 {
 		if response.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+			os.Exit(1)
 		} else {
 			log.Errorf("Error occurred on %s request. Status: %d, Response : %v", deleteURL, response.StatusCode, string(bodyBytes))
 		}

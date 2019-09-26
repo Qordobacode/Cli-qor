@@ -7,6 +7,7 @@ import (
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 var (
@@ -46,6 +47,7 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+			os.Exit(1)
 		} else if resp.StatusCode == http.StatusNotAcceptable {
 			log.Errorf("Problem to add key '%s'. Key already exist", keyAddRequest.Key)
 		} else {
@@ -84,6 +86,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 	if resp.StatusCode/100 != 2 {
 		if resp.StatusCode == http.StatusUnauthorized {
 			log.Errorf("User is not authorised for this request. Check `access_token` in configuration.")
+			os.Exit(1)
 		} else {
 			log.Errorf("Error on update key: %v. Response: %v", resp.Status, string(body))
 		}

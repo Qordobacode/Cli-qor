@@ -228,7 +228,6 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 	files2Download := make([]*types.File2Download, 0)
 	for _, persona := range workspace.TargetPersonas {
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
-			log.Infof("skip workspace '%s' due to audience used '%v'", persona.Code, downloadAudience)
 			continue
 		}
 		response, err := fileService.WorkspaceFiles(persona.ID, false)

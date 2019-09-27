@@ -71,6 +71,5 @@ func updateValue(cmd *cobra.Command, args []string) {
 		Source:    updateKeyValue,
 		Reference: updateKeyRef,
 	}
-	fmt.Printf("req := %+v\n", keyAddRequest)
 	segmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

@@ -14,7 +14,7 @@ import (
 var (
 	keyAddTemplate     = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/keyAdd"
 	getSegmentTemplate = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/workflow/%d/segments?search=%s"
-	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/sourceUpdate"
+	keyUpdateTemplate  = "%s/v3/organizations/%d/workspaces/%d/personas/%v/files/%d/segments/%v/sourceUpdate"
 	keyDeleteTemplate  = "%s/v3/organizations/%d/workspaces/%d/files/%d/segments/%v/keyDelete"
 )
 
@@ -70,17 +70,21 @@ func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *type
 	segment, file := s.FindSegment(fileName, version, keyAddRequest.Key)
 	if segment != nil {
 		base := s.Config.GetAPIBase()
-		updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, file.FileID, segment.SegmentID)
-		valueUpdateRequest := &types.ValueKeyUpdateRequest{
-			Segment:         keyAddRequest.Source,
-			MoveToFirstStep: false,
+		var resp *http.Response
+		var err error
+		for _, p := range segment.Personas {
+			updateKeyRequestURL := fmt.Sprintf(keyUpdateTemplate, base, s.Config.Qordoba.OrganizationID, s.Config.Qordoba.WorkspaceID, p.ID, file.FileID, segment.SegmentID)
+			valueUpdateRequest := &types.ValueKeyUpdateRequest{
+				Segment:         keyAddRequest.Source,
+				MoveToFirstStep: false,
+			}
+			resp, err = s.QordobaClient.PutToServer(updateKeyRequestURL, valueUpdateRequest)
+			handleUpdateKeyResult(resp, err, p.Code)
 		}
-		resp, err := s.QordobaClient.PutToServer(updateKeyRequestURL, valueUpdateRequest)
-		handleUpdateKeyResult(resp, err)
 	}
 }
 
-func handleUpdateKeyResult(resp *http.Response, err error) {
+func handleUpdateKeyResult(resp *http.Response, err error, code string) {
 	if err != nil {
 		log.Errorf("error occurred on update key attempt: %v", err)
 		return
@@ -94,7 +98,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 			log.Errorf("Error on update key: %v. Response: %v", resp.Status, string(body))
 		}
 	} else {
-		log.Info("Segment was successfully updated")
+		log.Infof("Segment was successfully updated for code %v", code)
 	}
 }
 
@@ -164,6 +168,7 @@ func (s *SegmentService) findFileSegment(base, segmentName string, personaID int
 		}
 		for _, segment := range segmentSearchResponse.Segments {
 			if segment.StringKey == segmentName {
+				segment.Personas = workspaceData.Workspace.TargetPersonas
 				return &segment
 			}
 		}

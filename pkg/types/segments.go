@@ -21,10 +21,11 @@ type SegmentSearchResponse struct {
 
 // Segment struct
 type Segment struct {
-	LastSaved int    `json:"lastSaved"`
-	SegmentID int    `json:"segmentId"`
-	Reference string `json:"reference"`
-	Segment   string `json:"segment"`
-	SsText    string `json:"ssText"`
-	StringKey string `json:"stringKey"`
+	LastSaved int      `json:"lastSaved"`
+	SegmentID int      `json:"segmentId"`
+	Reference string   `json:"reference"`
+	Segment   string   `json:"segment"`
+	SsText    string   `json:"ssText"`
+	StringKey string   `json:"stringKey"`
+	Personas  []Person `json:"-"`
 }

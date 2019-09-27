@@ -43,6 +43,7 @@ func preValidateValueKeyParameters(cmd *cobra.Command, args []string) error {
 	startLocalServices(cmd, args)
 	return nil
 }
+
 func pullValueByKey(cmd *cobra.Command, args []string) {
 	segment, _ := segmentService.FindSegment(args[0], valueKeyVersion, valueKeyKey)
 	if segment == nil {

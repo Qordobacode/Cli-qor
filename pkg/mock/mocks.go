@@ -333,6 +333,15 @@ func (m *MockWorkspaceService) LoadWorkspace() (*types.WorkspaceData, error) {
 	return ret0, ret1
 }
 
+// LoadWorkspace mocks base method
+func (m *MockWorkspaceService) WorkspaceFromServer() (*types.WorkspaceData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoadWorkspace")
+	ret0, _ := ret[0].(*types.WorkspaceData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
 // LoadWorkspace indicates an expected call of LoadWorkspace
 func (mr *MockWorkspaceServiceMockRecorder) LoadWorkspace() *gomock.Call {
 	mr.mock.ctrl.T.Helper()

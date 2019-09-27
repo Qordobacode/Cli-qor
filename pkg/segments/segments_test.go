@@ -2,6 +2,7 @@ package segments
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/qordobacode/cli-v2/pkg/mock"
 	"github.com/qordobacode/cli-v2/pkg/types"
@@ -151,4 +152,10 @@ func TestSegmentService_DeleteKeyNotFoundFile(t *testing.T) {
 	qordobaClient.EXPECT().DeleteFromServer(gomock.Any()).
 		Return([]byte("some-response"), nil)
 	service.DeleteKey("config.yaml", "v2", "some-key")
+}
+
+func Test_Test(t *testing.T) {
+	service := startSegmentService(t)
+	key := service.handleSegmentKey("/test")
+	fmt.Printf("key := %v", key)
 }

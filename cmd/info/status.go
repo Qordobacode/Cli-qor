@@ -194,10 +194,11 @@ func buildFileTableData(file *types.File) ([][]string, []map[string]string) {
 	dataJSON := make([]map[string]string, 0, len(file.ByWorkflowProgress))
 	fileRow := make([]string, 0, 0)
 	JSONdocument := make(map[string]string)
-	fileRow[0] = file.Filename + " " + file.Version
-	fileRow[1] = strconv.Itoa(file.Counts.SegmentCount)
+	words, segments := countTotalSegments(file)
+	fileRow = append(fileRow, file.Filename+" "+file.Version)
+	fileRow = append(fileRow, strconv.Itoa(segments))
 	JSONdocument["segments"] = fileRow[1]
-	fileRow[2] = strconv.Itoa(file.Counts.WordCount)
+	fileRow = append(fileRow, strconv.Itoa(words))
 	JSONdocument["words"] = fileRow[2]
 	JSONdocument["file_name"] = file.Filename
 	JSONdocument["version"] = file.Version
@@ -207,11 +208,24 @@ func buildFileTableData(file *types.File) ([][]string, []map[string]string) {
 	}
 	i := 0
 	for _, workflowProgress := range file.ByWorkflowProgress {
-		percent := float64(workflowProgress.Counts.SegmentCount) / float64(file.Counts.SegmentCount) * 100
-		fileRow[i+3] = fmt.Sprintf(`%6.2f%%`, percent)
+		val := "0"
+		if segments != 0 {
+			percent := float64(workflowProgress.Counts.SegmentCount) / float64(segments) * 100
+			val = fmt.Sprintf(`%6.2f%%`, percent)
+		}
+		fileRow = append(fileRow, val)
 		JSONdocument[workflowProgress.Workflow.Name] = fileRow[i+3]
 		i++
 	}
+	data = append(data, fileRow)
 
 	return data, dataJSON
+}
+
+func countTotalSegments(file *types.File) (words int, segments int) {
+	for _, workflowProgress := range file.ByWorkflowProgress {
+		segments += workflowProgress.Counts.SegmentCount
+		words += workflowProgress.Counts.WordCount
+	}
+	return words, segments
 }

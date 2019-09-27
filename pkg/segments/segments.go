@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 )
 
 var (
@@ -27,6 +28,7 @@ type SegmentService struct {
 
 // AddKey function add new key into file
 func (s *SegmentService) AddKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
+	keyAddRequest.Key = s.handleSegmentKey(keyAddRequest.Key)
 	file, _ := s.FileService.FindFile(fileName, version, false)
 	if file == nil {
 		return
@@ -64,6 +66,7 @@ func handleAddKeyResponse(resp *http.Response, keyAddRequest *types.KeyAddReques
 
 // UpdateKey function update key
 func (s *SegmentService) UpdateKey(fileName, version string, keyAddRequest *types.KeyAddRequest) {
+	keyAddRequest.Key = s.handleSegmentKey(keyAddRequest.Key)
 	segment, file := s.FindSegment(fileName, version, keyAddRequest.Key)
 	if segment != nil {
 		base := s.Config.GetAPIBase()
@@ -97,6 +100,7 @@ func handleUpdateKeyResult(resp *http.Response, err error) {
 
 // DeleteKey deletes segment from file by key
 func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
+	segmentKey = s.handleSegmentKey(segmentKey)
 	segment, file := s.FindSegment(fileName, version, segmentKey)
 	if segment != nil {
 		base := s.Config.GetAPIBase()
@@ -110,6 +114,16 @@ func (s *SegmentService) DeleteKey(fileName, version, segmentKey string) {
 			}
 		}
 	}
+}
+
+func (s *SegmentService) handleSegmentKey(segmentKey string) string {
+	splittedKeys := strings.Split(segmentKey, "/")
+	if len(splittedKeys) == 1 {
+		log.Info(`Please add "/" to the start of the key`)
+		os.Exit(1)
+	}
+	key := splittedKeys[len(splittedKeys)-1]
+	return "/" + key
 }
 
 // FindSegment returns segment and file where it is placed by file name/version and segment key

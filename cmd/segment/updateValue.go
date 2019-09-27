@@ -51,10 +51,10 @@ func preValidateUpdateKeyParameters(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("filename is mandatory")
 	}
-	if addKeyKey == "" {
+	if updateKeyKey == "" {
 		return fmt.Errorf("flag 'key' is mandatory")
 	}
-	if addKeyValue == "" {
+	if updateKeyValue == "" {
 		return fmt.Errorf("flag 'value' is mandatory")
 	}
 	startLocalServices(cmd, args)
@@ -71,5 +71,6 @@ func updateValue(cmd *cobra.Command, args []string) {
 		Source:    updateKeyValue,
 		Reference: updateKeyRef,
 	}
+	fmt.Printf("req := %+v\n", keyAddRequest)
 	segmentService.UpdateKey(args[0], updateKeyVersion, keyAddRequest)
 }

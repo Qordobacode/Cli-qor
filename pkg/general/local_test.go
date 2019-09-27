@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/qordobacode/cli-v2/pkg/types"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -29,6 +28,7 @@ func TestLocal_ReadNotFound(t *testing.T) {
 func TestLocal_BuildFileNameSimple(t *testing.T) {
 	res := []struct {
 		FileName         string
+		FilePath         string
 		Version          string
 		Suffix           string
 		ExpectedFileName string
@@ -41,38 +41,43 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 		{
 			FileName:         "wip-core.tmp.json",
 			Version:          "v-0.1.0",
-			ExpectedFileName: "wip-core.tmp_v-0.1.0.json",
+			ExpectedFileName: "wip-core.tmp-v-0.1.0.json",
 		},
 		{
 			FileName:         "wip-core.tmp.json",
 			Suffix:           "original",
-			ExpectedFileName: "wip-core.tmp_original.json",
+			ExpectedFileName: "wip-core.tmp-original.json",
 		},
 		{
 			FileName:         "wip-core.tmp.json",
 			Version:          "version2",
 			Suffix:           "original",
-			ExpectedFileName: "wip-core.tmp_version2_original.json",
+			ExpectedFileName: "wip-core.tmp-version2-original.json",
 		},
 		{
 			FileName:         "wip-core.tmp.json",
+			FilePath:         "v510-en/three/wip-core.tmp.json",
 			Version:          "version2",
 			Suffix:           "original",
 			FilePathParam:    []string{"en-en"},
-			ExpectedFileName: "en-en" + string(os.PathSeparator) + "wip-core.tmp_version2_original.json",
+			ExpectedFileName: "v510-en" + string(os.PathSeparator) + "three" + string(os.PathSeparator) + "wip-core.tmp-version2-original.json",
 		},
 	}
 	for _, asset := range res {
 		file := types.File{
 			Filename: asset.FileName,
+			Filepath: asset.FilePath,
 			Version:  asset.Version,
 		}
 		j := types.File2Download{
-			File:      &file,
-			Persona:   0,
+			File: &file,
+			Person: types.Person{
+				Code: "en-kr",
+				ID:   0,
+			},
 			ReplaceIn: "kr",
 		}
-		fileName := localService.BuildDirectoryFilePath(&j, asset.FilePathParam, asset.Suffix)
+		fileName := localService.BuildDirectoryFilePath(&j, asset.FilePathParam, asset.Suffix, true)
 		assert.Equal(t, asset.ExpectedFileName, fileName, "asset %+v is incorrect", asset)
 	}
 }
@@ -111,12 +116,4 @@ func TestLocal_LoadCached(t *testing.T) {
 func Test_Glob(t *testing.T) {
 	matches, _ := filepath.Glob("../rest")
 	fmt.Printf("%v\n", matches)
-}
-
-func TestPath(t *testing.T) {
-	path := `C:\data\code\Cli-qor\test\JSON\basic-does-cover-many-cases`
-	infos, err := ioutil.ReadDir(path)
-	assert.Nil(t, err)
-	assert.NotNil(t, infos)
-	fmt.Printf("%v\n", infos)
 }

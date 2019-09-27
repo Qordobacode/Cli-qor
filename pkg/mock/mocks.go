@@ -219,9 +219,9 @@ func (m *MockLocal) FilesInFolder(folderPath string, isRecursive bool) []string 
 }
 
 // FilesInFolder indicates an expected call of FilesInFolder
-func (mr *MockLocalMockRecorder) FilesInFolder(folderPath interface{}) *gomock.Call {
+func (mr *MockLocalMockRecorder) FilesInFolder(folderPath interface{}, isRecursive bool) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilesInFolder", reflect.TypeOf((*MockLocal)(nil).FilesInFolder), folderPath)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FilesInFolder", reflect.TypeOf((*MockLocal)(nil).FilesInFolder), folderPath, isRecursive)
 }
 
 // RenderTable2Stdin mocks base method
@@ -417,15 +417,15 @@ func (mr *MockFileServiceMockRecorder) FindFile(fileName, version, withProgressS
 }
 
 // DownloadFile mocks base method
-func (m *MockFileService) DownloadFile(personaID int, fileName string, file *types.File) {
+func (m *MockFileService) DownloadFile(person types.Person, fileName string, file *types.File) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "DownloadFile", personaID, fileName, file)
+	m.ctrl.Call(m, "DownloadFile", person, fileName, file)
 }
 
 // DownloadFile indicates an expected call of DownloadFile
-func (mr *MockFileServiceMockRecorder) DownloadFile(personaID, fileName, file interface{}) *gomock.Call {
+func (mr *MockFileServiceMockRecorder) DownloadFile(person types.Person, fileName, file interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadFile", reflect.TypeOf((*MockFileService)(nil).DownloadFile), personaID, fileName, file)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DownloadFile", reflect.TypeOf((*MockFileService)(nil).DownloadFile), person, fileName, file)
 }
 
 // DownloadSourceFile mocks base method

@@ -20,7 +20,7 @@ func startScore(t *testing.T) *Service {
 }`
 	service := buildFileService(t)
 	filesList := []string{"test.yaml"}
-	local.EXPECT().FilesInFolder(gomock.Any()).Return(filesList)
+	local.EXPECT().FilesInFolder(gomock.Any(), true).Return(filesList)
 	client.EXPECT().GetFromServer("https://app.qordoba.com/v3/contentscore/organizations/0/workspaces/0/documents/7637/personas/100/score?documentLength=1").
 		Return([]byte(resp), nil)
 	return service

@@ -15,6 +15,12 @@ func startDownload(t *testing.T) *Service {
 func Test_DownloadFile(t *testing.T) {
 	service := startDownload(t)
 	file := types.File{}
-	service.DownloadFile(100, "testing.yaml", &file)
+	person := types.Person{
+		Code:      "en-us",
+		Direction: "",
+		ID:        100,
+		Name:      "",
+	}
+	service.DownloadFile(person, "testing.yaml", &file)
 
 }

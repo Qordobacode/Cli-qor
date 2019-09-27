@@ -21,7 +21,7 @@ var (
 func NewInitCmd() *cobra.Command {
 	initCmd := &cobra.Command{
 		Use:         "init",
-		Short:       "Init configuration for.ConfigConfig CLI from STDIN or file",
+		Short:       "Init configuration for CLI from STDIN or file",
 		RunE:        RunInitRoot,
 		Example:     `"qor init", "qor init qordobaconfig.yaml"`,
 		Annotations: map[string]string{"group": "init"},

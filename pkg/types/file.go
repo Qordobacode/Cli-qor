@@ -18,7 +18,7 @@ type Breakdown struct {
 // file2Download struct describe chunk of download work
 type File2Download struct {
 	File       *File
-	PersonaID  int
+	Person     Person
 	ReplaceIn  string
 	ReplaceMap map[string]string
 }

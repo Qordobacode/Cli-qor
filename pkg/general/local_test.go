@@ -69,7 +69,7 @@ func TestLocal_BuildFileNameSimple(t *testing.T) {
 		}
 		j := types.File2Download{
 			File:      &file,
-			PersonaID: 0,
+			Persona:   0,
 			ReplaceIn: "kr",
 		}
 		fileName := localService.BuildDirectoryFilePath(&j, asset.FilePathParam, asset.Suffix)

@@ -10,17 +10,17 @@ import (
 )
 
 // DownloadFile function retrieves file in workspace
-func (f *Service) DownloadFile(personaID int, fileName string, file *types.File) {
+func (f *Service) DownloadFile(persona types.Person, fileName string, file *types.File) {
 	start := time.Now()
 	defer func() {
 		log.TimeTrack(start, "DownloadFile")
 	}()
 	base := f.Config.GetAPIBase()
-	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, personaID, file.FileID)
-	f.handleDownloadedFile(getFileContentURL, fileName)
+	getFileContentURL := fmt.Sprintf(fileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, persona.ID, file.FileID)
+	f.handleDownloadedFile(getFileContentURL, fileName, persona.Code)
 }
 
-func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
+func (f *Service) handleDownloadedFile(fileRemoteURL, fileName, language string) {
 	fileBytesResponse, err := f.QordobaClient.GetFromServer(fileRemoteURL)
 	if err != nil {
 		log.Errorf("error occurred on file %s download (url = %s)\n%v", fileName, fileRemoteURL, err.Error())
@@ -34,12 +34,16 @@ func (f *Service) handleDownloadedFile(fileRemoteURL, fileName string) {
 		log.Errorf("error occurred on creating new directories")
 	}
 	f.Local.Write(fileName, fileBytesResponse)
-	log.Infof("file %s was downloaded ", fileName)
+	if language == "" {
+		log.Infof("file %s was downloaded", fileName)
+	} else {
+		log.Infof("file %s was downloaded for language %s", fileName, language)
+	}
 }
 
 // DownloadSourceFile function retrieves all source files in workspace
 func (f *Service) DownloadSourceFile(fileName string, file *types.File, withUpdates bool) {
 	base := f.Config.GetAPIBase()
 	getFileContentURL := fmt.Sprintf(sourceFileDownloadTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID, file.FileID, withUpdates)
-	f.handleDownloadedFile(getFileContentURL, fileName)
+	f.handleDownloadedFile(getFileContentURL, fileName, "")
 }

@@ -234,7 +234,8 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 		}
 	}
 	files2Download := make([]*types.File2Download, 0)
-	for _, persona := range workspace.TargetPersonas {
+	for pi := range workspace.TargetPersonas {
+		persona := workspace.TargetPersonas[pi]
 		if _, ok := audiences[persona.Code]; len(audiences) > 0 && !ok {
 			continue
 		}
@@ -247,7 +248,7 @@ func files2Download(workspace *types.Workspace, filePathTemplate string) []*type
 			replaceIn, replaceMap := buildReplaceInString(persona, filePathTemplate)
 			files2Download = append(files2Download, &types.File2Download{
 				File:       &files[i],
-				PersonaID:  persona.ID,
+				Person:     workspace.TargetPersonas[pi],
 				ReplaceIn:  replaceIn,
 				ReplaceMap: replaceMap,
 			})
@@ -307,7 +308,7 @@ func downloadFile(j *types.File2Download, matchFilepathName []string) {
 	}
 	fileName := local.BuildDirectoryFilePath(j, matchFilepathName, "", isFilePathPattern)
 	if !isDownloadSkip || !local.FileExists(fileName) {
-		fileService.DownloadFile(j.PersonaID, fileName, j.File)
+		fileService.DownloadFile(j.Person, fileName, j.File)
 		atomic.AddUint64(&ops, 1)
 	}
 }

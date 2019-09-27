@@ -44,7 +44,7 @@ type FileService interface {
 	WorkspaceFiles(personaID int, withProgressStatus bool) (*types.FileSearchResponse, error)
 	WorkspaceFilesWithLimit(personaID int, withProgressStatus bool, limit int) (*types.FileSearchResponse, error)
 	FindFile(fileName, version string, withProgressStatus bool) (*types.File, int)
-	DownloadFile(personaID int, fileName string, file *types.File)
+	DownloadFile(persona types.Person, fileName string, file *types.File)
 	DownloadSourceFile(fileName string, file *types.File, withUpdates bool)
 	PushFolder(folder, version string, isRecursive bool)
 	PushFiles(fileList []string, version string, isRecursive bool)

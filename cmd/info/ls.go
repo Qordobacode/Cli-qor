@@ -28,7 +28,7 @@ func NewLsCommand() *cobra.Command {
 	lsCmd := &cobra.Command{
 		Annotations: map[string]string{"group": "info"},
 		Use:         "ls",
-		Short:       "Ls files (show 50 only)",
+		Short:       "Lists files (show 50 only)",
 		Example:     `"qor ls", "qor ls --json"`,
 		PreRun:      startLocalServices,
 		Run:         printLs,

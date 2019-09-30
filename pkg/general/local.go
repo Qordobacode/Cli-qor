@@ -246,7 +246,7 @@ func (*Local) RenderTable2Stdin(header []string, data [][]string) {
 	table.Render() // Send output
 }
 
-func (l *Local) buildTargetFileName(file2Download *types.File2Download, s string) string {
+func (l *Local) buildTargetFileName(file2Download *types.File2Download, suffix string) string {
 	//i18n/<language_code>/translations.json  ->  i18n/zh-cn/translations.json
 	//folder1/values-<language_lang_code>/strings.xml  ->  folder1/values-en/strings.xml
 	//config/locales/server.<language_code>.yml  ->  config/locales/server.fr-fr.yml
@@ -260,6 +260,9 @@ func (l *Local) buildTargetFileName(file2Download *types.File2Download, s string
 	if len(fileNames) > 1 {
 		mimeType = fileNames[len(fileNames)-1]
 		filename = strings.Join(fileNames[0:len(fileNames)-1], ".")
+	}
+	if suffix != "" {
+		filename = filename + "-" + suffix
 	}
 	resultName := l.Config.Download.Target
 	if resultName == "" {

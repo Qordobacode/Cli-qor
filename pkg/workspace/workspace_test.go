@@ -19,7 +19,7 @@ func buildWorkspaceTest(t *testing.T) *Service {
 	client := mock.NewMockQordobaClient(controller)
 	local = mock.NewMockLocal(controller)
 	local.EXPECT().LoadCached(workspaceFileName).Return(nil, errors.New("not found"))
-	client.EXPECT().GetFromServer("https://app.qordoba.com/v3/organizations/0/workspaces").Return([]byte(workspace), nil)
+	client.EXPECT().GetFromServer("https://app.qordoba.com/v3/organizations/0/workspaces?limit=500&offset=0").Return([]byte(workspace), nil)
 	local.EXPECT().PutInHome(gomock.Any(), gomock.Any())
 	workspaceService := Service{
 		Config: &types.Config{
@@ -34,6 +34,7 @@ func buildWorkspaceTest(t *testing.T) *Service {
 }
 
 func TestService_LoadWorkspace(t *testing.T) {
+	workspaceCacheWasUpdated = false
 	service := buildWorkspaceTest(t)
 	data, err := service.LoadWorkspace()
 	assert.Nil(t, err)
@@ -41,6 +42,7 @@ func TestService_LoadWorkspace(t *testing.T) {
 }
 
 func TestService_LoadWorkspaceLoadCached(t *testing.T) {
+	workspaceCacheWasUpdated = false
 	service := buildWorkspaceTest(t)
 	local.EXPECT().LoadCached(workspaceFileName).Return([]byte(workspace), nil)
 	data, err := service.LoadWorkspace()

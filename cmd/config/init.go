@@ -67,6 +67,9 @@ func buildConfigFromStdin() *types.Config {
 			WorkspaceID:    projectID,
 			OrganizationID: organizationID,
 		},
+		Download: types.DownloadConfig{
+			Target: "<language_code>-<filename>.<extension>",
+		},
 	}
 }
 

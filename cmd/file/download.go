@@ -115,7 +115,7 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 		}
 	}
 	if filePathPattern == "" && appConfig.Download.Target == "" {
-		log.Infof("Please update configuration and set the `download.target` field")
+		log.Infof("Please update configuration and set the `download.target` field. For example `<language_code>-<filename>.<extension>`")
 		os.Exit(1)
 	}
 	if isDownloadCurrent && isDownloadOriginal {

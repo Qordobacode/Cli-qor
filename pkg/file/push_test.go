@@ -1,8 +1,8 @@
 package file
 
 import (
-	"fmt"
 	"github.com/golang/mock/gomock"
+	"github.com/magiconair/properties/assert"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -14,7 +14,7 @@ import (
 func TestService_PushFolder(t *testing.T) {
 	filesList := []string{"test.yaml"}
 	service := buildFileService(t)
-	local.EXPECT().FilesInFolder(gomock.Any(), true).Return(filesList)
+	local.EXPECT().FilesInFolder(gomock.Any(), false).Return(filesList)
 	service.PushFolder(".", "", false)
 }
 
@@ -33,5 +33,5 @@ func TestService_PushFiles(t *testing.T) {
 func Test_Test(t *testing.T) {
 	dir, _ := os.Getwd()
 	relativeFilePath, _ := filepath.Rel(dir, `C:\data\code\Cli-qor\test\csv\core.csv`)
-	fmt.Printf("path = %s", relativeFilePath)
+	assert.Equal(t, `..\..\test\csv\core.csv`, relativeFilePath)
 }

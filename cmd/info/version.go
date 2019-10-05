@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	VersionFlag = "0.8.0"
+	VersionFlag = "0.8.1-alpha"
 )
 
 // NewCmdVersion function create `version` command

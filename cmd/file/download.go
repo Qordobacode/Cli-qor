@@ -114,7 +114,7 @@ func downloadFiles(cmd *cobra.Command, args []string) {
 			return
 		}
 	}
-	if filePathPattern == "" && appConfig.Download.Target == "" {
+	if filePathPattern == "" && appConfig.Download.Target == "" && !isDownloadOriginal {
 		log.Infof("Please update configuration and set the `download.target` field. For example `<language_code>-<filename>.<extension>`")
 		os.Exit(1)
 	}
@@ -270,7 +270,7 @@ func handleFile(j *types.File2Download, matchFilepathName []string) {
 		handleInvalidFile(j.File)
 		return
 	}
-	if isDownloadSource {
+	if isDownloadSource && !(filePathPattern == "" && appConfig.Download.Target == "") {
 		downloadSourceFile(j)
 	}
 	if isDownloadOriginal {
@@ -331,11 +331,6 @@ func downloadOriginalFile(j *types.File2Download, matchFilepathName []string) {
 	if isDownloadSource {
 		// note if the customer using -s and -o in the same command rename the file original to filename-original.xxx
 		suffix = original
-	}
-	dir := filepath.Dir(j.File.Filepath)
-	if appConfig.Download.Target != "" && dir != "" && dir != "." {
-		log.Infof("[ORIGINAL] file '%s' has file path. File path is not supported with config `download.target`. Skip.", j.File.Filepath)
-		return
 	}
 	fileName := local.BuildDirectoryFilePath(j, []string{}, suffix, true)
 	if !isDownloadSkip || !local.FileExists(fileName) {

@@ -161,11 +161,22 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 		log.Errorf("can't handle file %s: %v", filePath, err)
 		return nil, err
 	}
-	dir, _ := os.Getwd()
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Debugf("error occurred on getting current dir: %v", err)
+	}
 	if len(f.Config.Push.Sources.Folders) > 0 {
 		dir = f.Config.Push.Sources.Folders[0]
 	}
-	relativeFilePath, _ := filepath.Rel(dir, filepath.Dir(filePath))
+	relativeFilePath, err := filepath.Rel(dir, filepath.Dir(filePath))
+	if err != nil {
+		log.Debugf("error occurred on building relativePath: %v", err)
+		relativeFilePath = filePath
+	}
+	if relativeFilePath == "" {
+		log.Debugf("relativeFilePath is empty. Use filePath '%s' instead", filePath)
+		relativeFilePath = filePath
+	}
 	if isFilepath && !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
 		return nil, errors.New("file not pass source name")
 	}
@@ -181,21 +192,24 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 }
 
 func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.WorkspaceData) bool {
+	log.Debugf("filepath = '%s', relativeFilePath = '%s'", filePath, relativeFilePath)
 	relativeFilePath = strings.ToLower(relativeFilePath)
 	code := workspace.Workspace.SourcePersona.Code
 	codeSplits := strings.Split(code, "-")
 	nameSplits := strings.Split(workspace.Workspace.SourcePersona.Name, "-")
 	for _, codeVal := range codeSplits {
-		codeVal = strings.ToLower(codeVal)
+		codeVal = strings.TrimSpace(strings.ToLower(codeVal))
 		if strings.Contains(relativeFilePath, string(os.PathSeparator)+codeVal) || strings.Contains(relativeFilePath, codeVal+string(os.PathSeparator)) || strings.HasPrefix(relativeFilePath, codeVal) {
 			return true
 		}
+		log.Debugf("relativeFilePath = '%s' doesn't contain code '%s'", relativeFilePath, codeVal)
 	}
 	for _, name := range nameSplits {
-		name = strings.ToLower(name)
+		name = strings.TrimSpace(strings.ToLower(name))
 		if strings.Contains(relativeFilePath, string(os.PathSeparator)+name) || strings.Contains(relativeFilePath, name+string(os.PathSeparator)) || strings.HasPrefix(relativeFilePath, name) {
 			return true
 		}
+		log.Debugf("relativeFilePath = '%s' doesn't contain name '%s'", relativeFilePath, name)
 	}
 
 	errMsg := ""

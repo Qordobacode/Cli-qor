@@ -3,6 +3,7 @@ package file
 import (
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
+	"os"
 	"path/filepath"
 )
 
@@ -45,6 +46,10 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		log.Infof("no '--files' or '--file-path' params in command. 'push.source' param from config is used\n  File: %v\n  Folders: %v", pushSources.Files, pushSources.Folders)
 		fileService.PushFiles(pushSources.Files, pushVersion, false)
 		for _, folder := range pushSources.Folders {
+			if !filepath.IsAbs(folder) {
+				log.Errorf("Please provide an absolute path for config parameter `push.folders`")
+				os.Exit(1)
+			}
 			fileService.PushFolder(folder, pushVersion, isFilePath)
 		}
 		return

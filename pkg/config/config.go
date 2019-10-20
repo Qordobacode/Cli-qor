@@ -17,6 +17,10 @@ const (
 	newConfigName    = "config.yaml"
 )
 
+var (
+	ConfigPathParam string
+)
+
 // ConfigurationService is an implementation of pkg.ConfigurationService
 type ConfigurationService struct {
 	Local pkg.Local
@@ -43,6 +47,10 @@ func (c *ConfigurationService) ReadConfigInPath(path string) (*types.Config, err
 // If you find  set directory with this file as a root to the plugin operations. .qordoba.yaml
 // Read content of the  overrides whatever is in  .qordoba.yaml ~/.qordoba/config-v4.yaml
 func (c *ConfigurationService) LoadConfig() (*types.Config, error) {
+	if ConfigPathParam != "" {
+		log.Infof("config was taken from %s", ConfigPathParam)
+		return c.ReadConfigInPath(ConfigPathParam)
+	}
 	homeDirectoryConfig, homeConfigErr := c.readHomeDirectoryConfig()
 	viperConfig, viperErr := c.loadConfigFromViper()
 	if homeConfigErr != nil || homeDirectoryConfig == nil {

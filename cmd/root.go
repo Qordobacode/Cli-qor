@@ -6,6 +6,7 @@ import (
 	"github.com/qordobacode/cli-v2/cmd/file"
 	"github.com/qordobacode/cli-v2/cmd/info"
 	"github.com/qordobacode/cli-v2/cmd/segment"
+	pkgconf "github.com/qordobacode/cli-v2/pkg/config"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"os"
 
@@ -46,6 +47,7 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.test.yaml)")
 	rootCmd.Flags().BoolVarP(&Version, "version", "v", false, "GET version of CLI")
 	rootCmd.PersistentFlags().BoolVar(&log.IsVerbose, "verbose", false, "Print verbose output")
+	rootCmd.PersistentFlags().StringVar(&pkgconf.ConfigPathParam, "config", "", "Path to config")
 
 	rootCmd.AddCommand(
 		config.NewInitCmd(),

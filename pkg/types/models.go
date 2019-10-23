@@ -23,7 +23,7 @@ type WorkspaceData struct {
 
 // Workspace is qordoba object with workspace's parameters
 type Workspace struct {
-	ContentTypeCodes []interface{} `json:"contentTypeCodes"`
+	ContentTypeCodes []ExtensionDescription `json:"contentTypeCodes"`
 	CreatedBy        struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
@@ -38,6 +38,12 @@ type Workspace struct {
 	TargetPersonas []Person `json:"targetPersonas"`
 	Timezone       string   `json:"timezone"`
 	TmMatchMode    string   `json:"tmMatchMode"`
+}
+
+// ExtensionDescription
+type ExtensionDescription struct {
+	Extensions []string `json:"extensions"`
+	Name       string   `json:"name"`
 }
 
 // Person - qordoba's response with person's information

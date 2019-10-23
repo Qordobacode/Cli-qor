@@ -12,12 +12,18 @@ import (
 	"regexp"
 	"runtime/debug"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
 const (
 	pushFileTemplate = "%s/v3/files/organizations/%d/workspaces/%d/upsert"
 	concurrencyLevel = 1
+)
+
+var (
+	TotalSkipped uint64
+	MimeTypes    string
 )
 
 // PushFolder function push folder to server
@@ -36,8 +42,17 @@ func (f *Service) PushFiles(fileList []string, version string, isFilepath bool) 
 	if err != nil {
 		os.Exit(1)
 	}
+	contentTypeCodes := map[string]struct{}{}
+	contentTypeArray := make([]string, 0)
+	for _, code := range workspace.Workspace.ContentTypeCodes {
+		for _, ext := range code.Extensions {
+			contentTypeCodes[ext] = struct{}{}
+			contentTypeArray = append(contentTypeArray, `"`+ext+`"`)
+		}
+	}
+	MimeTypes = strings.Join(contentTypeArray, ", ")
 	for i := 0; i < concurrencyLevel; i++ {
-		go f.startPushWorker(jobs, results, version, workspace, isFilepath)
+		go f.startPushWorker(jobs, results, version, workspace, contentTypeCodes, isFilepath)
 	}
 
 	// let all error logs go before final messages
@@ -82,11 +97,12 @@ func (f *Service) buildBlacklistRegexps() []*regexp.Regexp {
 	return blacklistRegexp
 }
 
-func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string, workspace *types.WorkspaceData, isFilepath bool) {
+func (f *Service) startPushWorker(jobs chan *pushFileTask, results chan struct{}, version string,
+	workspace *types.WorkspaceData, contentTypeCodes map[string]struct{}, isFilepath bool) {
 	base := f.Config.GetAPIBase()
 	pushFileURL := fmt.Sprintf(pushFileTemplate, base, f.Config.Qordoba.OrganizationID, f.Config.Qordoba.WorkspaceID)
 	for j := range jobs {
-		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results, workspace, isFilepath)
+		f.sendFileToServer(j.fileInfo, j.FilePath, pushFileURL, version, results, workspace, contentTypeCodes, isFilepath)
 	}
 }
 
@@ -116,7 +132,7 @@ type pushFileTask struct {
 }
 
 func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, version string, results chan struct{},
-	workspace *types.WorkspaceData, isFilepath bool) {
+	workspace *types.WorkspaceData, contentTypeCodes map[string]struct{}, isFilepath bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Printf("Recovered in sendFileToServer: %v\n%s\n", err, debug.Stack())
@@ -126,7 +142,7 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	if fileInfo.IsDir() {
 		return
 	}
-	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version, workspace, isFilepath)
+	pushRequest, err := f.buildPushRequest(fileInfo, filePath, version, workspace, contentTypeCodes, isFilepath)
 	if err != nil {
 		return
 	}
@@ -155,7 +171,8 @@ func (f *Service) sendFileToServer(fileInfo os.FileInfo, filePath, pushFileURL, 
 	}
 }
 
-func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string, workspace *types.WorkspaceData, isFilepath bool) (*types.PushRequest, error) {
+func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version string, workspace *types.WorkspaceData,
+	contentTypeCodes map[string]struct{}, isFilepath bool) (*types.PushRequest, error) {
 	fileContent, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		log.Errorf("can't handle file %s: %v", filePath, err)
@@ -180,6 +197,9 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	if isFilepath && !filterFileByWorkspace(relativeFilePath, filePath, workspace) {
 		return nil, errors.New("file not pass source name")
 	}
+	if !filterFileByMimeType(filePath, fileInfo.Name(), contentTypeCodes) {
+		return nil, errors.New("file not pass mime type check")
+	}
 	if !isFilepath {
 		relativeFilePath = ""
 	}
@@ -189,6 +209,26 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 		Content:  string(fileContent),
 		Filepath: relativeFilePath,
 	}, nil
+}
+
+func filterFileByMimeType(filePath, fileName string, contentTypeCodes map[string]struct{}) bool {
+	if len(contentTypeCodes) == 0 {
+		// pass checks if workspace's content type is empty
+		return true
+	}
+	dotParts := strings.Split(fileName, ".")
+	if len(dotParts) < 2 {
+		log.Infof("[SKIPPED] File '%s' doesn't contain workspace mime type", filePath)
+		atomic.AddUint64(&TotalSkipped, 1)
+		return false
+	}
+	mimeType := dotParts[len(dotParts)-1]
+	if _, ok := contentTypeCodes[mimeType]; !ok {
+		log.Infof("[SKIPPED] File '%s' doesn't contain workspace mime type", filePath)
+		atomic.AddUint64(&TotalSkipped, 1)
+		return false
+	}
+	return true
 }
 
 func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.WorkspaceData) bool {

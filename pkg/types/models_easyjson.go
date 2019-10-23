@@ -254,22 +254,16 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes2(in *jlexer.Lexer, 
 				in.Delim('[')
 				if out.ContentTypeCodes == nil {
 					if !in.IsDelim(']') {
-						out.ContentTypeCodes = make([]interface{}, 0, 4)
+						out.ContentTypeCodes = make([]ExtensionDescription, 0, 1)
 					} else {
-						out.ContentTypeCodes = []interface{}{}
+						out.ContentTypeCodes = []ExtensionDescription{}
 					}
 				} else {
 					out.ContentTypeCodes = (out.ContentTypeCodes)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v7 interface{}
-					if m, ok := v7.(easyjson.Unmarshaler); ok {
-						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v7.(json.Unmarshaler); ok {
-						_ = m.UnmarshalJSON(in.Raw())
-					} else {
-						v7 = in.Interface()
-					}
+					var v7 ExtensionDescription
+					(v7).UnmarshalEasyJSON(in)
 					out.ContentTypeCodes = append(out.ContentTypeCodes, v7)
 					in.WantComma()
 				}
@@ -341,13 +335,7 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes2(out *jwriter.Write
 				if v9 > 0 {
 					out.RawByte(',')
 				}
-				if m, ok := v10.(easyjson.Marshaler); ok {
-					m.MarshalEasyJSON(out)
-				} else if m, ok := v10.(json.Marshaler); ok {
-					out.Raw(m.MarshalJSON())
-				} else {
-					out.Raw(json.Marshal(v10))
-				}
+				(v10).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1654,7 +1642,112 @@ func (v *File) UnmarshalJSON(data []byte) error {
 func (v *File) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes14(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(in *jlexer.Lexer, out *Counts) {
+func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(in *jlexer.Lexer, out *ExtensionDescription) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "extensions":
+			if in.IsNull() {
+				in.Skip()
+				out.Extensions = nil
+			} else {
+				in.Delim('[')
+				if out.Extensions == nil {
+					if !in.IsDelim(']') {
+						out.Extensions = make([]string, 0, 4)
+					} else {
+						out.Extensions = []string{}
+					}
+				} else {
+					out.Extensions = (out.Extensions)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v25 string
+					v25 = string(in.String())
+					out.Extensions = append(out.Extensions, v25)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		case "name":
+			out.Name = string(in.String())
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(out *jwriter.Writer, in ExtensionDescription) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"extensions\":"
+		out.RawString(prefix[1:])
+		if in.Extensions == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v26, v27 := range in.Extensions {
+				if v26 > 0 {
+					out.RawByte(',')
+				}
+				out.String(string(v27))
+			}
+			out.RawByte(']')
+		}
+	}
+	{
+		const prefix string = ",\"name\":"
+		out.RawString(prefix)
+		out.String(string(in.Name))
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v ExtensionDescription) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v ExtensionDescription) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *ExtensionDescription) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *ExtensionDescription) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(l, v)
+}
+func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(in *jlexer.Lexer, out *Counts) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1687,7 +1780,7 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(in *jlexer.Lexer,
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(out *jwriter.Writer, in Counts) {
+func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(out *jwriter.Writer, in Counts) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1707,27 +1800,27 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(out *jwriter.Writ
 // MarshalJSON supports json.Marshaler interface
 func (v Counts) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(&w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Counts) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes15(w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Counts) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(&r, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Counts) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes15(l, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(in *jlexer.Lexer, out *ByWorkflowProgress) {
+func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(in *jlexer.Lexer, out *ByWorkflowProgress) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1760,7 +1853,7 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(in *jlexer.Lexer,
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(out *jwriter.Writer, in ByWorkflowProgress) {
+func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(out *jwriter.Writer, in ByWorkflowProgress) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1780,27 +1873,27 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(out *jwriter.Writ
 // MarshalJSON supports json.Marshaler interface
 func (v ByWorkflowProgress) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(&w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ByWorkflowProgress) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes16(w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ByWorkflowProgress) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(&r, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ByWorkflowProgress) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes16(l, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(l, v)
 }
-func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(in *jlexer.Lexer, out *ByPersonaProgress) {
+func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes18(in *jlexer.Lexer, out *ByPersonaProgress) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1837,9 +1930,9 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(in *jlexer.Lexer,
 					out.ByWorkflowProgress = (out.ByWorkflowProgress)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v25 ByWorkflowProgress
-					(v25).UnmarshalEasyJSON(in)
-					out.ByWorkflowProgress = append(out.ByWorkflowProgress, v25)
+					var v28 ByWorkflowProgress
+					(v28).UnmarshalEasyJSON(in)
+					out.ByWorkflowProgress = append(out.ByWorkflowProgress, v28)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1854,7 +1947,7 @@ func easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(in *jlexer.Lexer,
 		in.Consumed()
 	}
 }
-func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(out *jwriter.Writer, in ByPersonaProgress) {
+func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes18(out *jwriter.Writer, in ByPersonaProgress) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1870,11 +1963,11 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(out *jwriter.Writ
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v26, v27 := range in.ByWorkflowProgress {
-				if v26 > 0 {
+			for v29, v30 := range in.ByWorkflowProgress {
+				if v29 > 0 {
 					out.RawByte(',')
 				}
-				(v27).MarshalEasyJSON(out)
+				(v30).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1885,23 +1978,23 @@ func easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(out *jwriter.Writ
 // MarshalJSON supports json.Marshaler interface
 func (v ByPersonaProgress) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(&w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes18(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ByPersonaProgress) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes17(w, v)
+	easyjsonD2b7633eEncodeGithubComQordobacodeCliV2PkgTypes18(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ByPersonaProgress) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(&r, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes18(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ByPersonaProgress) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes17(l, v)
+	easyjsonD2b7633eDecodeGithubComQordobacodeCliV2PkgTypes18(l, v)
 }

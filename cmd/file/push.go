@@ -1,6 +1,7 @@
 package file
 
 import (
+	"github.com/qordobacode/cli-v2/pkg/file"
 	"github.com/qordobacode/cli-v2/pkg/general/log"
 	"github.com/spf13/cobra"
 	"os"
@@ -51,6 +52,9 @@ func pushCommand(cmd *cobra.Command, args []string) {
 				os.Exit(1)
 			}
 			fileService.PushFolder(folder, pushVersion, isFilePath)
+		}
+		if file.TotalSkipped > 0 {
+			log.Infof(`%v files were skipped as their extension did not match one of: %s`, file.TotalSkipped, file.MimeTypes)
 		}
 		return
 	}

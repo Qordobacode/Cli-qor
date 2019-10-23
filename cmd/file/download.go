@@ -188,6 +188,7 @@ func buildPatternName(person types.Person) []string {
 }
 
 func updateByVariantSlice(variantString string, results []string) []string {
+	results = append(results, variantString)
 	variants := strings.Split(variantString, "-")
 	for _, variant := range variants {
 		trimmedVariant := strings.TrimSpace(variant)

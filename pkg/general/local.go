@@ -68,8 +68,13 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 	if isFilePathPattern {
 		// handle via file path pattern
 		resultName = l.buildFileName(j.File, suffix)
-		fileDir := l.buildDirName(j, matchFilepathName)
-		resultName = filepath.Join(fileDir, resultName)
+		// we don't want to add validation into
+		splittedName := strings.Split(resultName, ".")
+		mimeType := splittedName[len(splittedName)-1]
+		pureFileName := strings.ReplaceAll(resultName, mimeType, "")
+		resultName = filepath.Join(j.File.Filepath, pureFileName)
+		resultName = l.buildDirName(resultName, j.ReplaceIn, matchFilepathName)
+		resultName = resultName + "." + mimeType
 	} else {
 		// handle via `download.target
 		resultName = l.buildTargetFileName(j, suffix)
@@ -79,22 +84,20 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 	return resultName
 }
 
-func (l *Local) buildDirName(j *types.File2Download, matchFilepathNames []string) string {
-	fileDir := j.File.Filepath
+func (l *Local) buildDirName(fileDir, replaceIn string, matchFilepathNames []string) string {
+	fileDir = strings.ReplaceAll(fileDir, "\\", "/")
 	for _, matchFilepathName := range matchFilepathNames {
 		if strings.Contains(fileDir, "/"+matchFilepathName+"/") {
-			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"/", "/"+j.ReplaceIn+"/")
+			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"/", "/"+replaceIn+"/")
 			break
 		} else if strings.Contains(fileDir, "/"+matchFilepathName+"-") {
-			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"-", "/"+j.ReplaceIn+"-")
+			fileDir = strings.ReplaceAll(fileDir, "/"+matchFilepathName+"-", "/"+replaceIn+"-")
 			break
 		} else if strings.Contains(fileDir, "-"+matchFilepathName+"/") {
-			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+j.ReplaceIn+"/")
+			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+replaceIn+"/")
 			break
 		}
 	}
-	fileDir = strings.ReplaceAll(fileDir, "/", string(filepath.Separator))
-	fileDir = filepath.Dir(fileDir)
 	return fileDir
 }
 

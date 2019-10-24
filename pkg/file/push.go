@@ -185,7 +185,7 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	if len(f.Config.Push.Sources.Folders) > 0 {
 		dir = f.Config.Push.Sources.Folders[0]
 	}
-	relativeFilePath, err := filepath.Rel(dir, filepath.Dir(filePath))
+	relativeFilePath, err := filepath.Rel(dir, filePath)
 	if err != nil {
 		log.Debugf("error occurred on building relativePath: %v", err)
 		relativeFilePath = filePath
@@ -203,6 +203,7 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	if !isFilepath {
 		relativeFilePath = ""
 	}
+	relativeFilePath = filepath.Dir(relativeFilePath)
 	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),
@@ -235,19 +236,27 @@ func filterFileByMimeType(filePath, fileName string, contentTypeCodes map[string
 func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.WorkspaceData) bool {
 	log.Debugf("filepath = '%s', relativeFilePath = '%s'", filePath, relativeFilePath)
 	relativeFilePath = strings.ToLower(relativeFilePath)
+	filePaths := strings.Split(relativeFilePath, ".")
+	noMimeRelativeFilePath := strings.TrimSuffix(relativeFilePath, "."+filePaths[len(filePaths)-1])
 	code := workspace.Workspace.SourcePersona.Code
 	codeSplits := strings.Split(code, "-")
 	nameSplits := strings.Split(workspace.Workspace.SourcePersona.Name, "-")
 	for _, codeVal := range codeSplits {
 		codeVal = strings.TrimSpace(strings.ToLower(codeVal))
-		if strings.Contains(relativeFilePath, string(os.PathSeparator)+codeVal) || strings.Contains(relativeFilePath, codeVal+string(os.PathSeparator)) || strings.HasPrefix(relativeFilePath, codeVal) {
+		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+codeVal) ||
+			strings.Contains(noMimeRelativeFilePath, codeVal+string(os.PathSeparator)) ||
+			strings.HasPrefix(noMimeRelativeFilePath, codeVal) ||
+			strings.HasSuffix(noMimeRelativeFilePath, codeVal) {
 			return true
 		}
 		log.Debugf("relativeFilePath = '%s' doesn't contain code '%s'", relativeFilePath, codeVal)
 	}
 	for _, name := range nameSplits {
 		name = strings.TrimSpace(strings.ToLower(name))
-		if strings.Contains(relativeFilePath, string(os.PathSeparator)+name) || strings.Contains(relativeFilePath, name+string(os.PathSeparator)) || strings.HasPrefix(relativeFilePath, name) {
+		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+name) ||
+			strings.Contains(noMimeRelativeFilePath, name+string(os.PathSeparator)) ||
+			strings.HasPrefix(noMimeRelativeFilePath, name) ||
+			strings.HasSuffix(noMimeRelativeFilePath, name) {
 			return true
 		}
 		log.Debugf("relativeFilePath = '%s' doesn't contain name '%s'", relativeFilePath, name)

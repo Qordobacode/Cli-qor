@@ -206,14 +206,14 @@ func buildReplaceInString(person types.Person, filePathPattern string) (string, 
 	if len(codes) < 2 || len(names) < 2 {
 		return "", replacementMap
 	}
-	replacementMap["<language_code>"] = person.Code
-	replacementMap["<language_lang_code>"] = strings.TrimSpace(codes[0])
-	replacementMap["<language_name>"] = strings.ToLower(strings.TrimSpace(names[0]))
-	replacementMap["<language_name_cap>"] = strings.Title(strings.TrimSpace(names[0]))
-	replacementMap["<language_name_allcap>"] = strings.ToUpper(strings.TrimSpace(names[0]))
-	replacementMap["<local_capitalized>"] = strings.ToUpper(strings.TrimSpace(codes[1]))
+	replacementMap["language_code"] = person.Code
+	replacementMap["language_lang_code"] = strings.TrimSpace(codes[0])
+	replacementMap["language_name"] = strings.ToLower(strings.TrimSpace(names[0]))
+	replacementMap["language_name_cap"] = strings.Title(strings.TrimSpace(names[0]))
+	replacementMap["language_name_allcap"] = strings.ToUpper(strings.TrimSpace(names[0]))
+	replacementMap["local_capitalized"] = strings.ToUpper(strings.TrimSpace(codes[1]))
 	if replacementMap[filePathPattern] == "" {
-		return replacementMap["<language_lang_code>"], replacementMap
+		return replacementMap["language_lang_code"], replacementMap
 	}
 	return replacementMap[filePathPattern], replacementMap
 }

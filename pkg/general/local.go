@@ -71,8 +71,10 @@ func (l *Local) BuildDirectoryFilePath(j *types.File2Download, matchFilepathName
 		// we don't want to add validation into
 		splittedName := strings.Split(resultName, ".")
 		mimeType := splittedName[len(splittedName)-1]
-		pureFileName := strings.ReplaceAll(resultName, mimeType, "")
-		resultName = filepath.Join(j.File.Filepath, pureFileName)
+
+		pureFileName := strings.TrimSuffix(resultName, "."+mimeType)
+		dir := filepath.Dir(j.File.Filepath)
+		resultName = filepath.Join(dir, pureFileName)
 		resultName = l.buildDirName(resultName, j.ReplaceIn, matchFilepathName)
 		resultName = resultName + "." + mimeType
 	} else {
@@ -95,6 +97,12 @@ func (l *Local) buildDirName(fileDir, replaceIn string, matchFilepathNames []str
 			break
 		} else if strings.Contains(fileDir, "-"+matchFilepathName+"/") {
 			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName+"/", "-"+replaceIn+"/")
+			break
+		} else if strings.HasPrefix(fileDir, matchFilepathName+"/") {
+			fileDir = strings.ReplaceAll(fileDir, matchFilepathName+"/", replaceIn+"/")
+			break
+		} else if strings.HasSuffix(fileDir, "-"+matchFilepathName) {
+			fileDir = strings.ReplaceAll(fileDir, "-"+matchFilepathName, "-"+replaceIn)
 			break
 		}
 	}

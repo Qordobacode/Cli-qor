@@ -203,6 +203,7 @@ func (f *Service) buildPushRequest(fileInfo os.FileInfo, filePath, version strin
 	if !isFilepath {
 		relativeFilePath = ""
 	}
+	relativeFilePath = strings.ReplaceAll(relativeFilePath, "\\", "/")
 	return &types.PushRequest{
 		FileName: fileInfo.Name(),
 		Version:  version,

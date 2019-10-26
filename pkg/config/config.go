@@ -161,6 +161,18 @@ func validateConfigCorrect(config *types.Config) {
 		log.Errorf("qordoba.workspace_id is not set")
 		os.Exit(1)
 	}
+	for _, c := range config.Push.Sources.Folders {
+		if !filepath.IsAbs(c) {
+			log.Errorf(`Please provide an absolute path for config parameter "push.sources.folders". Check parameter "%s"`, c)
+			os.Exit(1)
+		}
+	}
+	for _, c := range config.Push.Sources.Files {
+		if !filepath.IsAbs(c) {
+			log.Errorf(`Please provide an absolute path for config parameter "push.sources.files". Check value "%s"`, c)
+			os.Exit(1)
+		}
+	}
 }
 
 // SaveMainConfig function update content of application's config

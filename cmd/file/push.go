@@ -48,7 +48,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		fileService.PushFiles(pushSources.Files, pushVersion, false)
 		for _, folder := range pushSources.Folders {
 			if !filepath.IsAbs(folder) {
-				log.Errorf("Please provide an absolute path for config parameter `push.folders`")
+				log.Errorf("Please provide an absolute path for config parameter `push.sources.folders`")
 				os.Exit(1)
 			}
 			fileService.PushFolder(folder, pushVersion, isFilePath)
@@ -69,7 +69,7 @@ func pushCommand(cmd *cobra.Command, args []string) {
 		}
 	} else if isFilePath {
 		if len(appConfig.Push.Sources.Folders) > 0 {
-			log.Infof("Files being recursively pushed from path provided in configuration at `push.folders`")
+			log.Infof("Files being recursively pushed from path provided in configuration at `push.sources.folders`")
 			fileService.PushFolder(appConfig.Push.Sources.Folders[0], pushVersion, isFilePath)
 		} else {
 			log.Errorf("--file-path variants uses push.sources.folders from config and push it on server")

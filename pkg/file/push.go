@@ -262,11 +262,14 @@ func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.W
 		log.Debugf("relativeFilePath = '%s' doesn't contain name '%s'", relativeFilePath, name)
 	}
 
-	errMsg := ""
+	folderErrMsg := ""
+	fileErrMsg := ""
 	if len(codeSplits) > 1 {
-		errMsg = fmt.Sprintf(`/%s/, /%s-xxx/, /xxx-%s/, /%s/, /%s-xxx/, /xxx-%s/`,
+		folderErrMsg = fmt.Sprintf(`/%s/, /%s-xxx/, /xxx-%s/, /%s/, /%s-xxx/, /xxx-%s/`,
+			codeSplits[0], codeSplits[0], codeSplits[0], code, code, code)
+		fileErrMsg = fmt.Sprintf(`%s., -%s., %s-, %s., %s-, -%s`,
 			codeSplits[0], codeSplits[0], codeSplits[0], code, code, code)
 	}
-	log.Infof("[SKIPPED] File path '%s' doesn't contain Source code. For example: %s.", filePath, errMsg)
+	log.Infof("[SKIPPED] File path '%s' doesn't contain Source code. For example: %s or in file name %s.", filePath, folderErrMsg, fileErrMsg)
 	return false
 }

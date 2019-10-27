@@ -243,9 +243,9 @@ func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.W
 	nameSplits := strings.Split(workspace.Workspace.SourcePersona.Name, "-")
 	for _, codeVal := range codeSplits {
 		codeVal = strings.TrimSpace(strings.ToLower(codeVal))
-		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+codeVal) ||
+		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+codeVal+"-") ||
 			strings.Contains(noMimeRelativeFilePath, codeVal+string(os.PathSeparator)) ||
-			strings.HasPrefix(noMimeRelativeFilePath, codeVal) ||
+			strings.HasPrefix(noMimeRelativeFilePath, codeVal+"-") ||
 			strings.HasSuffix(noMimeRelativeFilePath, codeVal) {
 			return true
 		}
@@ -253,9 +253,9 @@ func filterFileByWorkspace(relativeFilePath, filePath string, workspace *types.W
 	}
 	for _, name := range nameSplits {
 		name = strings.TrimSpace(strings.ToLower(name))
-		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+name) ||
+		if strings.Contains(noMimeRelativeFilePath, string(os.PathSeparator)+name+"-") ||
 			strings.Contains(noMimeRelativeFilePath, name+string(os.PathSeparator)) ||
-			strings.HasPrefix(noMimeRelativeFilePath, name) ||
+			strings.HasPrefix(noMimeRelativeFilePath, name+"-") ||
 			strings.HasSuffix(noMimeRelativeFilePath, name) {
 			return true
 		}
